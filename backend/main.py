@@ -1,0 +1,35 @@
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from pathlib import Path
+from database import engine, Base
+import models
+from api.devices import router as devices_router
+from api.events import router as events_router
+from api.incidents import router as incidents_router
+from api.alerts import router as alerts_router
+from api.reports import router as reports_router
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="VEX Security API",
+    version="1.0.0"
+)
+
+app.include_router(devices_router)
+app.include_router(events_router)
+app.include_router(incidents_router)
+app.include_router(alerts_router)
+app.include_router(reports_router)
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "online",
+        "service": "VEX Security API"
+    }
+
+@app.get("/dashboard")
+def dashboard():
+    dashboard_file = Path(__file__).parent / "dashboard" / "index.html"
+    return FileResponse(dashboard_file)

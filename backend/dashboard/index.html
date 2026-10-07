@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEX Security SOC</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #080b12;
+            color: #ffffff;
+        }
+
+        header {
+            padding: 20px 30px;
+            background: #0e1420;
+            border-bottom: 1px solid #263044;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        header p {
+            color: #8d99ad;
+            margin-bottom: 0;
+        }
+
+        .status {
+            color: #35e08a;
+            font-weight: bold;
+        }
+
+        .container {
+            padding: 25px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #263044;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card h3 {
+            color: #8d99ad;
+            margin-top: 0;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #111827;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #263044;
+        }
+
+        th {
+            color: #8d99ad;
+        }
+
+        .critical {
+            color: #ff4d6d;
+            font-weight: bold;
+        }
+        .high {
+            color: #ff9f43;
+            font-weight: bold;
+        }
+        .medium {
+            color: #ffd166;
+            font-weight: bold;
+        }
+        .low {
+            color: #35e08a;
+            font-weight: bold;
+        }
+
+        @media (max-width: 1000px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛡 VEX Security SOC</h1>
+    <p>
+        Local Security Operations Dashboard ·
+        <span class="status">● ONLINE</span>
+    </p>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Threats</h3>
+            <div class="number" id="totalThreats">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Critical</h3>
+            <div class="number critical" id="critical">0</div>
+        </div>
+
+        <div class="card">
+            <h3>High</h3>
+            <div class="number high" id="high">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Blocked</h3>
+            <div class="number" id="blocked">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Devices</h3>
+            <div class="number" id="devices">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Medium</h3>
+            <div class="number medium" id="medium">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Low</h3>
+            <div class="number low" id="low">0</div>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Live Threat Events</h2>
+
+        <div style="overflow-x:auto;">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event ID</th>
+                        <th>Threat</th>
+                        <th>Risk</th>
+                        <th>Level</th>
+                        <th>Action</th>
+                        <th>Source</th>
+                        <th>Device</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="eventsTable">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+async function loadThreatEvents() {
+    try {
+        const response = await fetch(
+            "/events/?t=" + Date.now()
+        );
+
+        if (!response.ok) {
+            throw new Error("Events API HTTP " + response.status);
+        }
+
+        const events = await response.json();
+        console.log("VEX EVENTS DATA:", events);
+
+        const table = document.getElementById("eventsTable");
+        table.innerHTML = "";
+
+        if (!Array.isArray(events) || events.length === 0) {
+            table.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#8d99ad;">No threat events found</td></tr>`;
+            return;
+        }
+
+        events.forEach(event => {
+
+            const row = document.createElement("tr");
+
+            const level =
+                String(event.risk_level || "UNKNOWN").toUpperCase();
+
+            const levelClass =
+                level.toLowerCase();
+
+            row.innerHTML = `
+                <td>${event.event_id || "-"}</td>
+
+                <td>${event.threat_type || "-"}</td>
+
+                <td>${event.risk_score ?? 0}</td>
+
+                <td class="${levelClass}">
+                    ${level}
+                </td>
+
+                <td>${event.action || "-"}</td>
+
+                <td>${event.source || "-"}</td>
+
+                <td>${event.device_id || "-"}</td>
+
+                <td>
+                    ${event.timestamp
+                        ? new Date(event.timestamp).toLocaleString()
+                        : "-"}
+                </td>
+            `;
+
+            table.appendChild(row);
+        });
+
+    } catch (error) {
+
+        console.error(
+            "VEX EVENT ERROR:",
+            error
+        );
+
+    }
+}
+
+async function updateDashboard() {
+    try {
+        const response = await fetch("/reports/summary?t=" + Date.now());
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        console.log("VEX DASHBOARD DATA:", data);
+
+        document.getElementById("totalThreats").textContent =
+            data.total_threats ?? 0;
+
+        document.getElementById("critical").textContent =
+            data.critical ?? 0;
+
+        document.getElementById("high").textContent =
+            data.high ?? 0;
+
+        document.getElementById("medium").textContent =
+            data.medium ?? 0;
+
+        document.getElementById("low").textContent =
+            data.low ?? 0;
+
+        document.getElementById("blocked").textContent =
+            data.blocked ?? 0;
+
+        document.getElementById("devices").textContent =
+            data.devices ?? 0;
+
+    } catch (error) {
+        console.error("VEX DASHBOARD ERROR:", error);
+    }
+}
+
+updateDashboard();
+loadThreatEvents();
+
+setInterval(updateDashboard, 3000);
+setInterval(loadThreatEvents, 3000);
+</script>
+
+</body>
+</html>
