@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,9 +19,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vex.security.monitor.StorageScanner
+import com.vex.security.scanner.FileScanner
+import com.vex.security.security.ThreatEngine
+import com.vex.security.security.ThreatIndicators
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeScreen(
@@ -29,10 +38,73 @@ fun HomeScreen(
     onNavigateToAiCheck: () -> Unit = {},
     onNavigateToNoMetadataCheck: () -> Unit = {},
     onNavigateToUsbCheck: () -> Unit = {},
+    onNavigateToQrCheck: () -> Unit = {},
     onNavigateToFileScan: () -> Unit = {},
     onNavigateToUrlScan: () -> Unit = {},
     onNavigateToDashboard: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var scanning by remember { mutableStateOf(false) }
+    var riskStatus by remember { mutableStateOf("SAFE") }
+    var riskColor by remember { mutableStateOf(Color(0xFF35E08A)) } // Green
+    var riskMessage by remember { mutableStateOf("Everything is good\nNo threats detected") }
+    var lastScanText by remember { mutableStateOf("2 hours ago") }
+
+    val startQuickScan = {
+        if (!scanning) {
+            scanning = true
+            riskMessage = "Scanning phone storage automatically..."
+            scope.launch {
+                val files = withContext(Dispatchers.IO) {
+                    StorageScanner.getRecentFiles(context)
+                }
+
+                delay(1500) // Realistic scanning feedback delay
+
+                var maxScore = 0
+                for (file in files) {
+                    val metadata = FileScanner.scanFile(context, file.uri, "QUICK_SCAN")
+                    val indicators = mutableListOf<String>()
+                    if (metadata.extension == null || metadata.sizeBytes > 120_000_000) {
+                        indicators.add(ThreatIndicators.UNKNOWN_FILE_TYPE)
+                    }
+                    val analysis = ThreatEngine.analyze(indicators, context)
+                    if (analysis.score > maxScore) {
+                        maxScore = analysis.score
+                    }
+                }
+
+                when {
+                    maxScore >= 75 -> {
+                        riskStatus = "QUARANTINE"
+                        riskColor = Color(0xFFFF4D6D) // Red
+                        riskMessage = "Harmful file present!\nImmediate action required."
+                    }
+                    maxScore >= 50 -> {
+                        riskStatus = "BLOCK"
+                        riskColor = Color(0xFFFF9F43) // Orange
+                        riskMessage = "Suspicious threat blocked."
+                    }
+                    maxScore >= 25 -> {
+                        riskStatus = "WARN"
+                        riskColor = Color(0xFFFFD166) // Yellow
+                        riskMessage = "Warning: Review file activity."
+                    }
+                    else -> {
+                        riskStatus = "SAFE"
+                        riskColor = Color(0xFF35E08A) // Green
+                        riskMessage = "Everything is good\nNo threats detected."
+                    }
+                }
+
+                scanning = false
+                lastScanText = "Just now"
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -91,11 +163,11 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
-                                    .background(Color(0xFF35E08A), shape = RoundedCornerShape(50))
+                                    .background(riskColor, shape = RoundedCornerShape(50))
                             )
                             Text(
-                                text = "Device Protected",
-                                color = Color(0xFF00FFE0),
+                                text = if (riskStatus == "SAFE") "Device Protected" else "Threat Alert",
+                                color = riskColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -137,15 +209,15 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "LOW",
-                            color = Color(0xFF35E08A),
-                            fontSize = 36.sp,
+                            text = riskStatus,
+                            color = riskColor,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Your device is safe\nNo immediate threats",
+                            text = riskMessage,
                             color = Color(0xFFB0C4DE),
                             fontSize = 12.sp
                         )
@@ -170,7 +242,7 @@ fun HomeScreen(
                                 )
                                 Column {
                                     Text("Last Scan", color = Color(0xFF80A0B0), fontSize = 10.sp)
-                                    Text("2 hours ago", color = Color(0xFFFFFFFF), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(lastScanText, color = Color(0xFFFFFFFF), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -189,24 +261,35 @@ fun HomeScreen(
                                 useCenter = false,
                                 style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                             )
+                            // Safe segment
                             drawArc(
-                                color = Color(0xFF35E08A),
+                                color = if (riskStatus == "SAFE") Color(0xFF35E08A) else Color(0xFF35E08A).copy(alpha = 0.3f),
                                 startAngle = 135f,
-                                sweepAngle = 90f,
+                                sweepAngle = 67.5f,
                                 useCenter = false,
                                 style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                             )
+                            // Warn segment
                             drawArc(
-                                color = Color(0xFFFFD166),
-                                startAngle = 225f,
-                                sweepAngle = 90f,
+                                color = if (riskStatus == "WARN") Color(0xFFFFD166) else Color(0xFFFFD166).copy(alpha = 0.3f),
+                                startAngle = 202.5f,
+                                sweepAngle = 67.5f,
                                 useCenter = false,
                                 style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                             )
+                            // Block segment
                             drawArc(
-                                color = Color(0xFFFF4D6D),
-                                startAngle = 315f,
-                                sweepAngle = 90f,
+                                color = if (riskStatus == "BLOCK") Color(0xFFFF9F43) else Color(0xFFFF9F43).copy(alpha = 0.3f),
+                                startAngle = 270f,
+                                sweepAngle = 67.5f,
+                                useCenter = false,
+                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                            )
+                            // Quarantine segment
+                            drawArc(
+                                color = if (riskStatus == "QUARANTINE") Color(0xFFFF4D6D) else Color(0xFFFF4D6D).copy(alpha = 0.3f),
+                                startAngle = 337.5f,
+                                sweepAngle = 67.5f,
                                 useCenter = false,
                                 style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                             )
@@ -214,22 +297,34 @@ fun HomeScreen(
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Safe",
-                                tint = Color(0xFF00FFE0),
+                                imageVector = when (riskStatus) {
+                                    "QUARANTINE" -> Icons.Default.Warning
+                                    "BLOCK" -> Icons.Default.Block
+                                    "WARN" -> Icons.Default.Info
+                                    else -> Icons.Default.CheckCircle
+                                },
+                                contentDescription = riskStatus,
+                                tint = riskColor,
                                 modifier = Modifier.size(28.dp)
                             )
-                            Text("RISK", color = Color(0xFF80A0B0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = riskStatus,
+                                color = riskColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
             }
         }
 
-        // Quick Scan Banner
+        // Quick Scan Banner ("CHECK YOUR PHONE")
         item {
             CyberCard(
-                modifier = Modifier.clickable { onNavigateToApkCheck() }
+                modifier = Modifier.clickable {
+                    startQuickScan()
+                }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -258,22 +353,34 @@ fun HomeScreen(
                         Column {
                             Text("QUICK SCAN", color = Color(0xFF80A0B0), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text("CHECK YOUR PHONE", color = Color(0xFFFFFFFF), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("Scan for threats, malware, risky files", color = Color(0xFFA0B0C0), fontSize = 11.sp)
+                            Text(
+                                text = if (scanning) "Scanning everything automatically..." else "Tap to quick scan everything automatically",
+                                color = if (scanning) Color(0xFF00FFE0) else Color(0xFFA0B0C0),
+                                fontSize = 11.sp
+                            )
                         }
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(Color(0xFF00FFE0), RoundedCornerShape(50)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Go",
-                            tint = Color(0xFF000810),
-                            modifier = Modifier.size(20.dp)
+                    if (scanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(28.dp),
+                            color = Color(0xFF00FFE0),
+                            strokeWidth = 3.dp
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color(0xFF00FFE0), RoundedCornerShape(50)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "Go",
+                                tint = Color(0xFF000810),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -296,7 +403,7 @@ fun HomeScreen(
                             icon = Icons.Default.QrCode,
                             title = "QR PHOTOS CHECK",
                             subtitle = "Scan QR codes from camera or gallery",
-                            onClick = onNavigateToUrlScan
+                            onClick = onNavigateToQrCheck
                         )
                     }
                 }
@@ -363,7 +470,16 @@ fun HomeScreen(
                         )
                         Column {
                             Text("Recent Activity", color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("No threats detected today", color = Color(0xFF35E08A), fontSize = 11.sp)
+                            Text(
+                                text = when (riskStatus) {
+                                    "QUARANTINE" -> "Harmful threat detected in automatic scan"
+                                    "BLOCK" -> "Suspicious file blocked"
+                                    "WARN" -> "Warning items found"
+                                    else -> "No threats detected today"
+                                },
+                                color = riskColor,
+                                fontSize = 11.sp
+                            )
                         }
                     }
                     Icon(
@@ -412,16 +528,17 @@ fun FeatureItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .height(110.dp)
             .border(1.dp, Color(0xFF005566).copy(alpha = 0.5f), RoundedCornerShape(14.dp))
             .clip(RoundedCornerShape(14.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp)
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -430,7 +547,8 @@ fun FeatureItem(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(36.dp)
+                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.6f), RoundedCornerShape(10.dp))
                         .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -441,32 +559,30 @@ fun FeatureItem(
                         modifier = Modifier.size(20.dp)
                     )
                 }
+
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = "Open",
-                    tint = Color(0xFF507080),
-                    modifier = Modifier.size(18.dp)
+                    tint = Color(0xFF7090A0),
+                    modifier = Modifier.size(16.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = title,
-                color = Color(0xFFFFFFFF),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = subtitle,
-                color = Color(0xFF80A0B0),
-                fontSize = 10.sp,
-                lineHeight = 13.sp
-            )
+            Column {
+                Text(
+                    text = title,
+                    color = Color(0xFFFFFFFF),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    color = Color(0xFF80A0B0),
+                    fontSize = 9.sp,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

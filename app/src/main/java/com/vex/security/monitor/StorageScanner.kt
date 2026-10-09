@@ -2,7 +2,7 @@ package com.vex.security.monitor
 
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
+import android.os.Environment
 
 object StorageScanner {
 
@@ -14,58 +14,62 @@ object StorageScanner {
     fun getRecentFiles(
         context: Context
     ): List<StorageFile> {
+        val files = mutableMapOf<String, StorageFile>()
 
-        val files = mutableListOf<StorageFile>()
-
-        val projection = arrayOf(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DISPLAY_NAME
-        )
-
-        val uri = MediaStore.Files.getContentUri("external")
-
-        context.contentResolver.query(
-            uri,
-            projection,
-            null,
-            null,
-            "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
-        )?.use { cursor ->
-
-            val idIndex =
-                cursor.getColumnIndex(
-                    MediaStore.Files.FileColumns._ID
-                )
-
-            val nameIndex =
-                cursor.getColumnIndex(
-                    MediaStore.Files.FileColumns.DISPLAY_NAME
-                )
-
-            while (cursor.moveToNext() && files.size < 20) {
-
-                if (idIndex >= 0 && nameIndex >= 0) {
-
-                    val id = cursor.getLong(idIndex)
-
-                    val name = cursor.getString(nameIndex)
-
-                    val fileUri =
-                        Uri.withAppendedPath(
-                            uri,
-                            id.toString()
+        // 1. Scan Downloads directory (/sdcard/Download) directly
+        try {
+            val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadDir.exists() && downloadDir.isDirectory) {
+                downloadDir.listFiles()?.forEach { file ->
+                    if (file.isFile) {
+                        val uri = Uri.fromFile(file)
+                        files[file.name] = StorageFile(
+                            name = file.name,
+                            uri = uri
                         )
-
-                    files.add(
-                        StorageFile(
-                            name = name,
-                            uri = fileUri
-                        )
-                    )
+                    }
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
-        return files
+        // 2. Also check external storage root if accessible
+        try {
+            val externalStorage = Environment.getExternalStorageDirectory()
+            if (externalStorage.exists() && externalStorage.isDirectory) {
+                externalStorage.listFiles()?.forEach { file ->
+                    if (file.isFile) {
+                        val uri = Uri.fromFile(file)
+                        files[file.name] = StorageFile(
+                            name = file.name,
+                            uri = uri
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 3. Scan app internal cache & files dirs
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.isFile) {
+                    val uri = Uri.fromFile(file)
+                    files[file.name] = StorageFile(name = file.name, uri = uri)
+                }
+            }
+            context.filesDir.listFiles()?.forEach { file ->
+                if (file.isFile) {
+                    val uri = Uri.fromFile(file)
+                    files[file.name] = StorageFile(name = file.name, uri = uri)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return files.values.toList()
     }
 }

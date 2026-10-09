@@ -21,6 +21,8 @@ data class ThreatEventRequest(
     val action: String,
     val status: String,
     val indicators: List<String>,
+    val explanation: String = "",
+    val recommendation: String = "",
     val source: String,
     val timestamp: Long
 )

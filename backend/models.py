@@ -21,6 +21,8 @@ class ThreatEvent(Base):
     action = Column(String)
     status = Column(String)
     indicators = Column(Text)
+    explanation = Column(Text)
+    recommendation = Column(Text)
     source = Column(String)
     timestamp = Column(Integer)
 
@@ -47,3 +49,24 @@ class Alert(Base):
     threat_type = Column(String)
     timestamp = Column(Integer)
     acknowledged = Column(Integer)
+
+class DetectionTestRun(Base):
+    __tablename__ = "detection_test_runs"
+    id = Column(Integer, primary_key=True, index=True)
+    test_id = Column(String, index=True)
+    test_name = Column(String)
+    risk_score = Column(Integer)
+    expected_level = Column(String)
+    actual_level = Column(String)
+    result = Column(String)
+    action = Column(String)
+    explanation = Column(Text)
+    recommendation = Column(Text)
+    timestamp = Column(BigInteger)
+
+class SecurityPolicy(Base):
+    __tablename__ = "security_policies"
+    id = Column(Integer, primary_key=True, index=True)
+    risk_level = Column(String, unique=True, index=True)
+    action = Column(String)
+    enabled = Column(Integer, default=1)

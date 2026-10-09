@@ -25,4 +25,7 @@ interface ApiService {
 
     @GET("events/")
     suspend fun getThreatEvents(): Response<List<Map<String, Any>>>
+
+    @GET("policies/")
+    suspend fun getPolicies(): Map<String, String>
 }

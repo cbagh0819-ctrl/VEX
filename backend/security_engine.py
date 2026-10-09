@@ -1,3 +1,25 @@
+def get_action(risk_level: str) -> str:
+    return {
+        "SAFE": "ALLOW",
+        "WARN": "WARN",
+        "BLOCK": "BLOCK",
+        "QUARANTINE": "QUARANTINE"
+    }.get(risk_level, "ALLOW")
+
+def get_risk_level_and_action(score: int):
+    score = min(max(score, 0), 100)
+    if score <= 24:
+        level = "SAFE"
+    elif score <= 49:
+        level = "WARN"
+    elif score <= 74:
+        level = "BLOCK"
+    else:
+        level = "QUARANTINE"
+
+    action = get_action(level)
+    return level, action
+
 def analyze_threat(indicators: list[str]) -> dict:
     score = 0
     for ind in indicators:
@@ -17,20 +39,5 @@ def analyze_threat(indicators: list[str]) -> dict:
             score += 5
     score = min(max(score, 0), 100)
 
-    level = "LOW"
-    if score >= 80:
-        level = "CRITICAL"
-    elif score >= 60:
-        level = "HIGH"
-    elif score >= 30:
-        level = "MEDIUM"
-
-    action = "ALLOW"
-    if score >= 80:
-        action = "BLOCK"
-    elif score >= 60:
-        action = "QUARANTINE"
-    elif score >= 30:
-        action = "WARN"
-
+    level, action = get_risk_level_and_action(score)
     return {"risk_score": score, "risk_level": level, "action": action}

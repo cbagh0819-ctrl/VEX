@@ -54,13 +54,6 @@ class FileScanWorker(
                     file.uri
                 )
 
-                println(
-                    "VEX_METADATA: " +
-                        "name=${extractedMetadata.name}, " +
-                        "size=${extractedMetadata.size}, " +
-                        "mime=${extractedMetadata.mimeType}"
-                )
-
                 val fileKey = createFileKey(
                     metadata.fileName,
                     metadata.sha256
@@ -78,7 +71,7 @@ class FileScanWorker(
                 }
 
                 val analysis =
-                    ThreatEngine.analyze(indicators)
+                    ThreatEngine.analyze(indicators, applicationContext)
 
                 // Send event to backend
                 runBlocking {
@@ -99,14 +92,27 @@ class FileScanWorker(
                     .putBoolean(fileKey, true)
                     .apply()
 
-                // Security alert
-                if (analysis.riskScore >= 30) {
-
-                    SecurityNotification.show(
-                        applicationContext,
-                        "VEX Security Alert",
-                        "${metadata.fileName} detected as ${analysis.riskLevel}"
-                    )
+                // Security alert based on risk level and score
+                when (analysis.riskLevel) {
+                    "WARN" -> {
+                        SecurityNotification.showWarning(
+                            applicationContext,
+                            "${metadata.fileName} detected as WARN (Score: ${analysis.riskScore})"
+                        )
+                    }
+                    "QUARANTINE", "BLOCK" -> {
+                        if (analysis.riskScore >= 75) {
+                            SecurityNotification.showHarmfulAlert(
+                                applicationContext,
+                                metadata.fileName
+                            )
+                        } else {
+                            SecurityNotification.showWarning(
+                                applicationContext,
+                                "${metadata.fileName} detected as ${analysis.riskLevel} (Score: ${analysis.riskScore})"
+                            )
+                        }
+                    }
                 }
             }
 

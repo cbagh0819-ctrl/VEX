@@ -18,11 +18,11 @@ import com.vex.security.ui.home.SocDashboardScreen
 import com.vex.security.ui.scan.AiPhotoCheckScreen
 import com.vex.security.ui.scan.AppScanDetailScreen
 import com.vex.security.ui.scan.ApkCheckScreen
-import com.vex.security.ui.scan.FileScanScreen
 import com.vex.security.ui.scan.NoMetadataCheckScreen
 import com.vex.security.ui.scan.QrCheckScreen
 import com.vex.security.ui.scan.UrlScanScreen
 import com.vex.security.ui.scan.UsbOtgCheckScreen
+import com.vex.security.ui.settings.SettingsScreen
 import com.vex.security.ui.threats.ThreatListScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -85,42 +85,39 @@ fun MainScreen() {
                     onNavigateToAiCheck = { selectedRoute = Screen.AiPhotoCheck.route },
                     onNavigateToNoMetadataCheck = { selectedRoute = Screen.NoMetadataCheck.route },
                     onNavigateToUsbCheck = { selectedRoute = Screen.UsbCheck.route },
-                    onNavigateToUrlScan = { selectedRoute = Screen.QrCheck.route },
+                    onNavigateToQrCheck = { selectedRoute = Screen.QrCheck.route },
+                    onNavigateToUrlScan = { selectedRoute = Screen.UrlCheck.route },
                     onNavigateToFileScan = { selectedRoute = Screen.Reports.route },
                     onNavigateToDashboard = { selectedRoute = Screen.Dashboard.route }
                 )
                 Screen.ApkCheck.route -> ApkCheckScreen(
                     onBackPressed = { selectedRoute = Screen.Home.route },
-                    onSelectApkClicked = { selectedRoute = Screen.Reports.route },
-                    onAppItemClicked = { selectedRoute = Screen.AppScanDetail.route }
+                    onSelectApkClicked = { selectedRoute = Screen.Reports.route }
                 )
                 Screen.AppScanDetail.route -> AppScanDetailScreen(
                     onBackPressed = { selectedRoute = Screen.ApkCheck.route },
                     onSelectApkClicked = { selectedRoute = Screen.Reports.route }
                 )
                 Screen.QrCheck.route -> QrCheckScreen(
-                    onBackPressed = { selectedRoute = Screen.Home.route },
-                    onScanCameraClicked = { selectedRoute = Screen.UrlCheck.route },
-                    onSelectGalleryClicked = { selectedRoute = Screen.UrlCheck.route }
+                    onBackPressed = { selectedRoute = Screen.Home.route }
                 )
                 Screen.AiPhotoCheck.route -> AiPhotoCheckScreen(
-                    onBackPressed = { selectedRoute = Screen.Home.route },
-                    onTakeBPhotoClicked = { selectedRoute = Screen.Reports.route },
-                    onChooseGalleryClicked = { selectedRoute = Screen.Reports.route }
+                    onBackPressed = { selectedRoute = Screen.Home.route }
                 )
                 Screen.NoMetadataCheck.route -> NoMetadataCheckScreen(
-                    onBackPressed = { selectedRoute = Screen.Home.route },
-                    onTakeBPhotoClicked = { selectedRoute = Screen.Reports.route },
-                    onChooseGalleryClicked = { selectedRoute = Screen.Reports.route }
+                    onBackPressed = { selectedRoute = Screen.Home.route }
                 )
                 Screen.UsbCheck.route -> UsbOtgCheckScreen(
-                    onBackPressed = { selectedRoute = Screen.Home.route },
-                    onScanDeviceClicked = { selectedRoute = Screen.Reports.route }
+                    onBackPressed = { selectedRoute = Screen.Home.route }
                 )
-                Screen.UrlCheck.route -> UrlScanScreen()
-                Screen.Reports.route -> FileScanScreen()
+                Screen.UrlCheck.route -> UrlScanScreen(
+                    onBackPressed = { selectedRoute = Screen.Home.route }
+                )
+                Screen.Reports.route -> ThreatListScreen()
                 Screen.Dashboard.route -> SocDashboardScreen()
-                Screen.Settings.route -> ThreatListScreen()
+                Screen.Settings.route -> SettingsScreen(
+                    onBackPressed = { selectedRoute = Screen.Home.route }
+                )
             }
         }
     }

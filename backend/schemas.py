@@ -19,6 +19,8 @@ class ThreatEventCreate(BaseModel):
     action: str
     status: str
     indicators: List[str]
+    explanation: str = ""
+    recommendation: str = ""
     source: str
     timestamp: int
 

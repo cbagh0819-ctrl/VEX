@@ -1,6 +1,5 @@
 package com.vex.security.ui.scan
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,19 +16,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vex.security.notification.AlarmPlayer
+import com.vex.security.notification.SecurityNotification
+import com.vex.security.security.ThreatExplanation
+import com.vex.security.ui.components.ThreatExplanationCard
+
+data class DemoFolderResult(
+    val title: String,
+    val description: String,
+    val riskScore: Int,
+    val riskLevel: String,
+    val action: String,
+    val explanation: ThreatExplanation,
+    val indicators: List<String>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UsbOtgCheckScreen(
-    onBackPressed: () -> Unit = {},
-    onScanDeviceClicked: () -> Unit = {}
+    onBackPressed: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
+    var activeResult by remember { mutableStateOf<DemoFolderResult?>(null) }
+    var alarmActive by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showBlockDialog by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -74,51 +91,61 @@ fun UsbOtgCheckScreen(
 
                     Column {
                         Text(
-                            text = "USB/OTG CHECK",
+                            text = "USB/OTG FILE INSPECTION",
                             color = Color(0xFFFFFFFF),
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "Scan USB devices and external storage",
+                            text = "Interactive USB & MTP Demo Test Lab",
                             color = Color(0xFF80A0B0),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-
-                // Rescan Pill Button
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
-                        .clickable { onScanDeviceClicked() }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Rescan",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Rescan",
-                            color = Color(0xFF00FFE0),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 10.sp
                         )
                     }
                 }
             }
         }
 
-        // Top Banner Card ("Connect USB/OTG Device")
+        if (alarmActive) {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFFFF4D6D), RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0D14))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFFF4D6D))
+                            Text("VEX CRITICAL ALARM ACTIVE", color = Color(0xFFFF4D6D), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                        Text(
+                            "Folder contains dangerous malware payload! Immediate action required.",
+                            color = Color(0xFFFFFFFF),
+                            fontSize = 12.sp
+                        )
+                        Button(
+                            onClick = {
+                                AlarmPlayer.stopAlarm(context)
+                                alarmActive = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
+                        ) {
+                            Text("STOP ALARM", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3 Testing Buttons Card
         item {
             Card(
                 modifier = Modifier
@@ -129,374 +156,236 @@ fun UsbOtgCheckScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(54.dp)
-                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Usb,
-                                    contentDescription = "USB",
-                                    tint = Color(0xFF00FFE0),
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            }
-
-                            Column {
-                                Text(
-                                    text = "Connect USB/OTG Device",
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Scan external storage for malware, suspicious\nfiles and risky content.",
-                                    color = Color(0xFF80A0B0),
-                                    fontSize = 11.sp,
-                                    lineHeight = 15.sp
-                                )
-                            }
-                        }
-                    }
-
-                    // USB Device Detected Sub-card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF060F15))
-                    ) {
-                        Row(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                .size(54.dp)
+                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
+                                .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .background(Color(0xFF35E08A), shape = RoundedCornerShape(50))
+                            Icon(
+                                imageVector = Icons.Default.Usb,
+                                contentDescription = "USB",
+                                tint = Color(0xFF00FFE0),
+                                modifier = Modifier.size(30.dp)
                             )
-                            Column {
-                                Text(
-                                    text = "USB Device Detected",
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "SanDisk Cruzer Blade (32 GB)",
-                                    color = Color(0xFF80A0B0),
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                    }
-
-                    // Scan Device Button
-                    Button(
-                        onClick = { onScanDeviceClicked() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Scan",
-                                    tint = Color(0xFF000810),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = "SCAN DEVICE",
-                                    color = Color(0xFF000810),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
-                                    letterSpacing = 1.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Scan Summary Section
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Scan Summary",
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Total Files", count = "128", color = Color(0xFF00FFE0), icon = Icons.Default.Description)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Safe", count = "102", color = Color(0xFF35E08A), icon = Icons.Default.Security)
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Suspicious", count = "18", color = Color(0xFFFFD166), icon = Icons.Default.Warning)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Malicious", count = "8", color = Color(0xFFFF4D6D), icon = Icons.Default.BugReport)
-                    }
-                }
-            }
-        }
-
-        // Risk Overview Card
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Risk Overview",
-                        color = Color(0xFFFFFFFF),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(140.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Canvas(modifier = Modifier.size(110.dp)) {
-                                drawArc(
-                                    color = Color(0xFF0A2530),
-                                    startAngle = 135f,
-                                    sweepAngle = 270f,
-                                    useCenter = false,
-                                    style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                                )
-                                drawArc(
-                                    color = Color(0xFF35E08A),
-                                    startAngle = 135f,
-                                    sweepAngle = 80f,
-                                    useCenter = false,
-                                    style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                                )
-                                drawArc(
-                                    color = Color(0xFFFFD166),
-                                    startAngle = 215f,
-                                    sweepAngle = 90f,
-                                    useCenter = false,
-                                    style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                                )
-                                drawArc(
-                                    color = Color(0xFFFF4D6D),
-                                    startAngle = 305f,
-                                    sweepAngle = 100f,
-                                    useCenter = false,
-                                    style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                                )
-                            }
-
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("HIGH", color = Color(0xFFFF4D6D), fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                            }
                         }
 
-                        Column(
-                            modifier = Modifier.weight(1.3f),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            CategoryStatRow(icon = Icons.Default.Description, label = "Documents", files = "40 files", threats = "2 threats", threatColor = Color(0xFFFF9F43))
-                            CategoryStatRow(icon = Icons.Default.Image, label = "Images", files = "56 files", threats = "3 threats", threatColor = Color(0xFFFF9F43))
-                            CategoryStatRow(icon = Icons.Default.VideoLibrary, label = "Videos", files = "18 files", threats = "1 threat", threatColor = Color(0xFFFF9F43))
-                            CategoryStatRow(icon = Icons.Default.Android, label = "APK Files", files = "6 files", threats = "4 threats", threatColor = Color(0xFFFF4D6D))
-                            CategoryStatRow(icon = Icons.Default.Settings, label = "Others", files = "8 files", threats = "0 threats", threatColor = Color(0xFF35E08A))
-                        }
-                    }
-                }
-            }
-        }
-
-        // Scan Results Section
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Scan Results",
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(20.dp))
-                                .background(Color(0xFF0A141A), RoundedCornerShape(20.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color(0xFF00FFE0), modifier = Modifier.size(14.dp))
-                                Text("Filter", color = Color(0xFF00FFE0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(14.dp))
-                            }
+                        Column {
+                            Text(
+                                text = "USB / MTP Test Simulation",
+                                color = Color(0xFFFFFFFF),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Click a test button below to simulate folder insertion",
+                                color = Color(0xFF80A0B0),
+                                fontSize = 11.sp
+                            )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ScanResultItem(icon = Icons.Default.Android, name = "GameHack_v2.1.apk", path = "/USB/Android/", size = "12 MB", date = "24 Sep 2026", status = "MALICIOUS", color = Color(0xFFFF4D6D))
-                        ScanResultItem(icon = Icons.Default.Description, name = "invoice.pdf", path = "/USB/Docs/", size = "2.4 MB", date = "23 Sep 2026", status = "SUSPICIOUS", color = Color(0xFFFF9F43))
-                        ScanResultItem(icon = Icons.Default.Image, name = "holiday_photo.jpg", path = "/USB/Photos/", size = "4.1 MB", date = "23 Sep 2026", status = "SAFE", color = Color(0xFF35E08A))
-                        ScanResultItem(icon = Icons.Default.Settings, name = "setup.exe", path = "/USB/Software/", size = "8.7 MB", date = "22 Sep 2026", status = "MALICIOUS", color = Color(0xFFFF4D6D))
-                        ScanResultItem(icon = Icons.Default.Description, name = "notes.txt", path = "/USB/", size = "12 KB", date = "22 Sep 2026", status = "SAFE", color = Color(0xFF35E08A))
+                    // 1. Insert Safe Button
+                    Button(
+                        onClick = {
+                            AlarmPlayer.stopAlarm(context)
+                            alarmActive = false
+                            activeResult = DemoFolderResult(
+                                title = "Safe Folder (/USB/Photos_2026/)",
+                                description = "Folder contains standard documents and vacation photos. It is a safe folder.",
+                                riskScore = 10,
+                                riskLevel = "SAFE",
+                                action = "ALLOW",
+                                indicators = listOf("FILE_SAFE_DEMO"),
+                                explanation = ThreatExplanation(
+                                    reasons = listOf("Original Safe Folder Detected", "No suspicious executable or script signatures found", "Standard media file structure verified"),
+                                    recommendation = "The folder is safe and allowed."
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF35E08A))
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF000810))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("INSERT SAFE", color = Color(0xFF000810), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+
+                    // 2. Insert Warn Button
+                    Button(
+                        onClick = {
+                            AlarmPlayer.stopAlarm(context)
+                            alarmActive = false
+                            activeResult = DemoFolderResult(
+                                title = "Warning Folder (/USB/Downloads/)",
+                                description = "Folder contains unusual files or unrecognized structure. Warning detected.",
+                                riskScore = 35,
+                                riskLevel = "WARN",
+                                action = "WARN",
+                                indicators = listOf("FILE_WARN_DEMO", "SUSPICIOUS_FILENAME"),
+                                explanation = ThreatExplanation(
+                                    reasons = listOf("Unusual Folder Structure Detected", "Contains files with unrecognized or mixed extensions", "Requires user attention"),
+                                    recommendation = "Review folder contents before opening any files."
+                                )
+                            )
+                            SecurityNotification.showWarning(context, "Warning Folder detected unusual content (Score: 35)")
+                        },
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD166))
+                    ) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFF000810))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("INSERT WARN", color = Color(0xFF000810), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+
+                    // 3. Insert Harmful Button
+                    Button(
+                        onClick = {
+                            activeResult = DemoFolderResult(
+                                title = "Harmful Folder (/USB/Payloads/)",
+                                description = "Folder contains dangerous malware payload! Immediate action required.",
+                                riskScore = 85,
+                                riskLevel = "QUARANTINE",
+                                action = "QUARANTINE",
+                                indicators = listOf("FILE_HARMFUL_DEMO", "MALICIOUS_TEST_INDICATOR", "SUSPICIOUS_EXTENSION"),
+                                explanation = ThreatExplanation(
+                                    reasons = listOf("Dangerous Malware Payload Detected", "Matched known exploit signatures and hidden executable scripts", "High risk of device compromise"),
+                                    recommendation = "The folder has been quarantined. Block or delete immediately."
+                                )
+                            )
+                            alarmActive = true
+                            SecurityNotification.showHarmfulAlert(context, "Harmful Folder (/USB/Payloads/)")
+                        },
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
+                    ) {
+                        Icon(Icons.Default.BugReport, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("INSERT HARMFUL", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
             }
         }
 
-        // Bottom Action Buttons
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(46.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.Description, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(15.dp))
-                            Text("VIEW REPORT", color = Color(0xFF00FFE0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .weight(1.1f)
-                            .height(46.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(15.dp))
-                            Text("QUARANTINE", color = Color(0xFF00FFE0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                Button(
-                    onClick = { },
+        // Result Display Card
+        activeResult?.let { res ->
+            item {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues(0.dp)
+                        .border(
+                            1.dp,
+                            when (res.riskLevel) {
+                                "SAFE" -> Color(0xFF35E08A)
+                                "WARN" -> Color(0xFFFFD166)
+                                else -> Color(0xFFFF4D6D)
+                            }.copy(alpha = 0.6f),
+                            RoundedCornerShape(16.dp)
+                        ),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(Color(0xFF007788), Color(0xFF00FFE0))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Security, contentDescription = null, tint = Color(0xFF000810), modifier = Modifier.size(16.dp))
-                            Text("REMOVE THREATS", color = Color(0xFF000810), fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 1.sp)
+                            Text(
+                                text = res.title,
+                                color = Color(0xFFFFFFFF),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        when (res.riskLevel) {
+                                            "SAFE" -> Color(0xFF35E08A).copy(alpha = 0.2f)
+                                            "WARN" -> Color(0xFFFFD166).copy(alpha = 0.2f)
+                                            else -> Color(0xFFFF4D6D).copy(alpha = 0.2f)
+                                        },
+                                        RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = res.riskLevel,
+                                    color = when (res.riskLevel) {
+                                        "SAFE" -> Color(0xFF35E08A)
+                                        "WARN" -> Color(0xFFFFD166)
+                                        else -> Color(0xFFFF4D6D)
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Text(res.description, color = Color(0xFF80A0B0), fontSize = 12.sp)
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("${res.riskScore} / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("ACTION", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(res.action, color = Color(0xFFFFFFFF), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        ThreatExplanationCard(
+                            explanation = res.explanation,
+                            indicators = res.indicators
+                        )
+
+                        if (res.riskLevel == "QUARANTINE") {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Button(
+                                    onClick = { showBlockDialog = true },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9F43))
+                                ) {
+                                    Icon(Icons.Default.Block, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("1. BLOCK", color = Color.Black, fontWeight = FontWeight.Bold)
+                                }
+
+                                Button(
+                                    onClick = { showDeleteDialog = true },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
+                                ) {
+                                    Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("2. DELETE", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
                 }
@@ -504,142 +393,52 @@ fun UsbOtgCheckScreen(
         }
 
         item {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
-}
 
-@Composable
-fun CategoryStatRow(
-    icon: ImageVector,
-    label: String,
-    files: String,
-    threats: String,
-    threatColor: Color
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF005566), RoundedCornerShape(10.dp))
-            .background(Color(0xFF060F15), RoundedCornerShape(10.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(8.dp))
-                    .background(Color(0xFF0A1F28), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = Color(0xFF00FFE0),
-                    modifier = Modifier.size(16.dp)
-                )
+    // Block Dialog
+    if (showBlockDialog) {
+        AlertDialog(
+            onDismissRequest = { showBlockDialog = false },
+            title = { Text("Folder Blocked") },
+            text = { Text("The harmful folder has been successfully blocked from access and quarantined.") },
+            confirmButton = {
+                Button(onClick = {
+                    AlarmPlayer.stopAlarm(context)
+                    alarmActive = false
+                    showBlockDialog = false
+                }) {
+                    Text("OK")
+                }
             }
-            Column {
-                Text(
-                    text = label,
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = files,
-                    color = Color(0xFF80A0B0),
-                    fontSize = 10.sp
-                )
-            }
-        }
-
-        Text(
-            text = threats,
-            color = threatColor,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
         )
     }
-}
 
-@Composable
-fun ScanResultItem(
-    icon: ImageVector,
-    name: String,
-    path: String,
-    size: String,
-    date: String,
-    status: String,
-    color: Color
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF060F15))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .border(1.dp, Color(0xFF005566), RoundedCornerShape(10.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
+    // Delete Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Demo Deletion Confirmation") },
+            text = { Text("Demo testing: Are you sure you want to delete this harmful folder payload?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        AlarmPlayer.stopAlarm(context)
+                        alarmActive = false
+                        activeResult = null
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = name,
-                        tint = Color(0xFF00FFE0),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Text("Delete")
                 }
-
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = name,
-                        color = Color(0xFFFFFFFF),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "$path · $size · $date",
-                        color = Color(0xFF80A0B0),
-                        fontSize = 10.sp
-                    )
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                    .background(color.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = status,
-                    color = color,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
+        )
     }
 }

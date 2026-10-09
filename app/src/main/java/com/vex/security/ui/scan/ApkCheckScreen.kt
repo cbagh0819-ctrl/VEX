@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,18 +24,19 @@ import androidx.compose.ui.unit.sp
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import com.vex.security.scanner.ApkScanResult
 import com.vex.security.scanner.ApkScanManager
+import com.vex.security.ui.components.ThreatExplanationCard
+import com.vex.security.repository.ThreatRepository
+import com.vex.security.utils.DeviceIdentity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApkCheckScreen(
     onBackPressed: () -> Unit = {},
-    onSelectApkClicked: () -> Unit = {},
-    onAppItemClicked: () -> Unit = {}
+    onSelectApkClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -66,6 +66,23 @@ fun ApkCheckScreen(
 
                     apkResult = result
 
+                    try {
+                        ThreatRepository.sendThreatEvent(
+                            deviceId = DeviceIdentity.getDeviceId(context),
+                            threatType = "APK",
+                            riskScore = result.riskScore,
+                            riskLevel = result.riskLevel,
+                            action = result.action,
+                            status = "OPEN",
+                            indicators = result.indicators,
+                            source = "ANDROID_APK_SCAN",
+                            explanation = result.explanation.reasons.joinToString(" | "),
+                            recommendation = result.explanation.recommendation
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
                 } catch (e: Exception) {
 
                     e.printStackTrace()
@@ -77,6 +94,7 @@ fun ApkCheckScreen(
             }
         }
     }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -131,38 +149,6 @@ fun ApkCheckScreen(
                             text = "Scan and analyze apps and APK files",
                             color = Color(0xFF80A0B0),
                             fontSize = 11.sp
-                        )
-                    }
-                }
-
-                // Scan APK Pill Button
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
-                        .clickable {
-                            apkPicker.launch(
-                                arrayOf("application/vnd.android.package-archive")
-                            )
-                        }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Description,
-                            contentDescription = "Scan",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Scan APK",
-                            color = Color(0xFF00FFE0),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -324,6 +310,32 @@ fun ApkCheckScreen(
 
                                 Text("Status: Scan Complete", color = Color(0xFF35E08A))
 
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text("${result.riskScore} / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text(result.riskLevel, color = when(result.riskLevel) {
+                                            "SAFE" -> Color(0xFF35E08A)
+                                            "WARN" -> Color(0xFFFFD166)
+                                            "BLOCK" -> Color(0xFFFF9F43)
+                                            else -> Color(0xFFFF4D6D)
+                                        }, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text("ACTION: ${result.action}", color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Text(
@@ -385,6 +397,13 @@ fun ApkCheckScreen(
                                     }
                                 }
 
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                ThreatExplanationCard(
+                                    explanation = result.explanation,
+                                    indicators = result.indicators
+                                )
+
                             }
                         }
                     }
@@ -392,103 +411,8 @@ fun ApkCheckScreen(
             }
         }
 
-        // Scan Summary Section
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Scan Summary",
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Total Scanned", count = "12", color = Color(0xFF00FFE0), icon = Icons.Default.Android)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Safe Apps", count = "8", color = Color(0xFF35E08A), icon = Icons.Default.Security)
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Suspicious", count = "3", color = Color(0xFFFFD166), icon = Icons.Default.Warning)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Malicious", count = "1", color = Color(0xFFFF4D6D), icon = Icons.Default.BugReport)
-                    }
-                }
-            }
-        }
-
-        // Risk Category Sections
-        item {
-            RiskCategoryCard(
-                category = "LOW",
-                count = "2 apps",
-                subtitle = "No significant threats found",
-                dotColor = Color(0xFF35E08A),
-                borderColor = Color(0xFF005566),
-                apps = listOf(
-                    AppItem("WhatsApp", "com.whatsapp", "LOW RISK", Color(0xFF35E08A), Icons.AutoMirrored.Filled.Chat),
-                    AppItem("Google Drive", "com.google.android.apps.drive", "LOW RISK", Color(0xFF35E08A), Icons.Default.Cloud)
-                ),
-                onAppItemClicked = onAppItemClicked
-            )
-        }
-
-        item {
-            RiskCategoryCard(
-                category = "MEDIUM",
-                count = "3 apps",
-                subtitle = "Contains suspicious permissions",
-                dotColor = Color(0xFFFFD166),
-                borderColor = Color(0xFF554400),
-                apps = listOf(
-                    AppItem("File Manager", "com.mi.android.filemanager", "MEDIUM RISK", Color(0xFFFFD166), Icons.Default.Folder),
-                    AppItem("Video Player", "com.video.player", "MEDIUM RISK", Color(0xFFFFD166), Icons.Default.PlayArrow)
-                ),
-                onAppItemClicked = onAppItemClicked
-            )
-        }
-
-        item {
-            RiskCategoryCard(
-                category = "HIGH",
-                count = "1 app",
-                subtitle = "Potentially harmful behavior detected",
-                dotColor = Color(0xFFFF9F43),
-                borderColor = Color(0xFF663300),
-                apps = listOf(
-                    AppItem("Unknown App", "com.unknown.app", "HIGH RISK", Color(0xFFFF9F43), Icons.Default.Android)
-                ),
-                onAppItemClicked = onAppItemClicked
-            )
-        }
-
-        item {
-            RiskCategoryCard(
-                category = "CRITICAL",
-                count = "1 app",
-                subtitle = "Malware detected",
-                dotColor = Color(0xFFFF4D6D),
-                borderColor = Color(0xFF660011),
-                apps = listOf(
-                    AppItem("MaliciousApp.apk", "com.malware.sample", "CRITICAL", Color(0xFFFF4D6D), Icons.Default.Warning)
-                ),
-                onAppItemClicked = onAppItemClicked
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }
@@ -529,172 +453,6 @@ fun SummaryCard(title: String, count: String, color: Color, icon: ImageVector) {
                 color = Color(0xFF80A0B0),
                 fontSize = 11.sp
             )
-        }
-    }
-}
-
-data class AppItem(
-    val name: String,
-    val packageName: String,
-    val riskLabel: String,
-    val riskColor: Color,
-    val icon: ImageVector
-)
-
-@Composable
-fun RiskCategoryCard(
-    category: String,
-    count: String,
-    subtitle: String,
-    dotColor: Color,
-    borderColor: Color,
-    apps: List<AppItem>,
-    onAppItemClicked: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .background(dotColor, shape = RoundedCornerShape(50))
-                    )
-                    Text(
-                        text = category,
-                        color = dotColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(20.dp))
-                            .background(Color(0xFF0A141A), RoundedCornerShape(20.dp))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("VIEW ALL", color = Color(0xFF00FFE0), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(12.dp))
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Expand",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "$count · $subtitle",
-                color = Color(0xFF80A0B0),
-                fontSize = 11.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                apps.forEach { app ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color(0xFF003344), RoundedCornerShape(10.dp))
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onAppItemClicked() },
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF060F15))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .background(Color(0xFF0A1F28), RoundedCornerShape(8.dp)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = app.icon,
-                                        contentDescription = app.name,
-                                        tint = Color(0xFF00FFE0),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-
-                                Column {
-                                    Text(
-                                        text = app.name,
-                                        color = Color(0xFFFFFFFF),
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = app.packageName,
-                                        color = Color(0xFF608090),
-                                        fontSize = 10.sp
-                                    )
-                                }
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .border(1.dp, app.riskColor.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                                    .background(app.riskColor.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = app.riskLabel,
-                                    color = app.riskColor,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

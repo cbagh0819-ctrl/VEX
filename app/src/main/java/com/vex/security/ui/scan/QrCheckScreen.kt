@@ -1,5 +1,8 @@
 package com.vex.security.ui.scan
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,499 +19,396 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vex.security.repository.ThreatRepository
+import com.vex.security.security.ThreatEngine
+import com.vex.security.security.UrlAnalyzer
+import com.vex.security.security.ThreatExplanation
+import com.vex.security.ui.components.ThreatExplanationCard
+import com.vex.security.utils.DeviceIdentity
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrCheckScreen(
-    onBackPressed: () -> Unit = {},
-    onScanCameraClicked: () -> Unit = {},
-    onSelectGalleryClicked: () -> Unit = {}
+    onBackPressed: () -> Unit = {}
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
-            )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Top Bar
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
-                            .clickable { onBackPressed() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-                    Column {
-                        Text(
-                            text = "QR PHOTOS CHECK",
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                        Text(
-                            text = "Scan QR codes from camera or gallery",
-                            color = Color(0xFF80A0B0),
-                            fontSize = 11.sp
-                        )
-                    }
+    var scanning by remember { mutableStateOf(false) }
+    var cameraMode by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var scannedUrl by remember { mutableStateOf("") }
+    var riskScore by remember { mutableStateOf<Int?>(null) }
+    var riskLevel by remember { mutableStateOf("") }
+    var action by remember { mutableStateOf("") }
+    var indicators by remember { mutableStateOf<List<String>>(emptyList()) }
+    var explanation by remember { mutableStateOf<ThreatExplanation?>(null) }
+
+    val handleQrCodeData = { dataString: String, sourceName: String ->
+        val lower = dataString.lowercase()
+        val testUrl = when {
+            lower.contains("safe") || lower.contains("safe_10") -> "https://example.com/?vex_test=SAFE_10"
+            lower.contains("warn") || lower.contains("warn_35") -> "https://example.com/?vex_test=WARN_35"
+            lower.contains("block") || lower.contains("block_60") -> "https://example.com/?vex_test=BLOCK_60"
+            lower.contains("quarantine") || lower.contains("quarantine_85") -> "https://example.com/?vex_test=QUARANTINE_85"
+            else -> null
+        }
+
+        if (testUrl == null) {
+            errorMessage = "❌ Unrecognized QR Code. Only the 4 official VEX test QR codes are supported."
+            scanning = false
+            cameraMode = false
+        } else {
+            errorMessage = null
+            scannedUrl = testUrl
+            scanning = true
+            cameraMode = false
+
+            scope.launch {
+                val foundIndicators = UrlAnalyzer.analyze(testUrl)
+                val analysis = ThreatEngine.analyze(foundIndicators, context)
+
+                riskScore = analysis.riskScore
+                riskLevel = analysis.riskLevel
+                action = analysis.action
+                indicators = foundIndicators
+                explanation = analysis.explanation
+
+                try {
+                    ThreatRepository.sendThreatEvent(
+                        deviceId = DeviceIdentity.getDeviceId(context),
+                        threatType = "QR",
+                        riskScore = analysis.riskScore,
+                        riskLevel = analysis.riskLevel,
+                        action = analysis.action,
+                        status = "OPEN",
+                        indicators = foundIndicators,
+                        source = sourceName,
+                        explanation = analysis.explanation.reasons.joinToString(" | "),
+                        recommendation = analysis.explanation.recommendation
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
-                // Scan QR Pill Button
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
-                        .clickable { onScanCameraClicked() }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
+                scanning = false
+            }
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            val uriString = uri.toString()
+            handleQrCodeData(uriString, "ANDROID_QR_GALLERY")
+        }
+    }
+
+    if (cameraMode) {
+        CameraScanScreen(
+            onQrScanned = { rawVal ->
+                handleQrCodeData(rawVal, "ANDROID_QR_CAMERA")
+            },
+            onClose = {
+                cameraMode = false
+            }
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF03141C),
+                            Color(0xFF01080C),
+                            Color(0xFF000305)
+                        )
+                    )
+                )
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Top Bar
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.QrCode,
-                            contentDescription = "Scan QR",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Scan QR",
-                            color = Color(0xFF00FFE0),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
+                                .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                                .clickable { onBackPressed() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color(0xFF00FFE0),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = "QR PHOTOS CHECK",
+                                color = Color(0xFFFFFFFF),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "Scan or upload official VEX test QR codes",
+                                color = Color(0xFF80A0B0),
+                                fontSize = 10.sp
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Top Banner Card ("Scan QR Code")
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
+            // Top Banner Card with Scan and Upload buttons
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(54.dp)
-                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.QrCodeScanner,
-                                    contentDescription = "QR Code",
-                                    tint = Color(0xFF00FFE0),
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            }
-
-                            Column {
-                                Text(
-                                    text = "Scan QR Code",
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Detect malicious links, phishing URLs, and\nunsafe content from QR codes.",
-                                    color = Color(0xFF80A0B0),
-                                    fontSize = 11.sp,
-                                    lineHeight = 15.sp
-                                )
-                            }
-                        }
-
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Go",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { onScanCameraClicked() },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp)
-                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.CameraAlt,
-                                    contentDescription = "Camera",
-                                    tint = Color(0xFF00FFE0),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = "SCAN FROM CAMERA",
-                                    color = Color(0xFF00FFE0),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 0.5.sp
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(54.dp)
+                                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
+                                        .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.QrCodeScanner,
+                                        contentDescription = "QR Code",
+                                        tint = Color(0xFF00FFE0),
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = "Scan or Upload QR Code",
+                                        color = Color(0xFFFFFFFF),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Only the 4 official VEX test QR codes are accepted.",
+                                        color = Color(0xFF80A0B0),
+                                        fontSize = 11.sp,
+                                        lineHeight = 15.sp
+                                    )
+                                }
                             }
                         }
 
-                        Button(
-                            onClick = { onSelectGalleryClicked() },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            contentPadding = PaddingValues(0.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(
+                            OutlinedButton(
+                                onClick = { cameraMode = true },
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            listOf(Color(0xFF007788), Color(0xFF00FFE0))
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .weight(1f)
+                                    .height(46.dp)
+                                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp)),
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Image,
-                                        contentDescription = "Gallery",
-                                        tint = Color(0xFF000810),
+                                        imageVector = Icons.Default.CameraAlt,
+                                        contentDescription = "Camera",
+                                        tint = Color(0xFF00FFE0),
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
-                                        text = "SELECT FROM GALLERY",
-                                        color = Color(0xFF000810),
+                                        text = "SCAN QR",
+                                        color = Color(0xFF00FFE0),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
                                         letterSpacing = 0.5.sp
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
 
-        // Scan Summary Section
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Scan Summary",
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Total Scanned", count = "25", color = Color(0xFF00FFE0), icon = Icons.Default.QrCode)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Safe", count = "18", color = Color(0xFF35E08A), icon = Icons.Default.Security)
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Suspicious", count = "5", color = Color(0xFFFFD166), icon = Icons.Default.Warning)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Malicious", count = "2", color = Color(0xFFFF4D6D), icon = Icons.Default.BugReport)
-                    }
-                }
-            }
-        }
-
-        // Risk Category Sections
-        item {
-            QrRiskCategoryCard(
-                category = "LOW",
-                count = "12 QR codes",
-                subtitle = "Links are safe",
-                dotColor = Color(0xFF35E08A),
-                borderColor = Color(0xFF005566),
-                items = listOf(
-                    QrItem("https://www.google.com", "Scanned 2 hours ago", "LOW RISK", Color(0xFF35E08A))
-                )
-            )
-        }
-
-        item {
-            QrRiskCategoryCard(
-                category = "MEDIUM",
-                count = "7 QR codes",
-                subtitle = "Contains shortened URLs or unknown domains",
-                dotColor = Color(0xFFFFD166),
-                borderColor = Color(0xFF554400),
-                items = listOf(
-                    QrItem("https://tinyurl.com/3ab7x;w", "Scanned 5 hours ago", "MEDIUM RISK", Color(0xFFFFD166))
-                )
-            )
-        }
-
-        item {
-            QrRiskCategoryCard(
-                category = "HIGH",
-                count = "4 QR codes",
-                subtitle = "Potentially phishing or suspicious content",
-                dotColor = Color(0xFFFF9F43),
-                borderColor = Color(0xFF663300),
-                items = listOf(
-                    QrItem("http://login-update-secure.com", "Scanned 1 day ago", "HIGH RISK", Color(0xFFFF9F43))
-                )
-            )
-        }
-
-        item {
-            QrRiskCategoryCard(
-                category = "CRITICAL",
-                count = "2 QR codes",
-                subtitle = "Malicious links or dangerous content",
-                dotColor = Color(0xFFFF4D6D),
-                borderColor = Color(0xFF660011),
-                items = listOf(
-                    QrItem("http://malware-download.xyz", "Scanned 1 day ago", "CRITICAL", Color(0xFFFF4D6D))
-                )
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-    }
-}
-
-data class QrItem(
-    val url: String,
-    val timeInfo: String,
-    val riskLabel: String,
-    val riskColor: Color
-)
-
-@Composable
-fun QrRiskCategoryCard(
-    category: String,
-    count: String,
-    subtitle: String,
-    dotColor: Color,
-    borderColor: Color,
-    items: List<QrItem>
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .background(dotColor, shape = RoundedCornerShape(50))
-                    )
-                    Text(
-                        text = category,
-                        color = dotColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(20.dp))
-                            .background(Color(0xFF0A141A), RoundedCornerShape(20.dp))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("VIEW ALL", color = Color(0xFF00FFE0), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(12.dp))
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Expand",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "$count · $subtitle",
-                color = Color(0xFF80A0B0),
-                fontSize = 11.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items.forEach { qr ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color(0xFF003344), RoundedCornerShape(10.dp))
-                            .clip(RoundedCornerShape(10.dp)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF060F15))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            Button(
+                                onClick = { galleryLauncher.launch(arrayOf("image/*")) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(46.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                contentPadding = PaddingValues(0.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(36.dp)
-                                        .background(Color(0xFF0A1F28), RoundedCornerShape(8.dp)),
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                            )
+                                        ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.QrCode,
-                                        contentDescription = "QR",
-                                        tint = Color(0xFF00FFE0),
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Image,
+                                            contentDescription = "Gallery",
+                                            tint = Color(0xFF000810),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = "UPLOAD QR",
+                                            color = Color(0xFF000810),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 0.5.sp
+                                        )
+                                    }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
 
+            if (errorMessage != null) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0D14)),
+                        border = BorderStroke(1.dp, Color(0xFFFF4D6D))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.Error, contentDescription = null, tint = Color(0xFFFF4D6D))
+                            Text(errorMessage!!, color = Color(0xFFFF4D6D), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            if (scanning) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(30.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF00FFE0))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Decoding QR code and analyzing risk...", color = Color(0xFF00FFE0), fontSize = 13.sp)
+                    }
+                }
+            }
+
+            if (!scanning && riskScore != null) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = "QR CODE SECURITY RESULT",
+                                color = Color(0xFF00FFE0),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+
+                            HorizontalDivider(color = Color(0xFF005566))
+
+                            Text("Decoded URL: $scannedUrl", color = Color(0xFFFFFFFF), fontSize = 12.sp)
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Column {
-                                    Text(
-                                        text = qr.url,
-                                        color = Color(0xFFFFFFFF),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = qr.timeInfo,
-                                        color = Color(0xFF608090),
-                                        fontSize = 10.sp
-                                    )
+                                    Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("$riskScore / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text(riskLevel, color = when(riskLevel) {
+                                        "SAFE" -> Color(0xFF35E08A)
+                                        "WARN" -> Color(0xFFFFD166)
+                                        "BLOCK" -> Color(0xFFFF9F43)
+                                        else -> Color(0xFFFF4D6D)
+                                    }, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
-                            Box(
-                                modifier = Modifier
-                                    .border(1.dp, qr.riskColor.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                                    .background(qr.riskColor.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = qr.riskLabel,
-                                    color = qr.riskColor,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text("ACTION: $action", color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+                            explanation?.let { expl ->
+                                Spacer(modifier = Modifier.height(10.dp))
+                                ThreatExplanationCard(
+                                    explanation = expl,
+                                    indicators = indicators
                                 )
                             }
                         }
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }

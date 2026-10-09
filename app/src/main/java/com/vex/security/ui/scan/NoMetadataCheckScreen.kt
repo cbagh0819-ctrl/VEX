@@ -1,6 +1,7 @@
 package com.vex.security.ui.scan
 
-import androidx.compose.foundation.Canvas
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,20 +18,68 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vex.security.metadata.MetadataExtractor
+import com.vex.security.metadata.ExtractedMetadata
+import com.vex.security.repository.ThreatRepository
+import com.vex.security.utils.DeviceIdentity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoMetadataCheckScreen(
-    onBackPressed: () -> Unit = {},
-    onTakeBPhotoClicked: () -> Unit = {},
-    onChooseGalleryClicked: () -> Unit = {}
+    onBackPressed: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var scanning by remember { mutableStateOf(false) }
+    var extractedMetadata by remember { mutableStateOf<ExtractedMetadata?>(null) }
+
+    val photoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            scanning = true
+            extractedMetadata = null
+            scope.launch {
+                val metadata = withContext(Dispatchers.IO) {
+                    MetadataExtractor.extract(context, uri)
+                }
+                extractedMetadata = metadata
+
+                val riskScore = if (metadata.hasMetadata) 10 else 50
+                val riskLevel = if (metadata.hasMetadata) "SAFE" else "BLOCK"
+                val action = if (metadata.hasMetadata) "ALLOW" else "BLOCK"
+                val indicators = if (metadata.hasMetadata) emptyList() else listOf("MISSING_METADATA")
+
+                try {
+                    ThreatRepository.sendThreatEvent(
+                        deviceId = DeviceIdentity.getDeviceId(context),
+                        threatType = "METADATA",
+                        riskScore = riskScore,
+                        riskLevel = riskLevel,
+                        action = action,
+                        status = "OPEN",
+                        indicators = indicators,
+                        source = "ANDROID_METADATA_CHECK",
+                        explanation = if (metadata.hasMetadata) "Metadata is present and valid." else "Critical EXIF metadata attributes are missing or stripped.",
+                        recommendation = if (metadata.hasMetadata) "No action needed." else "Inspect file origin and handle with caution."
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                scanning = false
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -88,34 +137,6 @@ fun NoMetadataCheckScreen(
                         )
                     }
                 }
-
-                // Select Photo Pill Button
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
-                        .clickable { onChooseGalleryClicked() }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = "Select Photo",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Select Photo",
-                            color = Color(0xFF00FFE0),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
             }
         }
 
@@ -129,7 +150,8 @@ fun NoMetadataCheckScreen(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp)
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -164,7 +186,7 @@ fun NoMetadataCheckScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Analyze metadata (EXIF) to find missing,\nmodified or suspicious information.",
+                                    text = "Analyze EXIF metadata to find missing, modified or stripped information.",
                                     color = Color(0xFF80A0B0),
                                     fontSize = 11.sp,
                                     lineHeight = 15.sp
@@ -173,406 +195,109 @@ fun NoMetadataCheckScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    Button(
+                        enabled = !scanning,
+                        onClick = { photoPicker.launch(arrayOf("image/*")) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = { onTakeBPhotoClicked() },
+                        Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp)
-                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
+                                .fillMaxSize()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.CameraAlt,
-                                    contentDescription = "Camera",
-                                    tint = Color(0xFF00FFE0),
-                                    modifier = Modifier.size(16.dp)
+                                    imageVector = Icons.Default.Image,
+                                    contentDescription = "Photo",
+                                    tint = Color(0xFF000810),
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "TAKE PHOTO",
-                                    color = Color(0xFF00FFE0),
+                                    text = if (scanning) "ANALYZING PHOTO..." else "SELECT PHOTO TO CHECK METADATA",
+                                    color = Color(0xFF000810),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 0.5.sp
+                                    fontSize = 13.sp,
+                                    letterSpacing = 1.sp
                                 )
                             }
                         }
-
-                        Button(
-                            onClick = { onChooseGalleryClicked() },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            listOf(Color(0xFF007788), Color(0xFF00FFE0))
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Image,
-                                        contentDescription = "Gallery",
-                                        tint = Color(0xFF000810),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(
-                                        text = "CHOOSE FROM GALLERY",
-                                        color = Color(0xFF000810),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        letterSpacing = 0.5.sp
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
 
-        // Scan Summary Section
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Scan Summary",
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+        if (scanning) {
+            item {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(30.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Total Scanned", count = "18", color = Color(0xFF00FFE0), icon = Icons.Default.Description)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Normal", count = "12", color = Color(0xFF35E08A), icon = Icons.Default.CheckCircle)
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Suspicious", count = "4", color = Color(0xFFFFD166), icon = Icons.Default.Warning)
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        SummaryCard(title = "Missing Metadata", count = "2", color = Color(0xFFFF4D6D), icon = Icons.Default.Error)
-                    }
+                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Extracting photo EXIF metadata...", color = Color(0xFF00FFE0), fontSize = 13.sp)
                 }
             }
         }
 
-        // Metadata Analysis Result Card
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFFF4D6D).copy(alpha = 0.6f), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Row(
+        extractedMetadata?.let { meta ->
+            item {
+                val hasMeta = meta.hasMetadata
+                val cardBorder = if (hasMeta) Color(0xFF35E08A) else Color(0xFFFF4D6D)
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .border(1.dp, cardBorder.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(0.9f)
-                            .height(160.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF0A1F28)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.WbTwilight,
-                                contentDescription = "Sunset",
-                                tint = Color(0xFFFF9F43),
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("Sunset Ocean.jpg", color = Color(0xFF80A0B0), fontSize = 10.sp)
-                        }
-                    }
-
                     Column(
-                        modifier = Modifier.weight(1.3f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Warning",
-                                tint = Color(0xFFFF4D6D),
-                                modifier = Modifier.size(18.dp)
+                                imageVector = if (hasMeta) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = cardBorder,
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = "METADATA MISSING",
-                                color = Color(0xFFFF4D6D),
-                                fontSize = 12.sp,
+                                text = if (hasMeta) "METADATA PRESENT" else "METADATA MISSING / NO METADATA",
+                                color = cardBorder,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
 
-                        Text(
-                            text = "No EXIF metadata found in this image.",
-                            color = Color(0xFFB0C4DE),
-                            fontSize = 10.sp,
-                            lineHeight = 13.sp
-                        )
+                        HorizontalDivider(color = Color(0xFF005566))
 
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("File Name: ${meta.name}", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
+                        Text("File Size: ${meta.size / 1024} KB", color = Color(0xFF80A0B0), fontSize = 12.sp)
+                        Text("Mime Type: ${meta.mimeType ?: "Unknown"}", color = Color(0xFF80A0B0), fontSize = 12.sp)
 
-                        FileDetailRow("File Name", "IMG_20260924.jpg")
-                        FileDetailRow("File Size", "2.4 MB")
-                        FileDetailRow("Image Type", "JPEG")
-                        FileDetailRow("Resolution", "3024 × 4032")
-                        FileDetailRow("Metadata", "Not Found", Color(0xFFFF4D6D))
-                    }
-                }
-            }
-        }
-
-        // Metadata Details Section
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "Metadata Details",
-                        color = Color(0xFFFFFFFF),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    MetadataDetailRow(icon = Icons.Default.CameraAlt, title = "Camera Model", status = "Missing")
-                    MetadataDetailRow(icon = Icons.Default.Lens, title = "Lens Information", status = "Missing")
-                    MetadataDetailRow(icon = Icons.Default.Schedule, title = "Date & Time", status = "Missing")
-                    MetadataDetailRow(icon = Icons.Default.LocationOn, title = "GPS Location", status = "Missing")
-                    MetadataDetailRow(icon = Icons.Default.Code, title = "Software Used", status = "Missing")
-                }
-            }
-        }
-
-        // Risk Analysis Section
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFFF4D6D).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(130.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.size(110.dp)) {
-                            drawArc(
-                                color = Color(0xFF0A2530),
-                                startAngle = 135f,
-                                sweepAngle = 270f,
-                                useCenter = false,
-                                style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            drawArc(
-                                color = Color(0xFF35E08A),
-                                startAngle = 135f,
-                                sweepAngle = 80f,
-                                useCenter = false,
-                                style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            drawArc(
-                                color = Color(0xFFFFD166),
-                                startAngle = 215f,
-                                sweepAngle = 90f,
-                                useCenter = false,
-                                style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            drawArc(
-                                color = Color(0xFFFF4D6D),
-                                startAngle = 305f,
-                                sweepAngle = 100f,
-                                useCenter = false,
-                                style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                        }
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("HIGH", color = Color(0xFFFF4D6D), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                            Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier.weight(1.5f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Risk Analysis",
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        RiskBullet("No EXIF metadata found")
-                        RiskBullet("Possible image editing or manipulation")
-                        RiskBullet("Unable to verify source, device or location")
-                    }
-                }
-            }
-        }
-
-        // Bottom Action Buttons
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(46.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Description,
-                                contentDescription = "Report",
-                                tint = Color(0xFF00FFE0),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "VIEW FULL REPORT",
-                                color = Color(0xFF00FFE0),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-
-                    OutlinedButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(46.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = Color(0xFF00FFE0),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "SHARE RESULT",
-                                color = Color(0xFF00FFE0),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                }
-
-                Button(
-                    onClick = { },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(Color(0xFF007788), Color(0xFF00FFE0))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Security,
-                                contentDescription = "Shield",
-                                tint = Color(0xFF000810),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "SCAN ANOTHER PHOTO",
-                                color = Color(0xFF000810),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                letterSpacing = 1.sp
-                            )
+                        if (meta.details.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("EXIF Details:", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            meta.details.forEach { (k, v) ->
+                                Text("• $k: $v", color = Color(0xFFFFFFFF), fontSize = 11.sp)
+                            }
                         }
                     }
                 }
@@ -580,89 +305,7 @@ fun NoMetadataCheckScreen(
         }
 
         item {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
         }
-    }
-}
-
-@Composable
-fun FileDetailRow(label: String, value: String, valueColor: Color = Color(0xFFFFFFFF)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label, color = Color(0xFF80A0B0), fontSize = 10.sp)
-        Text(text = value, color = valueColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun MetadataDetailRow(icon: ImageVector, title: String, status: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF003344), RoundedCornerShape(10.dp))
-            .background(Color(0xFF060F15), RoundedCornerShape(10.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = Color(0xFF00FFE0),
-                modifier = Modifier.size(18.dp)
-            )
-            Text(
-                text = title,
-                color = Color(0xFFFFFFFF),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = status,
-                color = Color(0xFFFF4D6D),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Icon(
-                imageVector = Icons.Default.Cancel,
-                contentDescription = "Missing",
-                tint = Color(0xFFFF4D6D),
-                modifier = Modifier.size(14.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun RiskBullet(text: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .background(Color(0xFFFF4D6D), shape = RoundedCornerShape(50))
-        ) {
-            // dot
-        }
-        Text(
-            text = text,
-            color = Color(0xFFB0C4DE),
-            fontSize = 10.sp,
-            lineHeight = 13.sp
-        )
     }
 }

@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.vex.security.monitor.FileMonitor
 import com.vex.security.network.ApiClient
 import com.vex.security.network.DeviceRequest
+import com.vex.security.security.PolicyManager
 import com.vex.security.ui.MainScreen
 import com.vex.security.ui.splash.SplashScreen
 import com.vex.security.ui.theme.VEXTheme
@@ -34,6 +35,10 @@ class MainActivity : ComponentActivity() {
             notificationPermissionLauncher.launch(
                 Manifest.permission.POST_NOTIFICATIONS
             )
+        }
+
+        lifecycleScope.launch {
+            PolicyManager.refresh(this@MainActivity)
         }
 
         lifecycleScope.launch {

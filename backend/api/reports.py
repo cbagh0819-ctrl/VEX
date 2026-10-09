@@ -9,12 +9,11 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 def dashboard_summary(db: Session = Depends(get_db)):
     events = db.query(models.ThreatEvent).all()
     total = len(events)
-    critical = 0
-    high = 0
-    medium = 0
-    low = 0
+    safe = 0
+    warn = 0
+    block = 0
+    quarantine = 0
     blocked = 0
-    quarantined = 0
     files = 0
     urls = 0
     permissions = 0
@@ -26,21 +25,19 @@ def dashboard_summary(db: Session = Depends(get_db)):
         threat_type = str(event.threat_type or "").upper()
         source = str(event.source or "").upper()
 
-        if level == "CRITICAL":
-            critical += 1
-        elif level == "HIGH":
-            high += 1
-        elif level == "MEDIUM":
-            medium += 1
-        elif level == "LOW":
-            low += 1
+        if level in ["SAFE", "LOW"]:
+            safe += 1
+        elif level in ["WARN", "MEDIUM"]:
+            warn += 1
+        elif level in ["BLOCK", "HIGH"]:
+            block += 1
+        elif level in ["QUARANTINE", "CRITICAL"]:
+            quarantine += 1
 
-        if action == "BLOCK":
+        if action in ["BLOCK", "QUARANTINE", "CRITICAL", "WARN"]:
             blocked += 1
-        elif action == "QUARANTINE":
-            quarantined += 1
 
-        if threat_type == "FILE":
+        if threat_type in ["FILE", "APK"]:
             files += 1
         elif threat_type == "URL":
             urls += 1
@@ -54,12 +51,15 @@ def dashboard_summary(db: Session = Depends(get_db)):
 
     return {
         "total_threats": total,
-        "critical": critical,
-        "high": high,
-        "medium": medium,
-        "low": low,
+        "critical": quarantine,
+        "high": block,
+        "medium": warn,
+        "low": safe,
+        "safe": safe,
+        "warn": warn,
+        "block": block,
+        "quarantine": quarantine,
         "blocked": blocked,
-        "quarantined": quarantined,
         "files_scanned": files,
         "url_threats": urls,
         "permission_threats": permissions,
