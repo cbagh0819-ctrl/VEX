@@ -46,7 +46,7 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
 def get_events(db: Session = Depends(get_db)):
     events = (
         db.query(models.ThreatEvent)
-        .order_by(models.ThreatEvent.timestamp.desc())
+        .order_by(models.ThreatEvent.timestamp.desc(), models.ThreatEvent.id.desc())
         .limit(100)
         .all()
     )

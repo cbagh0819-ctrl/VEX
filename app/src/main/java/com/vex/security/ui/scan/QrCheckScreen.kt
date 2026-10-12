@@ -23,13 +23,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 import com.vex.security.repository.ThreatRepository
 import com.vex.security.security.ThreatEngine
 import com.vex.security.security.UrlAnalyzer
 import com.vex.security.security.ThreatExplanation
 import com.vex.security.ui.components.ThreatExplanationCard
 import com.vex.security.utils.DeviceIdentity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,34 +47,38 @@ fun QrCheckScreen(
     var cameraMode by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var scannedUrl by remember { mutableStateOf("") }
+    var manualInput by remember { mutableStateOf("") }
     var riskScore by remember { mutableStateOf<Int?>(null) }
     var riskLevel by remember { mutableStateOf("") }
     var action by remember { mutableStateOf("") }
     var indicators by remember { mutableStateOf<List<String>>(emptyList()) }
     var explanation by remember { mutableStateOf<ThreatExplanation?>(null) }
 
-    val handleQrCodeData = { dataString: String, sourceName: String ->
-        val lower = dataString.lowercase()
-        val testUrl = when {
-            lower.contains("safe") || lower.contains("safe_10") -> "https://example.com/?vex_test=SAFE_10"
-            lower.contains("warn") || lower.contains("warn_35") -> "https://example.com/?vex_test=WARN_35"
-            lower.contains("block") || lower.contains("block_60") -> "https://example.com/?vex_test=BLOCK_60"
-            lower.contains("quarantine") || lower.contains("quarantine_85") -> "https://example.com/?vex_test=QUARANTINE_85"
-            else -> null
+    val handleQrCodeData: (String, String) -> Unit = { rawData, sourceName ->
+        val trimmed = rawData.trim()
+        val lower = trimmed.lowercase()
+
+        // Handle controlled test tokens for automated test compatibility
+        val resolvedUrl = when {
+            lower == "safe" || lower == "safe_10" -> "https://example.com/?vex_test=SAFE_10"
+            lower == "warn" || lower == "warn_35" -> "https://example.com/?vex_test=WARN_35"
+            lower == "block" || lower == "block_60" -> "https://example.com/?vex_test=BLOCK_60"
+            lower == "quarantine" || lower == "quarantine_85" -> "https://example.com/?vex_test=QUARANTINE_85"
+            else -> trimmed
         }
 
-        if (testUrl == null) {
-            errorMessage = "❌ Unrecognized QR Code. Only the 4 official VEX test QR codes are supported."
+        if (resolvedUrl.isBlank()) {
+            errorMessage = "❌ No QR code content detected."
             scanning = false
             cameraMode = false
         } else {
             errorMessage = null
-            scannedUrl = testUrl
+            scannedUrl = resolvedUrl
             scanning = true
             cameraMode = false
 
             scope.launch {
-                val foundIndicators = UrlAnalyzer.analyze(testUrl)
+                val foundIndicators = UrlAnalyzer.analyze(resolvedUrl)
                 val analysis = ThreatEngine.analyze(foundIndicators, context)
 
                 riskScore = analysis.riskScore
@@ -86,7 +94,7 @@ fun QrCheckScreen(
                         riskScore = analysis.riskScore,
                         riskLevel = analysis.riskLevel,
                         action = analysis.action,
-                        status = "OPEN",
+                        status = if (analysis.riskLevel == "SAFE") "RESOLVED" else "OPEN",
                         indicators = foundIndicators,
                         source = sourceName,
                         explanation = analysis.explanation.reasons.joinToString(" | "),
@@ -105,8 +113,33 @@ fun QrCheckScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            val uriString = uri.toString()
-            handleQrCodeData(uriString, "ANDROID_QR_GALLERY")
+            scanning = true
+            errorMessage = null
+            scope.launch {
+                try {
+                    val inputImage = withContext(Dispatchers.IO) {
+                        InputImage.fromFilePath(context, uri)
+                    }
+                    val scanner = BarcodeScanning.getClient()
+                    scanner.process(inputImage)
+                        .addOnSuccessListener { barcodes ->
+                            val detectedCode = barcodes.firstOrNull()?.rawValue
+                            if (!detectedCode.isNullOrBlank()) {
+                                handleQrCodeData(detectedCode, "ANDROID_QR_GALLERY")
+                            } else {
+                                errorMessage = "❌ No barcode or QR code detected in this image."
+                                scanning = false
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            errorMessage = "❌ Error analyzing image: ${e.message}"
+                            scanning = false
+                        }
+                } catch (e: Exception) {
+                    errorMessage = "❌ Failed to read selected image: ${e.message}"
+                    scanning = false
+                }
+            }
         }
     }
 
@@ -164,14 +197,14 @@ fun QrCheckScreen(
 
                         Column {
                             Text(
-                                text = "QR PHOTOS CHECK",
+                                text = "QR CODE SCANNER",
                                 color = Color(0xFFFFFFFF),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
                             )
                             Text(
-                                text = "Scan or upload official VEX test QR codes",
+                                text = "Real-time camera & photo QR threat detection",
                                 color = Color(0xFF80A0B0),
                                 fontSize = 10.sp
                             )
@@ -180,7 +213,7 @@ fun QrCheckScreen(
                 }
             }
 
-            // Top Banner Card with Scan and Upload buttons
+            // Top Banner Card with Scan, Upload, and Input buttons
             item {
                 Card(
                     modifier = Modifier
@@ -219,14 +252,14 @@ fun QrCheckScreen(
 
                                 Column {
                                     Text(
-                                        text = "Scan or Upload QR Code",
+                                        text = "Scan or Upload Any QR Code",
                                         color = Color(0xFFFFFFFF),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Only the 4 official VEX test QR codes are accepted.",
+                                        text = "Scan live with camera, pick from gallery, or paste a link.",
                                         color = Color(0xFF80A0B0),
                                         fontSize = 11.sp,
                                         lineHeight = 15.sp
@@ -308,6 +341,29 @@ fun QrCheckScreen(
                                 }
                             }
                         }
+
+                        // Manual Link / QR Data Input
+                        OutlinedTextField(
+                            value = manualInput,
+                            onValueChange = { manualInput = it },
+                            placeholder = { Text("Or paste QR URL / text to test...", color = Color(0xFF608090), fontSize = 12.sp) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF00FFE0),
+                                unfocusedBorderColor = Color(0xFF005566),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            trailingIcon = {
+                                if (manualInput.isNotBlank()) {
+                                    IconButton(onClick = { handleQrCodeData(manualInput, "ANDROID_QR_MANUAL") }) {
+                                        Icon(Icons.Default.Send, contentDescription = "Scan", tint = Color(0xFF00FFE0))
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -339,7 +395,7 @@ fun QrCheckScreen(
                     ) {
                         CircularProgressIndicator(color = Color(0xFF00FFE0))
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Decoding QR code and analyzing risk...", color = Color(0xFF00FFE0), fontSize = 13.sp)
+                        Text("Decoding QR code and analyzing threat telemetry...", color = Color(0xFF00FFE0), fontSize = 13.sp)
                     }
                 }
             }
@@ -358,7 +414,7 @@ fun QrCheckScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text = "QR CODE SECURITY RESULT",
+                                text = "QR SECURITY ANALYSIS",
                                 color = Color(0xFF00FFE0),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
@@ -367,7 +423,7 @@ fun QrCheckScreen(
 
                             HorizontalDivider(color = Color(0xFF005566))
 
-                            Text("Decoded URL: $scannedUrl", color = Color(0xFFFFFFFF), fontSize = 12.sp)
+                            Text("Scanned Content: $scannedUrl", color = Color(0xFFFFFFFF), fontSize = 12.sp)
 
                             Spacer(modifier = Modifier.height(4.dp))
 

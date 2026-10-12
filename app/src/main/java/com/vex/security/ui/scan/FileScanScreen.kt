@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vex.security.monitor.AutomaticFileAnalyzer
 import com.vex.security.monitor.FileMonitor
 import com.vex.security.repository.ThreatRepository
 import com.vex.security.scanner.FileScanner
@@ -79,21 +80,7 @@ fun FileScanScreen() {
                         )
                     }
 
-                    val foundIndicators = mutableListOf<String>()
-
-                    val lowerName = result.fileName.lowercase()
-                    if (result.extension == "exe" || result.extension == "bat" || result.extension == "scr" || result.extension == "apk" || lowerName.contains("malware") || lowerName.contains("virus") || lowerName.contains("test")) {
-                        foundIndicators.add(ThreatIndicators.SUSPICIOUS_EXTENSION)
-                        foundIndicators.add(ThreatIndicators.MALICIOUS_TEST_INDICATOR)
-                    } else if (lowerName.contains("without_metadata") || lowerName.contains("no_metadata") || lowerName.contains("missing")) {
-                        foundIndicators.add("MISSING_METADATA")
-                        foundIndicators.add(ThreatIndicators.MALICIOUS_TEST_INDICATOR)
-                        foundIndicators.add(ThreatIndicators.SUSPICIOUS_EXTENSION)
-                    } else if (result.extension == null) {
-                        foundIndicators.add(ThreatIndicators.UNKNOWN_FILE_TYPE)
-                    } else {
-                        foundIndicators.add(ThreatIndicators.LARGE_FILE)
-                    }
+                    val foundIndicators = AutomaticFileAnalyzer.analyze(result).toMutableList()
 
                     val analysis = ThreatEngine.analyze(foundIndicators, context)
 

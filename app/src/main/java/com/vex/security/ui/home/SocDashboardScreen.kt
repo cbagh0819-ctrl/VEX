@@ -20,7 +20,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.repository.SocRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+fun formatMetric(value: Any?): String {
+    if (value == null) return "0"
+    val str = value.toString().trim()
+    return try {
+        val num = str.toDouble()
+        if (num == num.toLong().toDouble()) {
+            num.toLong().toString()
+        } else {
+            String.format(java.util.Locale.US, "%.1f", num)
+        }
+    } catch (e: Exception) {
+        str
+    }
+}
 
 @Composable
 fun SocDashboardScreen() {
@@ -37,7 +53,12 @@ fun SocDashboardScreen() {
     }
 
     LaunchedEffect(Unit) {
-        loadData()
+        while (true) {
+            val data = SocRepository.getSummary()
+            summary = data
+            loading = false
+            delay(3000)
+        }
     }
 
     LazyColumn(
@@ -53,7 +74,7 @@ fun SocDashboardScreen() {
                 )
             )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Top Header
         item {
@@ -66,7 +87,7 @@ fun SocDashboardScreen() {
                     Text(
                         text = "SOC OPERATIONS CENTER",
                         color = Color(0xFF00FFE0),
-                        fontSize = 20.sp,
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
@@ -113,58 +134,175 @@ fun SocDashboardScreen() {
                 }
             }
         } else {
-            val totalThreats = "${summary["total_threats"] ?: summary["total_events"] ?: 4}"
-            val quarantine = "${summary["quarantine"] ?: summary["critical"] ?: 1}"
-            val block = "${summary["block"] ?: summary["high"] ?: 1}"
-            val warn = "${summary["warn"] ?: summary["medium"] ?: 1}"
-            val safe = "${summary["safe"] ?: summary["low"] ?: 1}"
-            val blocked = "${summary["blocked"] ?: 1}"
-            val devices = "${summary["devices"] ?: 1}"
+            val totalThreats = summary["total_threats"] ?: summary["total_events"] ?: 0
+            val quarantine = summary["quarantine"] ?: summary["critical"] ?: 0
+            val block = summary["block"] ?: summary["high"] ?: 0
+            val warn = summary["warn"] ?: summary["medium"] ?: 0
+            val safe = summary["safe"] ?: summary["low"] ?: 0
+            val blocked = summary["blocked"] ?: 0
+            val devices = summary["devices"] ?: 1
+            val filesScanned = summary["files_scanned"] ?: 0
+            val urlThreats = summary["url_threats"] ?: 0
 
+            // Row 1: Total Threats & Quarantine
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Total Threats", value = totalThreats, color = Color(0xFF00FFE0), icon = Icons.Default.Security)
+                        CyberMetricCard(
+                            title = "Total Threats",
+                            value = totalThreats,
+                            color = Color(0xFF00FFE0),
+                            icon = Icons.Default.Security
+                        )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Quarantine", value = quarantine, color = Color(0xFFFF4D6D), icon = Icons.Default.Warning)
+                        CyberMetricCard(
+                            title = "Quarantine",
+                            value = quarantine,
+                            color = Color(0xFFFF4D6D),
+                            icon = Icons.Default.Warning
+                        )
                     }
                 }
             }
 
+            // Row 2: Block & Warn
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Block", value = block, color = Color(0xFFFF9F43), icon = Icons.Default.Block)
+                        CyberMetricCard(
+                            title = "Block",
+                            value = block,
+                            color = Color(0xFFFF9F43),
+                            icon = Icons.Default.Block
+                        )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Warn", value = warn, color = Color(0xFFFFD166), icon = Icons.Default.Info)
+                        CyberMetricCard(
+                            title = "Warn",
+                            value = warn,
+                            color = Color(0xFFFFD166),
+                            icon = Icons.Default.Info
+                        )
                     }
                 }
             }
 
+            // Row 3: Safe & Blocked Actions
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Safe", value = safe, color = Color(0xFF35E08A), icon = Icons.Default.CheckCircle)
+                        CyberMetricCard(
+                            title = "Safe",
+                            value = safe,
+                            color = Color(0xFF35E08A),
+                            icon = Icons.Default.CheckCircle
+                        )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        CyberMetricCard(title = "Blocked", value = blocked, color = Color(0xFF7090A0), icon = Icons.Default.Shield)
+                        CyberMetricCard(
+                            title = "Blocked",
+                            value = blocked,
+                            color = Color(0xFF38BDF8),
+                            icon = Icons.Default.Shield
+                        )
                     }
                 }
             }
 
+            // Row 4: Files Scanned & URL Threats
             item {
-                CyberMetricCard(title = "Registered Devices", value = devices, color = Color(0xFF00FFE0), icon = Icons.Default.PhoneAndroid)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        CyberMetricCard(
+                            title = "Files Scanned",
+                            value = filesScanned,
+                            color = Color(0xFF80A0B0),
+                            icon = Icons.Default.Description
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        CyberMetricCard(
+                            title = "URL Threats",
+                            value = urlThreats,
+                            color = Color(0xFFC084FC),
+                            icon = Icons.Default.Language
+                        )
+                    }
+                }
+            }
+
+            // Row 5: Registered Devices (Full Width Card)
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(14.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF07141C))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF00FFE0).copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhoneAndroid,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00FFE0),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "Registered Devices",
+                                    color = Color(0xFFD0E0EC),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Active SOC telemetry endpoints",
+                                    color = Color(0xFF608090),
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = formatMetric(devices),
+                            color = Color(0xFF00FFE0),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                }
             }
         }
 
@@ -177,55 +315,69 @@ fun SocDashboardScreen() {
 @Composable
 fun CyberMetricCard(
     title: String,
-    value: String,
+    value: Any?,
     color: Color,
-    icon: ImageVector = Icons.Default.Security
+    icon: ImageVector = Icons.Default.Security,
+    modifier: Modifier = Modifier
 ) {
+    val formatted = formatMetric(value)
+
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+            .border(1.dp, color.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(14.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF07141C))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .border(1.dp, color.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp)),
+                        .size(34.dp)
+                        .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .background(color.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = title,
                         tint = color,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
-                Text(
-                    text = title,
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(color, RoundedCornerShape(50))
                 )
             }
-            Text(
-                text = value,
-                color = color,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = formatted,
+                    color = color,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp,
+                    maxLines = 1,
+                    softWrap = false
+                )
+                Text(
+                    text = title,
+                    color = Color(0xFF80A0B0),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
