@@ -169,7 +169,15 @@ fun ThreatListScreen() {
                             }
                         }
 
-                        Text("Risk Score: ${event["risk_score"] ?: 0} / 100", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        val rawScore = event["risk_score"] ?: 0
+                        val formattedScore = try {
+                            val d = rawScore.toString().toDouble()
+                            d.toLong().toString()
+                        } catch (e: Exception) {
+                            rawScore.toString()
+                        }
+
+                        Text("Risk Score: $formattedScore / 100", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         Text("Action: ${event["action"] ?: "UNKNOWN"}", color = Color(0xFFFFFFFF), fontSize = 12.sp)
                         Text("Source: ${event["source"] ?: "UNKNOWN"}", color = Color(0xFF80A0B0), fontSize = 11.sp)
                     }

@@ -23,10 +23,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.pm.PackageManager
+import com.vex.security.monitor.AutomaticFileAnalyzer
 import com.vex.security.monitor.StorageScanner
+import com.vex.security.scanner.ApkScanManager
 import com.vex.security.scanner.FileScanner
 import com.vex.security.security.ThreatEngine
 import com.vex.security.security.ThreatIndicators
+import com.vex.security.repository.ThreatRepository
+import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,12 +41,15 @@ import kotlinx.coroutines.withContext
 fun HomeScreen(
     onNavigateToApkCheck: () -> Unit = {},
     onNavigateToAiCheck: () -> Unit = {},
+    onNavigateToAiVideoCheck: () -> Unit = {},
     onNavigateToNoMetadataCheck: () -> Unit = {},
     onNavigateToUsbCheck: () -> Unit = {},
     onNavigateToQrCheck: () -> Unit = {},
     onNavigateToFileScan: () -> Unit = {},
     onNavigateToUrlScan: () -> Unit = {},
-    onNavigateToDashboard: () -> Unit = {}
+    onNavigateToDashboard: () -> Unit = {},
+    onNavigateToBrowser: () -> Unit = {},
+    onNavigateToBombShield: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -55,52 +63,95 @@ fun HomeScreen(
     val startQuickScan = {
         if (!scanning) {
             scanning = true
-            riskMessage = "Scanning phone storage automatically..."
+            riskMessage = "Scanning storage & applications..."
             scope.launch {
                 val files = withContext(Dispatchers.IO) {
                     StorageScanner.getRecentFiles(context)
                 }
 
-                delay(1500) // Realistic scanning feedback delay
+                delay(1200)
 
                 var maxScore = 0
+                val foundThreatIndicators = mutableListOf<String>()
+                var mostThreateningItem = ""
+
+                // 1. Scan storage files with AutomaticFileAnalyzer
                 for (file in files) {
                     val metadata = FileScanner.scanFile(context, file.uri, "QUICK_SCAN")
-                    val indicators = mutableListOf<String>()
-                    if (metadata.extension == null || metadata.sizeBytes > 120_000_000) {
-                        indicators.add(ThreatIndicators.UNKNOWN_FILE_TYPE)
-                    }
+                    val indicators = AutomaticFileAnalyzer.analyze(metadata)
                     val analysis = ThreatEngine.analyze(indicators, context)
-                    if (analysis.score > maxScore) {
-                        maxScore = analysis.score
+                    if (analysis.riskScore > maxScore) {
+                        maxScore = analysis.riskScore
+                        mostThreateningItem = metadata.fileName
+                        foundThreatIndicators.clear()
+                        foundThreatIndicators.addAll(indicators)
                     }
+                }
+
+                // 2. Scan installed third-party apps for risky permission combinations
+                try {
+                    val pm = context.packageManager
+                    val pkgs = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
+                    for (pkg in pkgs) {
+                        val isSystem = (pkg.applicationInfo != null &&
+                            (pkg.applicationInfo!!.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0)
+                        if (isSystem && (pkg.packageName.startsWith("android") || pkg.packageName.startsWith("com.android"))) {
+                            continue
+                        }
+                        val appResult = ApkScanManager.scanInstalledPackage(context, pkg)
+                        if (appResult.riskScore > maxScore) {
+                            maxScore = appResult.riskScore
+                            mostThreateningItem = pkg.packageName
+                            foundThreatIndicators.clear()
+                            foundThreatIndicators.addAll(appResult.indicators)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
                 when {
                     maxScore >= 75 -> {
                         riskStatus = "QUARANTINE"
                         riskColor = Color(0xFFFF4D6D) // Red
-                        riskMessage = "Harmful file present!\nImmediate action required."
+                        riskMessage = "Harmful threat: $mostThreateningItem\nImmediate action required."
                     }
                     maxScore >= 50 -> {
                         riskStatus = "BLOCK"
                         riskColor = Color(0xFFFF9F43) // Orange
-                        riskMessage = "Suspicious threat blocked."
+                        riskMessage = "Suspicious item: $mostThreateningItem\nThreat blocked."
                     }
                     maxScore >= 25 -> {
                         riskStatus = "WARN"
                         riskColor = Color(0xFFFFD166) // Yellow
-                        riskMessage = "Warning: Review file activity."
+                        riskMessage = "Warning: Review activity for $mostThreateningItem"
                     }
                     else -> {
                         riskStatus = "SAFE"
                         riskColor = Color(0xFF35E08A) // Green
-                        riskMessage = "Everything is good\nNo threats detected."
+                        riskMessage = "Everything is good\nNo threats detected across storage & apps."
                     }
                 }
 
                 scanning = false
                 lastScanText = "Just now"
+
+                try {
+                    ThreatRepository.sendThreatEvent(
+                        deviceId = DeviceIdentity.getDeviceId(context),
+                        threatType = "FILE",
+                        riskScore = if (maxScore > 0) maxScore else 10,
+                        riskLevel = riskStatus,
+                        action = if (riskStatus == "SAFE") "ALLOW" else riskStatus,
+                        status = if (riskStatus == "SAFE") "RESOLVED" else "OPEN",
+                        indicators = if (foundThreatIndicators.isNotEmpty()) foundThreatIndicators else listOf(ThreatIndicators.CLEAN_FILE),
+                        source = "ANDROID_QUICK_SCAN",
+                        explanation = riskMessage.replace("\n", " "),
+                        recommendation = if (maxScore >= 50) "Action required" else "Device verified secure"
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -419,15 +470,23 @@ fun HomeScreen(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
+                            icon = Icons.Default.Videocam,
+                            title = "AI VIDEO CHECK",
+                            subtitle = "Detect AI generated videos & deepfakes",
+                            onClick = onNavigateToAiVideoCheck
+                        )
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItem(
                             icon = Icons.Default.Description,
                             title = "NO METADATA CHECK",
                             subtitle = "Find photos with missing metadata",
                             onClick = onNavigateToNoMetadataCheck
                         )
                     }
-                }
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
                             icon = Icons.Default.Usb,
@@ -436,12 +495,42 @@ fun HomeScreen(
                             onClick = onNavigateToUsbCheck
                         )
                     }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
                             icon = Icons.Default.Language,
                             title = "URL CHECK",
                             subtitle = "Check and detect malicious links",
                             onClick = onNavigateToUrlScan
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItem(
+                            icon = Icons.Default.FolderOpen,
+                            title = "FILE DEEP SCAN",
+                            subtitle = "Upload and scan any file for malware",
+                            onClick = onNavigateToFileScan
+                        )
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItem(
+                            icon = Icons.Default.Language,
+                            title = "VEX BROWSER (VB)",
+                            subtitle = "Zero login, incognito ad & threat shield",
+                            onClick = onNavigateToBrowser
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItem(
+                            icon = Icons.Default.Shield,
+                            title = "BOMB SHIELD",
+                            subtitle = "Auto block flood SMS & robocalls",
+                            onClick = onNavigateToBombShield
                         )
                     }
                 }

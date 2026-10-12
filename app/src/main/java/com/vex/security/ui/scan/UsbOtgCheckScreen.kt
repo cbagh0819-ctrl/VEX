@@ -22,8 +22,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.notification.AlarmPlayer
 import com.vex.security.notification.SecurityNotification
+import com.vex.security.repository.ThreatRepository
 import com.vex.security.security.ThreatExplanation
 import com.vex.security.ui.components.ThreatExplanationCard
+import com.vex.security.utils.DeviceIdentity
+import kotlinx.coroutines.launch
 
 data class DemoFolderResult(
     val title: String,
@@ -41,6 +44,7 @@ fun UsbOtgCheckScreen(
     onBackPressed: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var activeResult by remember { mutableStateOf<DemoFolderResult?>(null) }
     var alarmActive by remember { mutableStateOf(false) }
@@ -212,6 +216,24 @@ fun UsbOtgCheckScreen(
                                     recommendation = "The folder is safe and allowed."
                                 )
                             )
+                            scope.launch {
+                                try {
+                                    ThreatRepository.sendThreatEvent(
+                                        deviceId = DeviceIdentity.getDeviceId(context),
+                                        threatType = "FILE",
+                                        riskScore = 10,
+                                        riskLevel = "SAFE",
+                                        action = "ALLOW",
+                                        status = "RESOLVED",
+                                        indicators = listOf("FILE_SAFE_DEMO"),
+                                        source = "USB",
+                                        explanation = "Original Safe Folder Detected | No suspicious executable signatures | Standard media file structure verified",
+                                        recommendation = "The folder is safe and allowed."
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().height(46.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF35E08A))
@@ -239,6 +261,24 @@ fun UsbOtgCheckScreen(
                                 )
                             )
                             SecurityNotification.showWarning(context, "Warning Folder detected unusual content (Score: 35)")
+                            scope.launch {
+                                try {
+                                    ThreatRepository.sendThreatEvent(
+                                        deviceId = DeviceIdentity.getDeviceId(context),
+                                        threatType = "FILE",
+                                        riskScore = 35,
+                                        riskLevel = "WARN",
+                                        action = "WARN",
+                                        status = "OPEN",
+                                        indicators = listOf("FILE_WARN_DEMO", "SUSPICIOUS_FILENAME"),
+                                        source = "USB",
+                                        explanation = "Unusual Folder Structure Detected | Contains files with unrecognized or mixed extensions",
+                                        recommendation = "Review folder contents before opening any files."
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().height(46.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD166))
@@ -265,6 +305,24 @@ fun UsbOtgCheckScreen(
                             )
                             alarmActive = true
                             SecurityNotification.showHarmfulAlert(context, "Harmful Folder (/USB/Payloads/)")
+                            scope.launch {
+                                try {
+                                    ThreatRepository.sendThreatEvent(
+                                        deviceId = DeviceIdentity.getDeviceId(context),
+                                        threatType = "FILE",
+                                        riskScore = 85,
+                                        riskLevel = "QUARANTINE",
+                                        action = "QUARANTINE",
+                                        status = "OPEN",
+                                        indicators = listOf("FILE_HARMFUL_DEMO", "MALICIOUS_TEST_INDICATOR", "SUSPICIOUS_EXTENSION"),
+                                        source = "USB",
+                                        explanation = "Dangerous Malware Payload Detected | Matched known exploit signatures and hidden executable scripts",
+                                        recommendation = "The folder has been quarantined. Block or delete immediately."
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().height(46.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))

@@ -625,15 +625,19 @@ function switchView(viewId, element) {
 }
 
 async function refreshAllData() {
-    document.getElementById('lastUpdated').textContent = 'Last updated: Updating...';
-    await Promise.all([
-        loadSummary(),
-        loadEvents(),
-        loadIncidents(),
-        loadDevices(),
-        loadTestScenarios()
-    ]);
-    document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    try {
+        await Promise.all([
+            loadSummary(),
+            loadEvents(),
+            loadIncidents(),
+            loadDevices()
+        ]);
+        const timeStr = new Date().toLocaleTimeString();
+        const el = document.getElementById('lastUpdated');
+        if (el) el.textContent = 'Last updated: ' + timeStr;
+    } catch (e) {
+        console.error("Auto-refresh error:", e);
+    }
 }
 
 async function loadSummary() {
@@ -903,9 +907,9 @@ async function loadValidationReport() {
 }
 
 // Initial load
+loadTestScenarios();
 refreshAllData();
-setInterval(loadSummary, 5000);
-setInterval(loadEvents, 5000);
+setInterval(refreshAllData, 3000);
 </script>
 
 </body>

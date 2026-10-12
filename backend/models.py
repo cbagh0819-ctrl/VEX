@@ -24,7 +24,7 @@ class ThreatEvent(Base):
     explanation = Column(Text)
     recommendation = Column(Text)
     source = Column(String)
-    timestamp = Column(Integer)
+    timestamp = Column(BigInteger)
 
 class Incident(Base):
     __tablename__ = "incidents"
@@ -35,8 +35,8 @@ class Incident(Base):
     description = Column(Text)
     severity = Column(String)
     status = Column(String)
-    created_at = Column(Integer)
-    updated_at = Column(Integer)
+    created_at = Column(BigInteger)
+    updated_at = Column(BigInteger)
 
 class Alert(Base):
     __tablename__ = "alerts"
@@ -47,7 +47,7 @@ class Alert(Base):
     message = Column(Text)
     severity = Column(String)
     threat_type = Column(String)
-    timestamp = Column(Integer)
+    timestamp = Column(BigInteger)
     acknowledged = Column(Integer)
 
 class DetectionTestRun(Base):

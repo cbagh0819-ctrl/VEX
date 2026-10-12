@@ -51,6 +51,14 @@ object FileScanner {
             }
         }
 
+        val extFromName = if (fileName.contains(".")) {
+            fileName.substringAfterLast('.', "").lowercase().takeIf { it.isNotBlank() }
+        } else null
+
+        val finalExtension = extFromName ?: extension
+        val finalMimeType = mimeType
+            ?: (finalExtension?.let { android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) })
+
         val sha256 = resolver.openInputStream(uri)?.use { input ->
             HashCalculator.sha256(input)
         }
@@ -58,8 +66,8 @@ object FileScanner {
         return FileMetadata(
             fileName = fileName,
             filePath = uri.toString(),
-            mimeType = mimeType,
-            extension = extension,
+            mimeType = finalMimeType,
+            extension = finalExtension,
             sizeBytes = fileSize,
             createdTime = null,
             modifiedTime = modifiedTime,

@@ -8,10 +8,13 @@ object SocRepository {
         try {
             val response = ApiClient.apiService.getReportSummary()
             if (response.isSuccessful && response.body() != null) {
+                android.util.Log.d("SocRepository", "Summary fetched successfully: ${response.body()}")
                 return response.body()!!
+            } else {
+                android.util.Log.e("SocRepository", "Summary error code: ${response.code()}")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("SocRepository", "Exception fetching summary: ${e.message}", e)
         }
 
         // Fallback telemetry when offline or network unreachable
