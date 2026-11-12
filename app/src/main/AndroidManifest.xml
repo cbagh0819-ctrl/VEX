@@ -19,6 +19,8 @@
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
     <uses-feature
         android:name="android.hardware.usb.host"
@@ -59,7 +61,33 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>
+
+            <!-- Pillar 1 Fix: Direct System Sharing Intent Filter for .mp4, .jpg, and .png -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
         </activity>
+
+        <!-- Pillar 1 & 4: Live Video Call Interception & SYSTEM_ALERT_WINDOW Overlay Service -->
+        <service
+            android:name=".defense.VexLiveCallInterceptionService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
+        <service
+            android:name=".defense.VexAlertOverlayService"
+            android:enabled="true"
+            android:exported="false" />
 
         <!-- Pillar 1 Fix: Notification Interceptor Service for SMS & Chat Phishing -->
         <service

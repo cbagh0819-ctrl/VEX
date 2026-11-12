@@ -236,113 +236,159 @@ async def scan_image_ai(
         "score_breakdown": xai["score_breakdown"]
     }
 
+from starlette.concurrency import run_in_threadpool
+import cv2
+import numpy as np
+import base64
+import tempfile
+import asyncio
+from mesonet_engine import mesonet_detector
+from api.blocklist import blocklist_cache, ws_manager
+
+class LiveFrameEvaluationRequest(BaseModel):
+    device_id: str
+    frame_base64: str
+    caller_package: Optional[str] = "com.whatsapp"
+    timestamp: Optional[int] = None
+
+@router.post("/mesonet/live-frame")
+async def evaluate_live_frame(req: LiveFrameEvaluationRequest):
+    """
+    Sub-second live video call interception endpoint for Android MediaProjection.
+    Analyzes mesoscopic artifacts and triggers instant blast-radius hash containment.
+    """
+    import base64
+    try:
+        raw_bytes = base64.b64decode(req.frame_base64)
+        nparr = np.frombuffer(raw_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise HTTPException(status_code=400, detail="Invalid frame image bytes")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Frame decode error: {str(e)}")
+
+    res = await run_in_threadpool(mesonet_detector.analyze_frame, img)
+    
+    # Pillar 4: If fake, automatically quarantine & broadcast perceptual hash
+    if res["is_synthetic"]:
+        p_hash = res["perceptual_hash"]
+        meta = {
+            "target_type": "PERCEPTUAL_HASH",
+            "threat_type": "DEEPFAKE_LIVE_CALL_INTERCEPT",
+            "risk_level": "CRITICAL",
+            "source_device_id": req.device_id,
+            "source_platform": "ANDROID",
+            "reason": f"MesoNet detected deepfake facial artifact during live call ({req.caller_package})",
+            "timestamp": int(time.time() * 1000)
+        }
+        blocklist_cache.add(p_hash, meta)
+        try:
+            asyncio.create_task(ws_manager.broadcast_containment({
+                "target": p_hash,
+                "threat_type": "DEEPFAKE_LIVE_CALL_INTERCEPT",
+                "risk_level": "CRITICAL",
+                "action": "OVERLAY_ALERT_AND_TERMINATE",
+                "source_device_id": req.device_id
+            }))
+        except Exception:
+            pass
+
+    return {
+        "device_id": req.device_id,
+        "is_deepfake": res["is_synthetic"],
+        "threat_score": res["threat_score"],
+        "deepfake_probability": res["deepfake_probability"],
+        "laplacian_variance": res["laplacian_variance"],
+        "perceptual_hash": res["perceptual_hash"],
+        "action_required": "SHOW_SYSTEM_ALERT_OVERLAY" if res["is_synthetic"] else "ALLOW",
+        "engine": "MesoNet Meso4 Temporal Artifact Engine"
+    }
+
+async def _process_video_nonblocking(tmp_path: str, file_name: str, file_size_kb: int) -> Dict[str, Any]:
+    res = await run_in_threadpool(mesonet_detector.analyze_video_stream, tmp_path)
+    
+    threat_score = res.get("threat_score", 15)
+    is_deepfake = res.get("is_synthetic", False)
+    risk_level = "CRITICAL" if threat_score >= 80 else ("HIGH" if threat_score >= 60 else ("MEDIUM" if threat_score >= 40 else "SAFE"))
+    
+    # Broadcast malicious media hash to global blocklist if fake
+    if is_deepfake and res.get("malicious_media_hash"):
+        top_hash = res["malicious_media_hash"]
+        meta = {
+            "target_type": "MEDIA_PHASH",
+            "threat_type": "DEEPFAKE_VIDEO",
+            "risk_level": risk_level,
+            "source_device_id": "UPLOADED_SCAN",
+            "source_platform": "UNIVERSAL",
+            "reason": f"MesoNet identified synthetic facial warping in {file_name}",
+            "timestamp": int(time.time() * 1000)
+        }
+        blocklist_cache.add(top_hash, meta)
+        try:
+            asyncio.create_task(ws_manager.broadcast_containment({
+                "target": top_hash,
+                "threat_type": "DEEPFAKE_VIDEO",
+                "risk_level": risk_level,
+                "action": "QUARANTINE_MEDIA_HASH",
+                "source_device_id": "UPLOADED_SCAN"
+            }))
+        except Exception:
+            pass
+
+    xai = AIThreatReasoningEngine.analyze(
+        threat_type="DEEPFAKE_FACE_SYNTHESIS" if is_deepfake else "CLEAN_VIDEO",
+        risk_score=threat_score,
+        risk_level=risk_level,
+        indicators=["DEEPFAKE_MESONET_ARTIFACTS", "SYNTHETIC_TEMPORAL_WARPING"] if is_deepfake else [],
+        source="MESONET_NEURAL_ENGINE",
+        details=f"Video {file_name} ({file_size_kb} KB). Analyzed {res.get('frames_analyzed', 0)} frames. Hash: {res.get('malicious_media_hash')}"
+    )
+
+    return {
+        "file_name": file_name,
+        "media_type": "VIDEO",
+        "provider": "MESONET_MESO4_NEURAL_AI",
+        "is_deepfake": is_deepfake,
+        "deepfake_probability_pct": threat_score,
+        "frames_analyzed": res.get("frames_analyzed", 0),
+        "malicious_media_hash": res.get("malicious_media_hash"),
+        "risk_level": risk_level,
+        "summary_message": f"🚨 HIGH-CONFIDENCE DEEPFAKE ({threat_score}%) flagged by MesoNet" if is_deepfake else f"✅ AUTHENTIC VIDEO ({threat_score}%). No mesoscopic synthetic blending found.",
+        "reasoning": xai["reasoning"],
+        "mitre_attack": xai["mitre_attack"],
+        "remediation": xai["remediation"],
+        "score_breakdown": xai["score_breakdown"]
+    }
+
 @router.post("/scan-video")
 async def scan_video_ai(
     file: UploadFile = File(...),
     details: Optional[str] = Form(None)
 ):
     """
-    Scans uploaded video for AI Deepfake face swapping or Generative Video (Sora, Runway, Kling, FaceSwap)
-    using Sightengine API with temporal metadata inspection.
+    Non-blocking chunked streaming video processing pipeline utilizing MesoNet neural network.
+    Never loads full 100MB videos into RAM, runs OpenCV asynchronously outside event loop.
     """
-    file_bytes = await file.read()
     file_name = file.filename or "uploaded_video.mp4"
-    file_size_kb = len(file_bytes) // 1024
+    
+    # Stream chunks into temporary file on disk to prevent OutOfMemory crashes
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+        tmp_path = tmp.name
+        bytes_read = 0
+        while chunk := await file.read(1024 * 1024): # 1MB buffer chunks
+            tmp.write(chunk)
+            bytes_read += len(chunk)
 
-    sightengine_score = None
-    provider_used = "VEX_HEURISTIC_FORENSICS"
-    detected_tool = "None"
-    indicators = []
-
-    # 1. Sightengine Check if configured
-    if SIGHTENGINE_CONFIG.get("api_user") and SIGHTENGINE_CONFIG.get("api_secret"):
-        try:
-            url = "https://api.sightengine.com/1.0/video/check-sync.json"
-            data = {
-                "models": "deepfake,genai",
-                "api_user": SIGHTENGINE_CONFIG["api_user"],
-                "api_secret": SIGHTENGINE_CONFIG["api_secret"]
-            }
-            files = {"media": (file_name, file_bytes, file.content_type or "video/mp4")}
-            response = requests.post(url, data=data, files=files, timeout=25)
-            
-            if response.status_code == 200:
-                res_json = response.json()
-                if res_json.get("status") == "success":
-                    provider_used = "SIGHTENGINE_CLOUD_AI"
-                    # Check video deepfake scores across frames
-                    data_res = res_json.get("data", {})
-                    frames = data_res.get("frames", [])
-                    max_deepfake = 0.0
-                    for fr in frames:
-                        df_val = fr.get("type", {}).get("deepfake", 0.0) or fr.get("type", {}).get("ai_generated", 0.0)
-                        if df_val > max_deepfake:
-                            max_deepfake = df_val
-                    
-                    sightengine_score = int(max_deepfake * 100)
-                    if max_deepfake >= 0.70:
-                        indicators.append("DEEPFAKE_FACE_SYNTHESIS")
-                        detected_tool = "Sightengine Deepfake / FaceSwap Neural Model"
-                    elif max_deepfake >= 0.40:
-                        indicators.append("AI_GENERATED_VIDEO")
-                        detected_tool = "Generative Video Synthesis Model"
-        except Exception as e:
-            provider_used = f"VEX_FALLBACK_ERR ({str(e)[:30]})"
-
-    # 2. Local Forensic Fallback & Atom Metadata Inspection
-    fn_lower = file_name.lower()
-    raw_atoms = ""
+    file_size_kb = bytes_read // 1024
     try:
-        raw_atoms = file_bytes[:65536].decode("latin-1", errors="ignore").lower()
-    except Exception:
-        pass
-
-    if any(k in fn_lower or k in raw_atoms for k in ["sora", "runway", "gen-2", "gen-3", "kling", "luma", "pika", "hailuo", "deepfake", "faceswap", "roop", "heygen", "synthesia"]):
-        if "DEEPFAKE_FACE_SYNTHESIS" not in indicators:
-            indicators.append("DEEPFAKE_FACE_SYNTHESIS")
-        detected_tool = "Neural Diffusion & Face Synthesis Model" if detected_tool == "None" else detected_tool
-
-    # Multi-factor score fusion
-    heuristic_score = 90 if "DEEPFAKE_FACE_SYNTHESIS" in indicators else (75 if "AI_GENERATED_VIDEO" in indicators else 15)
-    if "DEEPFAKE_FACE_SYNTHESIS" in indicators or "AI_GENERATED_VIDEO" in indicators:
-        risk_score = max(sightengine_score or 0, heuristic_score) if sightengine_score else heuristic_score
-    elif sightengine_score is not None:
-        risk_score = sightengine_score
-    else:
-        risk_score = 15
-
-    risk_level = "CRITICAL" if risk_score >= 80 else ("HIGH" if risk_score >= 60 else ("MEDIUM" if risk_score >= 40 else "SAFE"))
-
-    if risk_score >= 80:
-        summary_message = f"🚨 HIGH-CONFIDENCE DEEPFAKE / SYNTHETIC VIDEO ({risk_score}%). Model: {detected_tool}. Quarantined."
-    elif risk_score >= 50:
-        summary_message = f"⚠️ SUSPICIOUS AI VIDEO SYNTHESIS ({risk_score}%). Model: {detected_tool}. Temporal cadence anomalies flagged."
-    else:
-        summary_message = f"✅ AUTHENTIC VIDEO RECORDING ({risk_score}%). Optical frame continuity & camera sensor profile confirmed."
-
-    xai = AIThreatReasoningEngine.analyze(
-        threat_type="DEEPFAKE_FACE_SYNTHESIS" if risk_score >= 60 else "CLEAN_VIDEO",
-        risk_score=risk_score,
-        risk_level=risk_level,
-        indicators=indicators,
-        source=provider_used,
-        details=f"Video: {file_name} ({file_size_kb} KB). Model: {detected_tool}"
-    )
-
-    return {
-        "file_name": file_name,
-        "media_type": "VIDEO",
-        "provider": provider_used,
-        "is_deepfake": risk_score >= 60,
-        "deepfake_probability_pct": risk_score,
-        "detected_model": detected_tool,
-        "risk_level": risk_level,
-        "summary_message": summary_message,
-        "reasoning": xai["reasoning"],
-        "mitre_attack": xai["mitre_attack"],
-        "remediation": xai["remediation"],
-        "score_breakdown": xai["score_breakdown"]
-    }
+        return await _process_video_nonblocking(tmp_path, file_name, file_size_kb)
+    finally:
+        # Guarantee cleanup of temporary video file
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass
 
 class AnalyzeThreatRequest(BaseModel):
     threat_type: str
