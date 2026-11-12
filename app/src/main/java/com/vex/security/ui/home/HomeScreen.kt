@@ -1,5 +1,6 @@
 package com.vex.security.ui.home
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,25 +15,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.content.pm.PackageManager
 import com.vex.security.monitor.AutomaticFileAnalyzer
 import com.vex.security.monitor.StorageScanner
+import com.vex.security.repository.ThreatRepository
 import com.vex.security.scanner.ApkScanManager
 import com.vex.security.scanner.FileScanner
-import com.vex.security.security.ThreatEngine
-import com.vex.security.security.ThreatIndicators
 import com.vex.security.security.RiskCalculator
 import com.vex.security.security.SecurityPolicy
-import com.vex.security.repository.ThreatRepository
+import com.vex.security.security.ThreatEngine
+import com.vex.security.security.ThreatIndicators
+import com.vex.security.ui.theme.ThemeState
+import com.vex.security.ui.theme.VexPalette
 import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -58,14 +64,12 @@ fun HomeScreen(
 
     var scanning by remember { mutableStateOf(false) }
     var riskStatus by remember { mutableStateOf("SAFE") }
-    var riskColor by remember { mutableStateOf(Color(0xFF35E08A)) } // Green
-    var riskMessage by remember { mutableStateOf("Everything is good\nNo threats detected") }
-    var lastScanText by remember { mutableStateOf("2 hours ago") }
+    var riskColor by remember { mutableStateOf(Color(0xFFFF3358)) }
+    var lastScanText by remember { mutableStateOf("2 HOURS AGO") }
 
     val startQuickScan = {
         if (!scanning) {
             scanning = true
-            riskMessage = "Scanning storage & applications..."
             scope.launch {
                 val files = withContext(Dispatchers.IO) {
                     StorageScanner.getRecentFiles(context)
@@ -116,33 +120,28 @@ fun HomeScreen(
                 when (standardLvl) {
                     "CRITICAL" -> {
                         riskStatus = "CRITICAL"
-                        riskColor = Color(0xFFFF4D6D) // Red
-                        riskMessage = "Critical threat: $mostThreateningItem\nImmediate action required."
+                        riskColor = Color(0xFFFF3358)
                     }
                     "HIGH" -> {
-                        riskStatus = "HIGH"
-                        riskColor = Color(0xFFFF9F43) // Orange
-                        riskMessage = "Suspicious item: $mostThreateningItem\nThreat blocked."
+                        riskStatus = "QUARANTINE"
+                        riskColor = Color(0xFFFF3358)
                     }
                     "MEDIUM" -> {
-                        riskStatus = "MEDIUM"
-                        riskColor = Color(0xFFFFD166) // Yellow
-                        riskMessage = "Warning: Review activity for $mostThreateningItem"
+                        riskStatus = "WARN"
+                        riskColor = Color(0xFFFFB800)
                     }
                     "LOW" -> {
-                        riskStatus = "LOW"
-                        riskColor = Color(0xFF00E5FF) // Cyan
-                        riskMessage = "Notice: Low risk item: $mostThreateningItem"
+                        riskStatus = "CAUTION"
+                        riskColor = Color(0xFFFFB800)
                     }
                     else -> {
                         riskStatus = "SAFE"
-                        riskColor = Color(0xFF35E08A) // Green
-                        riskMessage = "Everything is good\nNo threats detected across storage & apps."
+                        riskColor = Color(0xFFFF3358)
                     }
                 }
 
+                lastScanText = "JUST NOW"
                 scanning = false
-                lastScanText = "Just now"
 
                 try {
                     val finalScore = if (maxScore > 0) maxScore else 10
@@ -155,7 +154,7 @@ fun HomeScreen(
                         status = if (riskStatus == "SAFE") "RESOLVED" else "OPEN",
                         indicators = if (foundThreatIndicators.isNotEmpty()) foundThreatIndicators else listOf(ThreatIndicators.CLEAN_FILE),
                         source = "ANDROID_QUICK_SCAN",
-                        explanation = riskMessage.replace("\n", " "),
+                        explanation = if (riskStatus == "SAFE") "No threats detected. Device verified secure." else "Threat item detected: $mostThreateningItem",
                         recommendation = if (maxScore >= 60) "Quarantine or isolate item immediately" else "Device verified secure"
                     )
                 } catch (e: Exception) {
@@ -168,209 +167,118 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
-            )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color(0xFFF6F4F9))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Top Header
+        // 1. Top Header Bar (Matching the exact screenshot)
         item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "VEX",
-                        color = Color(0xFF00FFE0),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 4.sp
-                    )
-                    Text(
-                        text = "CYBER GUARD",
-                        color = Color(0xFFA0B0C0),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
+                // Left: VEX Logo + CYBER GUARD Pill + Divider
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "VE",
+                                color = Color(0xFF1C1133),
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-1).sp
+                            )
+                            Text(
+                                text = "X",
+                                color = Color(0xFFFF3358),
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-1).sp
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFF241239), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 7.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "CYBER GUARD",
+                                color = Color.White,
+                                fontSize = 8.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
+                    }
+
+                    // Subtle vertical divider line
+                    Box(
+                        modifier = Modifier
+                            .width(1.5.dp)
+                            .height(28.dp)
+                            .background(Color(0xFFDCD6E8))
                     )
                 }
 
+                // Right: Two Badges (EXECUTIVE & Device Protected)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // Device Protected Pill
+                    // Badge 1: 👑 EXECUTIVE Pill
                     Box(
                         modifier = Modifier
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(20.dp))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .background(Color(0xFF241239), RoundedCornerShape(20.dp))
+                            .clickable { ThemeState.cycleNextTheme(context) }
+                            .padding(horizontal = 11.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .background(riskColor, shape = RoundedCornerShape(50))
+                            Text(text = "👑", fontSize = 11.sp)
+                            Text(
+                                text = "EXECUTIVE",
+                                color = Color.White,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                    }
+
+                    // Badge 2: 🛡️ Device Protected
+                    Box(
+                        modifier = Modifier
+                            .border(1.5.dp, Color(0xFFFF3358), RoundedCornerShape(20.dp))
+                            .background(Color.White, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Protected",
+                                tint = Color(0xFFFF3358),
+                                modifier = Modifier.size(13.dp)
                             )
                             Text(
                                 text = if (riskStatus == "SAFE") "Device Protected" else "Threat Alert",
-                                color = riskColor,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-
-                    // Notification Bell
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        // Risk Status Card
-        item {
-            CyberCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Your Device Risk",
-                            color = Color(0xFF80A0B0),
-                            fontSize = 12.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = riskStatus,
-                            color = riskColor,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = riskMessage,
-                            color = Color(0xFFB0C4DE),
-                            fontSize = 12.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(10.dp))
-                                .background(Color(0xFF0A141A), RoundedCornerShape(10.dp))
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Security,
-                                    contentDescription = "Shield",
-                                    tint = Color(0xFF00FFE0),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Column {
-                                    Text("Last Scan", color = Color(0xFF80A0B0), fontSize = 10.sp)
-                                    Text(lastScanText, color = Color(0xFFFFFFFF), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                                }
-                            }
-                        }
-                    }
-
-                    // Risk Gauge Visual
-                    Box(
-                        modifier = Modifier.size(130.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.size(110.dp)) {
-                            drawArc(
-                                color = Color(0xFF0A2530),
-                                startAngle = 135f,
-                                sweepAngle = 270f,
-                                useCenter = false,
-                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            // Safe segment
-                            drawArc(
-                                color = if (riskStatus == "SAFE") Color(0xFF35E08A) else Color(0xFF35E08A).copy(alpha = 0.3f),
-                                startAngle = 135f,
-                                sweepAngle = 67.5f,
-                                useCenter = false,
-                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            // Warn segment
-                            drawArc(
-                                color = if (riskStatus == "WARN") Color(0xFFFFD166) else Color(0xFFFFD166).copy(alpha = 0.3f),
-                                startAngle = 202.5f,
-                                sweepAngle = 67.5f,
-                                useCenter = false,
-                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            // Block segment
-                            drawArc(
-                                color = if (riskStatus == "BLOCK") Color(0xFFFF9F43) else Color(0xFFFF9F43).copy(alpha = 0.3f),
-                                startAngle = 270f,
-                                sweepAngle = 67.5f,
-                                useCenter = false,
-                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                            // Quarantine segment
-                            drawArc(
-                                color = if (riskStatus == "QUARANTINE") Color(0xFFFF4D6D) else Color(0xFFFF4D6D).copy(alpha = 0.3f),
-                                startAngle = 337.5f,
-                                sweepAngle = 67.5f,
-                                useCenter = false,
-                                style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                        }
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = when (riskStatus) {
-                                    "QUARANTINE" -> Icons.Default.Warning
-                                    "BLOCK" -> Icons.Default.Block
-                                    "WARN" -> Icons.Default.Info
-                                    else -> Icons.Default.CheckCircle
-                                },
-                                contentDescription = riskStatus,
-                                tint = riskColor,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Text(
-                                text = riskStatus,
-                                color = riskColor,
-                                fontSize = 9.sp,
+                                color = Color(0xFFFF3358),
+                                fontSize = 10.5.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -379,66 +287,99 @@ fun HomeScreen(
             }
         }
 
-        // Quick Scan Banner ("CHECK YOUR PHONE")
+        // 1.5 Unique Device ID Badge (Cloud Linked to SOC Dashboard)
         item {
-            CyberCard(
-                modifier = Modifier.clickable {
-                    startQuickScan()
-                }
+            val deviceId = remember { DeviceIdentity.getDeviceId(context) }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .clickable { DeviceIdentity.copyDeviceId(context) },
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF241239)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3B1E5C))
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 11.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(50.dp)
-                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(12.dp))
-                                .background(Color(0xFF0A1F28), RoundedCornerShape(12.dp)),
+                                .size(34.dp)
+                                .background(Color(0xFF341754), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Fingerprint,
-                                contentDescription = "Quick Scan",
-                                tint = Color(0xFF00FFE0),
-                                modifier = Modifier.size(28.dp)
+                                contentDescription = "ID",
+                                tint = Color(0xFFFF3358),
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-
                         Column {
-                            Text("QUICK SCAN", color = Color(0xFF80A0B0), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Text("CHECK YOUR PHONE", color = Color(0xFFFFFFFF), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "UNIQUE DEVICE ID",
+                                    color = Color(0xFFA998C4),
+                                    fontSize = 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.8.sp
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color(0xFF059669).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        text = "● CLOUD LINKED",
+                                        color = Color(0xFF34D399),
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (scanning) "Scanning everything automatically..." else "Tap to quick scan everything automatically",
-                                color = if (scanning) Color(0xFF00FFE0) else Color(0xFFA0B0C0),
-                                fontSize = 11.sp
+                                text = deviceId,
+                                color = Color.White,
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.2.sp
                             )
                         }
                     }
 
-                    if (scanning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(28.dp),
-                            color = Color(0xFF00FFE0),
-                            strokeWidth = 3.dp
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(Color(0xFF00FFE0), RoundedCornerShape(50)),
-                            contentAlignment = Alignment.Center
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFFF3358), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = "Go",
-                                tint = Color(0xFF000810),
-                                modifier = Modifier.size(20.dp)
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "COPY",
+                                color = Color.White,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
                             )
                         }
                     }
@@ -446,146 +387,382 @@ fun HomeScreen(
             }
         }
 
-        // Feature Grid (2x3)
+        // 2. Hero Card ("YOUR DEVICE RISK // SAFE")
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF241239)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left: Cyber Robot Mascot
+                        Box(
+                            modifier = Modifier.size(width = 130.dp, height = 120.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            RobotMascot(modifier = Modifier.fillMaxSize())
+                        }
+
+                        // Right: Risk Status & Checklist
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 12.dp)
+                        ) {
+                            Text(
+                                text = "YOUR DEVICE RISK",
+                                color = Color(0xFFA998C4),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.sp
+                            )
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            // Large Bold Italic SAFE with Red Smile Arc
+                            Column {
+                                Text(
+                                    text = riskStatus,
+                                    color = Color.White,
+                                    fontSize = 38.sp,
+                                    fontWeight = FontWeight.Black,
+                                    fontStyle = FontStyle.Italic,
+                                    letterSpacing = 1.sp
+                                )
+
+                                Canvas(modifier = Modifier.size(width = 65.dp, height = 6.dp)) {
+                                    val smilePath = Path().apply {
+                                        moveTo(0f, 2f)
+                                        quadraticTo(size.width * 0.5f, size.height, size.width, 2f)
+                                    }
+                                    drawPath(
+                                        path = smilePath,
+                                        color = Color(0xFFFF3358),
+                                        style = Stroke(width = 4f, cap = StrokeCap.Round)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            // Checklist bullets
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Check",
+                                    tint = Color(0xFFFF3358),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (riskStatus == "SAFE") "Everything is good" else "Attention required",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Check",
+                                    tint = Color(0xFFFF3358),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (riskStatus == "SAFE") "No threats detected" else "Threat item isolated",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Bottom Row: Last Scan Pill + Quick Scan Button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left: Last Scan Box
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .border(1.dp, Color(0xFF381A56), RoundedCornerShape(14.dp))
+                                .background(Color(0xFF1A0C2B), RoundedCornerShape(14.dp))
+                                .padding(horizontal = 12.dp, vertical = 9.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarToday,
+                                    contentDescription = "Calendar",
+                                    tint = Color(0xFFFF3358),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = "Last Scan",
+                                        color = Color(0xFFA998C4),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
+                                    Text(
+                                        text = lastScanText,
+                                        color = Color.White,
+                                        fontSize = 11.5.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        // Right: QUICK SCAN Red Button
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .background(Color(0xFFFF3358), RoundedCornerShape(14.dp))
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable { startQuickScan() }
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (scanning) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                    Text(
+                                        text = "SCANNING...",
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                }
+                            } else {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Play",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "QUICK SCAN",
+                                        color = Color.White,
+                                        fontSize = 12.5.sp,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Middle Callout Banner ("CHECK YOUR PHONE")
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable { startQuickScan() },
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFFFF3358), Color(0xFFFF486C))
+                            )
+                        )
+                        .padding(horizontal = 18.dp, vertical = 18.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Cute Phone Scan Illustration
+                        Box(
+                            modifier = Modifier.size(width = 62.dp, height = 62.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PhoneScanIllustration(modifier = Modifier.fillMaxSize())
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "CHECK YOUR PHONE",
+                                color = Color.White,
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Black,
+                                fontStyle = FontStyle.Italic,
+                                letterSpacing = 0.5.sp
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = "Tap to scan everything automatically",
+                                color = Color.White.copy(alpha = 0.95f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Feature Grid (Matching screenshot: 2 columns, dark cards, white icons, red circular chevron)
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Row 1: APK CHECK & QR PHOTOS CHECK
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Android,
                             title = "APK CHECK",
-                            subtitle = "Scan and analyze apps and APK files",
+                            subtitle = "Scan and analyze apps",
                             onClick = onNavigateToApkCheck
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.QrCode,
                             title = "QR PHOTOS CHECK",
-                            subtitle = "Scan QR codes from camera or gallery",
+                            subtitle = "Scan QR codes from camera",
                             onClick = onNavigateToQrCheck
                         )
                     }
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Row 2: PHOTO SCAN & VIDEO SCAN
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Image,
-                            title = "AI PHOTOS CHECK",
-                            subtitle = "Detect AI generated or manipulated images",
+                            title = "PHOTO SCAN",
+                            subtitle = "Check for hidden threats",
                             onClick = onNavigateToAiCheck
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Videocam,
-                            title = "AI VIDEO CHECK",
-                            subtitle = "Detect AI generated videos & deepfakes",
+                            title = "VIDEO SCAN",
+                            subtitle = "Analyze videos for risks",
                             onClick = onNavigateToAiVideoCheck
                         )
                     }
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Row 3: METADATA SCAN & USB/OTG CHECK
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Description,
-                            title = "NO METADATA CHECK",
-                            subtitle = "Find photos with missing metadata",
+                            title = "METADATA SCAN",
+                            subtitle = "Photos missing EXIF info",
                             onClick = onNavigateToNoMetadataCheck
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Usb,
                             title = "USB/OTG CHECK",
-                            subtitle = "Scan USB devices and external storage",
+                            subtitle = "Scan external pen drives",
                             onClick = onNavigateToUsbCheck
                         )
                     }
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Row 4: VEX BROWSER & BOMB SHIELD
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Language,
-                            title = "URL CHECK",
-                            subtitle = "Check and detect malicious links",
-                            onClick = onNavigateToUrlScan
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
-                            icon = Icons.Default.FolderOpen,
-                            title = "FILE DEEP SCAN",
-                            subtitle = "Upload and scan any file for malware",
-                            onClick = onNavigateToFileScan
-                        )
-                    }
-                }
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
-                            icon = Icons.Default.Language,
-                            title = "VEX BROWSER (VB)",
-                            subtitle = "Zero login, incognito ad & threat shield",
+                            title = "VEX BROWSER",
+                            subtitle = "Zero-login incognito VB",
                             onClick = onNavigateToBrowser
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        FeatureItem(
+                        FeatureItemExecutive(
                             icon = Icons.Default.Shield,
                             title = "BOMB SHIELD",
-                            subtitle = "Auto block flood SMS & robocalls",
+                            subtitle = "Block SMS flood & spam",
                             onClick = onNavigateToBombShield
                         )
                     }
                 }
-            }
-        }
 
-        // Recent Activity Card
-        item {
-            CyberCard(
-                modifier = Modifier.clickable { onNavigateToDashboard() }
-            ) {
+                // Row 5: FILE DEEP SCAN & URL CHECK
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = "Activity",
-                            tint = Color(0xFF00FFE0),
-                            modifier = Modifier.size(24.dp)
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItemExecutive(
+                            icon = Icons.Default.FolderOpen,
+                            title = "FILE SCAN",
+                            subtitle = "Deep malware inspection",
+                            onClick = onNavigateToFileScan
                         )
-                        Column {
-                            Text("Recent Activity", color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                text = when (riskStatus) {
-                                    "QUARANTINE" -> "Harmful threat detected in automatic scan"
-                                    "BLOCK" -> "Suspicious file blocked"
-                                    "WARN" -> "Warning items found"
-                                    else -> "No threats detected today"
-                                },
-                                color = riskColor,
-                                fontSize = 11.sp
-                            )
-                        }
                     }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Open",
-                        tint = Color(0xFF80A0B0),
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        FeatureItemExecutive(
+                            icon = Icons.Default.Link,
+                            title = "URL SCAN",
+                            subtitle = "Detect malicious links",
+                            onClick = onNavigateToUrlScan
+                        )
+                    }
                 }
             }
         }
@@ -596,28 +773,12 @@ fun HomeScreen(
     }
 }
 
+/**
+ * 2-Column Action Feature Card styled exactly to the design reference:
+ * Dark plum card (#241239), white icon, red circular chevron button (#FF3358), bold white title, soft lavender subtitle.
+ */
 @Composable
-fun CyberCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF005566).copy(alpha = 0.6f), RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-fun FeatureItem(
+fun FeatureItemExecutive(
     icon: ImageVector,
     title: String,
     subtitle: String,
@@ -626,61 +787,314 @@ fun FeatureItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(110.dp)
-            .border(1.dp, Color(0xFF005566).copy(alpha = 0.5f), RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
+            .height(118.dp)
+            .clip(RoundedCornerShape(20.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF241239)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Top Row: White Icon + Red Circular Chevron
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.6f), RoundedCornerShape(10.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp)),
+                        .size(28.dp)
+                        .background(Color(0xFFFF3358), RoundedCornerShape(50)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = icon,
-                        contentDescription = title,
-                        tint = Color(0xFF00FFE0),
-                        modifier = Modifier.size(20.dp)
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = "Open",
+                        tint = Color.White,
+                        modifier = Modifier.size(17.dp)
                     )
                 }
-
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = "Open",
-                    tint = Color(0xFF7090A0),
-                    modifier = Modifier.size(16.dp)
-                )
             }
 
+            // Bottom Column: Bold Title + Lavender Subtitle
             Column {
                 Text(
                     text = title,
-                    color = Color(0xFFFFFFFF),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White,
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.3.sp
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    color = Color(0xFF80A0B0),
-                    fontSize = 9.sp,
+                    color = Color(0xFFA998C4),
+                    fontSize = 10.5.sp,
+                    fontWeight = FontWeight.Normal,
                     maxLines = 1
                 )
             }
         }
+    }
+}
+
+/**
+ * High-definition vector rendering of the cute VEX Cyber Robot mascot holding the security shield.
+ */
+@Composable
+fun RobotMascot(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Sparkle / dynamic accent marks (top)
+        drawLine(
+            color = Color(0xFFFF3358),
+            start = Offset(w * 0.45f, h * 0.05f),
+            end = Offset(w * 0.40f, h * 0.12f),
+            strokeWidth = 3f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = Color(0xFFFF3358),
+            start = Offset(w * 0.55f, h * 0.05f),
+            end = Offset(w * 0.53f, h * 0.13f),
+            strokeWidth = 3f,
+            cap = StrokeCap.Round
+        )
+
+        // Robot Head (white rounded rect / oval)
+        val headRadius = w * 0.28f
+        val headCenter = Offset(w * 0.40f, h * 0.42f)
+
+        // Ear muff left
+        drawCircle(
+            color = Color(0xFFFF3358),
+            radius = headRadius * 0.38f,
+            center = Offset(headCenter.x - headRadius * 0.95f, headCenter.y)
+        )
+        drawCircle(
+            color = Color.White,
+            radius = headRadius * 0.20f,
+            center = Offset(headCenter.x - headRadius * 0.95f, headCenter.y)
+        )
+
+        // Ear muff right
+        drawCircle(
+            color = Color(0xFFFF3358),
+            radius = headRadius * 0.38f,
+            center = Offset(headCenter.x + headRadius * 0.95f, headCenter.y)
+        )
+        drawCircle(
+            color = Color.White,
+            radius = headRadius * 0.20f,
+            center = Offset(headCenter.x + headRadius * 0.95f, headCenter.y)
+        )
+
+        // Head base
+        drawCircle(
+            color = Color.White,
+            radius = headRadius,
+            center = headCenter
+        )
+
+        // Red top crest on helmet
+        drawArc(
+            color = Color(0xFFFF3358),
+            startAngle = 200f,
+            sweepAngle = 140f,
+            useCenter = true,
+            topLeft = Offset(headCenter.x - headRadius * 0.4f, headCenter.y - headRadius * 1.05f),
+            size = Size(headRadius * 0.8f, headRadius * 0.35f)
+        )
+
+        // Dark Visor / face plate
+        drawRoundRect(
+            color = Color(0xFF190B2A),
+            topLeft = Offset(headCenter.x - headRadius * 0.72f, headCenter.y - headRadius * 0.45f),
+            size = Size(headRadius * 1.44f, headRadius * 0.95f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(headRadius * 0.45f)
+        )
+
+        // Cheerful curved eyes ^ ^
+        drawArc(
+            color = Color.White,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(headCenter.x - headRadius * 0.48f, headCenter.y - headRadius * 0.15f),
+            size = Size(headRadius * 0.32f, headRadius * 0.22f),
+            style = Stroke(width = 4.5f, cap = StrokeCap.Round)
+        )
+        drawArc(
+            color = Color.White,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(headCenter.x + headRadius * 0.16f, headCenter.y - headRadius * 0.15f),
+            size = Size(headRadius * 0.32f, headRadius * 0.22f),
+            style = Stroke(width = 4.5f, cap = StrokeCap.Round)
+        )
+
+        // Cute rosy cheeks (red dots)
+        drawCircle(
+            color = Color(0x66FF3358),
+            radius = headRadius * 0.12f,
+            center = Offset(headCenter.x - headRadius * 0.50f, headCenter.y + headRadius * 0.25f)
+        )
+        drawCircle(
+            color = Color(0x66FF3358),
+            radius = headRadius * 0.12f,
+            center = Offset(headCenter.x + headRadius * 0.50f, headCenter.y + headRadius * 0.25f)
+        )
+
+        // Robot Body (white capsule)
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(headCenter.x - headRadius * 0.65f, headCenter.y + headRadius * 0.75f),
+            size = Size(headRadius * 1.15f, headRadius * 0.85f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(headRadius * 0.4f)
+        )
+
+        // Red collar / band
+        drawRoundRect(
+            color = Color(0xFFFF3358),
+            topLeft = Offset(headCenter.x - headRadius * 0.55f, headCenter.y + headRadius * 0.72f),
+            size = Size(headRadius * 0.95f, headRadius * 0.18f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(headRadius * 0.1f)
+        )
+
+        // Left hand giving thumbs up!
+        drawCircle(
+            color = Color.White,
+            radius = headRadius * 0.22f,
+            center = Offset(headCenter.x - headRadius * 0.75f, headCenter.y + headRadius * 1.1f)
+        )
+
+        // Glowing Shield with Checkmark (Right side of robot)
+        val shieldCenter = Offset(w * 0.78f, h * 0.70f)
+        val shieldWidth = w * 0.36f
+        val shieldHeight = h * 0.38f
+
+        val shieldPath = Path().apply {
+            moveTo(shieldCenter.x, shieldCenter.y - shieldHeight * 0.48f)
+            lineTo(shieldCenter.x + shieldWidth * 0.48f, shieldCenter.y - shieldHeight * 0.32f)
+            quadraticTo(
+                shieldCenter.x + shieldWidth * 0.46f, shieldCenter.y + shieldHeight * 0.15f,
+                shieldCenter.x, shieldCenter.y + shieldHeight * 0.52f
+            )
+            quadraticTo(
+                shieldCenter.x - shieldWidth * 0.46f, shieldCenter.y + shieldHeight * 0.15f,
+                shieldCenter.x - shieldWidth * 0.48f, shieldCenter.y - shieldHeight * 0.32f
+            )
+            close()
+        }
+
+        // Shield outer border highlight
+        drawPath(path = shieldPath, color = Color.White)
+
+        // Shield inner coral body
+        val innerShieldPath = Path().apply {
+            moveTo(shieldCenter.x, shieldCenter.y - shieldHeight * 0.44f)
+            lineTo(shieldCenter.x + shieldWidth * 0.42f, shieldCenter.y - shieldHeight * 0.30f)
+            quadraticTo(
+                shieldCenter.x + shieldWidth * 0.40f, shieldCenter.y + shieldHeight * 0.12f,
+                shieldCenter.x, shieldCenter.y + shieldHeight * 0.46f
+            )
+            quadraticTo(
+                shieldCenter.x - shieldWidth * 0.40f, shieldCenter.y + shieldHeight * 0.12f,
+                shieldCenter.x - shieldWidth * 0.42f, shieldCenter.y - shieldHeight * 0.30f
+            )
+            close()
+        }
+        drawPath(path = innerShieldPath, color = Color(0xFFFF3358))
+
+        // White checkmark inside shield
+        val checkPath = Path().apply {
+            moveTo(shieldCenter.x - shieldWidth * 0.18f, shieldCenter.y - shieldHeight * 0.02f)
+            lineTo(shieldCenter.x - shieldWidth * 0.04f, shieldCenter.y + shieldHeight * 0.14f)
+            lineTo(shieldCenter.x + shieldWidth * 0.20f, shieldCenter.y - shieldHeight * 0.14f)
+        }
+        drawPath(
+            path = checkPath,
+            color = Color.White,
+            style = Stroke(width = 6f, cap = StrokeCap.Round)
+        )
+    }
+}
+
+/**
+ * Cute vector drawing of a phone outline with a magnifying glass search lens inside and sparkle motion rays.
+ */
+@Composable
+fun PhoneScanIllustration(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Dynamic motion rays on top-right: ヾ
+        drawLine(
+            color = Color.White,
+            start = Offset(w * 0.75f, h * 0.12f),
+            end = Offset(w * 0.86f, h * 0.05f),
+            strokeWidth = 4f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = Color.White,
+            start = Offset(w * 0.88f, h * 0.25f),
+            end = Offset(w * 0.98f, h * 0.22f),
+            strokeWidth = 4f,
+            cap = StrokeCap.Round
+        )
+
+        // Phone outline
+        val phoneLeft = w * 0.12f
+        val phoneTop = h * 0.10f
+        val phoneW = w * 0.62f
+        val phoneH = h * 0.80f
+        val corner = 20f
+
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(phoneLeft, phoneTop),
+            size = Size(phoneW, phoneH),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner),
+            style = Stroke(width = 6f)
+        )
+
+        // Magnifying glass inside phone
+        val magCenter = Offset(phoneLeft + phoneW * 0.52f, phoneTop + phoneH * 0.48f)
+        val magRadius = phoneW * 0.27f
+
+        drawCircle(
+            color = Color.White,
+            radius = magRadius,
+            center = magCenter,
+            style = Stroke(width = 6f)
+        )
+
+        // Handle of magnifying glass
+        val handleStart = Offset(magCenter.x + magRadius * 0.7f, magCenter.y + magRadius * 0.7f)
+        val handleEnd = Offset(handleStart.x + magRadius * 0.75f, handleStart.y + magRadius * 0.75f)
+        drawLine(
+            color = Color.White,
+            start = handleStart,
+            end = handleEnd,
+            strokeWidth = 7f,
+            cap = StrokeCap.Round
+        )
     }
 }

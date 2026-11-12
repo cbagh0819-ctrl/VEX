@@ -1,4 +1,5 @@
 package com.vex.security.ui.scan
+import com.vex.security.ui.theme.VexPalette
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

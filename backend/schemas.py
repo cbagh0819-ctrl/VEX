@@ -1,18 +1,23 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class DeviceCreate(BaseModel):
     device_id: str
     device_name: str
-    android_version: str
-    model: str
-    registered_at: int
+    platform: Optional[str] = "ANDROID" # ANDROID, IOS, CHROME_EXTENSION, WINDOWS, MACOS, WEB
+    os_version: Optional[str] = None
+    android_version: Optional[str] = None
+    model: Optional[str] = "Standard Endpoint"
+    client_version: Optional[str] = "1.0.0"
+    registered_at: Optional[int] = None
 
 
 class ThreatEventCreate(BaseModel):
     event_id: str
     device_id: str
+    platform: Optional[str] = "ANDROID"
+    target_entity: Optional[str] = None
     threat_type: str
     risk_score: int
     risk_level: str

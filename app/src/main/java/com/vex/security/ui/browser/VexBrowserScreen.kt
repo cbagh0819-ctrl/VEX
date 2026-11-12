@@ -1,5 +1,6 @@
 package com.vex.security.ui.browser
 
+import com.vex.security.ui.theme.VexPalette
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.view.ViewGroup
@@ -179,13 +180,13 @@ fun VexBrowserScreen() {
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF00FFE0).copy(alpha = 0.15f))
-                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(8.dp)),
+                                .background(VexPalette.primary.copy(alpha = 0.15f))
+                                .border(1.dp, VexPalette.primary, RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "VB",
-                                color = Color(0xFF00FFE0),
+                                color = VexPalette.primary,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = FontFamily.Monospace
@@ -195,7 +196,7 @@ fun VexBrowserScreen() {
                         Column {
                             Text(
                                 text = "VEX BROWSER",
-                                color = Color(0xFFFFFFFF),
+                                color = VexPalette.headerText,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
@@ -253,13 +254,13 @@ fun VexBrowserScreen() {
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF0A2530))
-                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFF3358))
+                                .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(8.dp))
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Reload",
-                                tint = Color(0xFF00FFE0),
+                                tint = VexPalette.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -305,7 +306,7 @@ fun VexBrowserScreen() {
                     ) {
                         Text(
                             text = "${AdGuardDnsEngine.latencyMs.intValue}ms",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
@@ -339,8 +340,8 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFF0A1F28))
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(6.dp))
+                            .background(VexPalette.pillBackground)
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(6.dp))
                             .padding(horizontal = 6.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -351,12 +352,12 @@ fun VexBrowserScreen() {
                             Icon(
                                 imageVector = Icons.Default.Block,
                                 contentDescription = null,
-                                tint = Color(0xFF00FFE0),
+                                tint = VexPalette.primary,
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
                                 text = "ADS: $blockedAdsCount",
-                                color = Color(0xFF00FFE0),
+                                color = VexPalette.primary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
@@ -370,10 +371,10 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (blockedThreatsCount > 0) Color(0xFF330A14) else Color(0xFF0A1F28))
+                            .background(if (blockedThreatsCount > 0) Color(0xFF330A14) else VexPalette.pillBackground)
                             .border(
                                 1.dp,
-                                if (blockedThreatsCount > 0) Color(0xFFFF3366) else Color(0xFF005566),
+                                if (blockedThreatsCount > 0) Color(0xFFFF3366) else VexPalette.cardBorder,
                                 RoundedCornerShape(6.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 6.dp),
@@ -386,12 +387,12 @@ fun VexBrowserScreen() {
                             Icon(
                                 imageVector = Icons.Default.Shield,
                                 contentDescription = null,
-                                tint = if (blockedThreatsCount > 0) Color(0xFFFF3366) else Color(0xFF80A0B0),
+                                tint = if (blockedThreatsCount > 0) Color(0xFFFF3366) else Color(0xFFA998C4),
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
                                 text = "THREATS: $blockedThreatsCount",
-                                color = if (blockedThreatsCount > 0) Color(0xFFFF3366) else Color(0xFF80A0B0),
+                                color = if (blockedThreatsCount > 0) Color(0xFFFF3366) else Color(0xFFA998C4),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
@@ -405,7 +406,7 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFF0A1F28))
+                            .background(VexPalette.pillBackground)
                             .border(1.dp, Color(0xFF00FF66).copy(alpha = 0.4f), RoundedCornerShape(6.dp))
                             .padding(horizontal = 6.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -449,17 +450,17 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (showLaunchpad) Color(0xFF00FFE0).copy(alpha = 0.2f) else Color(0xFF0A2530))
+                            .background(if (showLaunchpad) VexPalette.primary.copy(alpha = 0.2f) else Color(0xFFFF3358))
                             .border(
                                 1.dp,
-                                if (showLaunchpad) Color(0xFF00FFE0) else Color(0xFF005566),
+                                if (showLaunchpad) VexPalette.primary else VexPalette.cardBorder,
                                 RoundedCornerShape(8.dp)
                             )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",
-                            tint = if (showLaunchpad) Color(0xFF00FFE0) else Color(0xFF7090A0),
+                            tint = if (showLaunchpad) VexPalette.primary else Color(0xFF7090A0),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -480,12 +481,12 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF0A2530))
+                            .background(Color(0xFFFF3358))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = if (canGoBack || blockedThreat != null || !showLaunchpad) Color(0xFF00FFE0) else Color(0xFF304550),
+                            tint = if (canGoBack || blockedThreat != null || !showLaunchpad) VexPalette.primary else Color(0xFF304550),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -501,12 +502,12 @@ fun VexBrowserScreen() {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF0A2530))
+                            .background(Color(0xFFFF3358))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Forward",
-                            tint = if (canGoForward) Color(0xFF00FFE0) else Color(0xFF304550),
+                            tint = if (canGoForward) VexPalette.primary else Color(0xFF304550),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -528,7 +529,7 @@ fun VexBrowserScreen() {
                             Icon(
                                 imageVector = if (blockedThreat != null) Icons.Default.Dangerous else Icons.Default.Lock,
                                 contentDescription = null,
-                                tint = if (blockedThreat != null) Color(0xFFFF3366) else Color(0xFF00FFE0),
+                                tint = if (blockedThreat != null) Color(0xFFFF3366) else VexPalette.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                         },
@@ -540,7 +541,7 @@ fun VexBrowserScreen() {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                         contentDescription = "Go",
-                                        tint = Color(0xFF00FFE0),
+                                        tint = VexPalette.primary,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -549,11 +550,11 @@ fun VexBrowserScreen() {
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                         keyboardActions = KeyboardActions(onGo = { navigateTo(inputUrl) }),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00FFE0),
-                            unfocusedBorderColor = Color(0xFF005566),
+                            focusedBorderColor = VexPalette.primary,
+                            unfocusedBorderColor = VexPalette.cardBorder,
                             focusedTextColor = Color(0xFFFFFFFF),
                             unfocusedTextColor = Color(0xFFFFFFFF),
-                            cursorColor = Color(0xFF00FFE0)
+                            cursorColor = VexPalette.primary
                         ),
                         shape = RoundedCornerShape(10.dp)
                     )
@@ -568,8 +569,8 @@ fun VexBrowserScreen() {
                             .fillMaxWidth()
                             .height(3.dp)
                             .clip(RoundedCornerShape(2.dp)),
-                        color = Color(0xFF00FFE0),
-                        trackColor = Color(0xFF0A2530)
+                        color = VexPalette.primary,
+                        trackColor = Color(0xFFFF3358)
                     )
                 }
             }
@@ -580,7 +581,7 @@ fun VexBrowserScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFF000305))
+                .background(VexPalette.backgroundBottom)
         ) {
             // Layer 1: Persistent Sandboxed WebView
             AndroidView(
@@ -604,6 +605,9 @@ fun VexBrowserScreen() {
                         settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
                         settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
+                        // Connect Virtual HAL Active Deception Bridge powered by Gemma 2 2B
+                        addJavascriptInterface(com.vex.security.browser.VexVirtualHalBridge(context), "VexVirtualHal")
+
                         // Disable third party cookies completely
                         CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
 
@@ -618,8 +622,31 @@ fun VexBrowserScreen() {
                             }
 
                             override fun onPermissionRequest(request: PermissionRequest?) {
-                                // Auto-bypass: Deny camera, microphone, device sensors
-                                request?.deny()
+                                if (request == null) return
+                                val requestedResources = request.resources ?: emptyArray()
+                                val isCameraRequested = requestedResources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                                if (isCameraRequested) {
+                                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                                        // 1. Run Gemma 2 2B evaluation in real time
+                                        val eventContext = "Webpage origin ${this@apply.url} requested raw Camera HAL access while claiming free prize lure."
+                                        val decision = com.vex.security.ai.VexAiDefenseEngine.evaluateEvent(eventContext)
+                                        if (decision.engageDeception) {
+                                            // Deny real hardware access to the malicious site
+                                            request.deny()
+                                            // Notify Central SOC Radar & Sound Siren
+                                            com.vex.security.network.VexSocClient.reportThreatToSoc("VEX-MOBILE-CLIENT-01", decision)
+                                            // Inject Virtual HAL Decoy script into webpage
+                                            this@apply.evaluateJavascript("""
+                                                console.warn('[VEX RASP] Physical Camera HAL Denied by Gemma 2 2B. Decoy stream routed.');
+                                                if (window.onVexDecoyActive) window.onVexDecoyActive();
+                                            """.trimIndent(), null)
+                                        } else {
+                                            request.grant(request.resources)
+                                        }
+                                    }
+                                } else {
+                                    request.grant(request.resources)
+                                }
                             }
 
                             override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -710,6 +737,9 @@ fun VexBrowserScreen() {
                                 isLoading = false
                                 canGoBack = view?.canGoBack() == true
                                 canGoForward = view?.canGoForward() == true
+
+                                // Inject VEX Client-side Virtual HAL & Active Deception Layer
+                                view?.evaluateJavascript(VexBrowserEngine.VIRTUAL_HAL_INJECTION_SCRIPT, null)
                             }
                         }
                     }
@@ -725,13 +755,7 @@ fun VexBrowserScreen() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF03141C),
-                                    Color(0xFF01080C),
-                                    Color(0xFF000305)
-                                )
-                            )
+                            Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
                         )
                 ) {
                     LaunchpadScreen(
@@ -753,7 +777,7 @@ fun VexBrowserScreen() {
                                 colors = listOf(
                                     Color(0xFF1E050B),
                                     Color(0xFF0A0306),
-                                    Color(0xFF000305)
+                                    VexPalette.backgroundBottom
                                 )
                             )
                         )
@@ -834,7 +858,7 @@ fun BlockedThreatScreen(
 
             Text(
                 text = "VEX Browser detected a high-risk malicious resource and terminated navigation before any script, exploit payload, or phishing form could execute.",
-                color = Color(0xFF80A0B0),
+                color = Color(0xFFA998C4),
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -873,8 +897,8 @@ fun BlockedThreatScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0A1F28)),
-                border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(Color(0xFF005566), Color(0xFF0A2530))))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.pillBackground),
+                border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(VexPalette.cardBorder, Color(0xFFFF3358))))
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
@@ -884,7 +908,7 @@ fun BlockedThreatScreen(
                     ) {
                         Text(
                             text = "PRIMARY THREAT CLASSIFICATION",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -917,7 +941,7 @@ fun BlockedThreatScreen(
                     // Indicator Tags
                     Text(
                         text = "TRIGGERED INDICATORS:",
-                        color = Color(0xFF80A0B0),
+                        color = Color(0xFFA998C4),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -969,19 +993,19 @@ fun BlockedThreatScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FFE0)),
+                colors = ButtonDefaults.buttonColors(containerColor = VexPalette.primary),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = Color(0xFF000305),
+                    tint = VexPalette.backgroundBottom,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "RETURN TO SAFETY (LAUNCHPAD)",
-                    color = Color(0xFF000305),
+                    color = VexPalette.backgroundBottom,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
                 )
@@ -1034,8 +1058,8 @@ fun LaunchpadScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0A1F28)),
-                border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(Color(0xFF00FFE0), Color(0xFF005566))))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.pillBackground),
+                border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(VexPalette.primary, VexPalette.cardBorder)))
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -1048,12 +1072,12 @@ fun LaunchpadScreen(
                         Icon(
                             imageVector = Icons.Default.Security,
                             contentDescription = null,
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
                             text = "VEX PRIVATE BROWSER (VB)",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -1069,7 +1093,7 @@ fun LaunchpadScreen(
 
                     Text(
                         text = "VEX Browser enforces strict privacy: zero login required, automatic bypass/denial of location & device permissions, real-time ad/crypto-miner stripping, and complete cache annihilation upon exit.",
-                        color = Color(0xFF80A0B0),
+                        color = Color(0xFFA998C4),
                         fontSize = 11.sp,
                         lineHeight = 16.sp
                     )
@@ -1147,7 +1171,7 @@ fun LaunchpadScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(
                                 text = "PING: ${AdGuardDnsEngine.latencyMs.intValue}ms",
-                                color = Color(0xFF00FFE0),
+                                color = VexPalette.primary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
@@ -1183,7 +1207,7 @@ fun LaunchpadScreen(
         item {
             Text(
                 text = "ACTIVE SECURITY GUARANTEES",
-                color = Color(0xFF80A0B0),
+                color = Color(0xFFA998C4),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -1225,7 +1249,7 @@ fun LaunchpadScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "QUICK LAUNCH & SECURITY TEST SITES",
-                color = Color(0xFF80A0B0),
+                color = Color(0xFFA998C4),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -1245,7 +1269,7 @@ fun LaunchpadScreen(
                     title = "DuckDuckGo Private Search",
                     subtitle = "duckduckgo.com • Anonymous Tracker-free Web Search",
                     icon = Icons.Default.Search,
-                    color = Color(0xFF00FFE0),
+                    color = VexPalette.primary,
                     onClick = { onSelectBookmark("https://duckduckgo.com") }
                 )
                 BookmarkCard(
@@ -1292,7 +1316,7 @@ fun SecurityPillarItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xFF071118))
-            .border(1.dp, Color(0xFF0A2530), RoundedCornerShape(8.dp))
+            .border(1.dp, Color(0xFFFF3358), RoundedCornerShape(8.dp))
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1301,13 +1325,13 @@ fun SecurityPillarItem(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF0A2530)),
+                .background(Color(0xFFFF3358)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF00FFE0),
+                tint = VexPalette.primary,
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -1341,7 +1365,7 @@ fun BookmarkCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF0A1F28))
+            .background(VexPalette.pillBackground)
             .border(1.dp, color.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
             .clickable { onClick() }
             .padding(12.dp),
@@ -1373,7 +1397,7 @@ fun BookmarkCard(
             )
             Text(
                 text = subtitle,
-                color = Color(0xFF80A0B0),
+                color = Color(0xFFA998C4),
                 fontSize = 11.sp,
                 lineHeight = 15.sp
             )
@@ -1400,7 +1424,7 @@ fun AdGuardDnsInspectorDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("CLOSE", color = Color(0xFF00FFE0), fontWeight = FontWeight.Bold)
+                Text("CLOSE", color = VexPalette.primary, fontWeight = FontWeight.Bold)
             }
         },
         title = {
@@ -1481,7 +1505,7 @@ fun AdGuardDnsInspectorDialog(onDismiss: () -> Unit) {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = "LATENCY", color = Color(0xFF7090A0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                            Text(text = "${AdGuardDnsEngine.latencyMs.intValue} ms", color = Color(0xFF00FFE0), fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                            Text(text = "${AdGuardDnsEngine.latencyMs.intValue} ms", color = VexPalette.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                         }
                     }
 
@@ -1563,7 +1587,7 @@ fun AdGuardDnsInspectorDialog(onDismiss: () -> Unit) {
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(if (record.isBlocked) Color(0xFF200A10) else Color(0xFF07181F))
-                                .border(0.5.dp, if (record.isBlocked) Color(0xFFFF3366).copy(alpha = 0.5f) else Color(0xFF005566), RoundedCornerShape(4.dp))
+                                .border(0.5.dp, if (record.isBlocked) Color(0xFFFF3366).copy(alpha = 0.5f) else VexPalette.cardBorder, RoundedCornerShape(4.dp))
                                 .padding(6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -1579,7 +1603,7 @@ fun AdGuardDnsInspectorDialog(onDismiss: () -> Unit) {
                                 )
                                 Text(
                                     text = record.resolvedIp,
-                                    color = if (record.isBlocked) Color(0xFFFF3366) else Color(0xFF00FFE0),
+                                    color = if (record.isBlocked) Color(0xFFFF3366) else VexPalette.primary,
                                     fontSize = 9.sp,
                                     fontFamily = FontFamily.Monospace
                                 )
@@ -1603,7 +1627,7 @@ fun AdGuardDnsInspectorDialog(onDismiss: () -> Unit) {
                 }
             }
         },
-        containerColor = Color(0xFF03141C),
+        containerColor = VexPalette.backgroundTop,
         shape = RoundedCornerShape(14.dp)
     )
 }

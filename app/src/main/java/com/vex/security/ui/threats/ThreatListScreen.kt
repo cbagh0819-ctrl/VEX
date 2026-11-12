@@ -1,5 +1,6 @@
 package com.vex.security.ui.threats
 
+import com.vex.security.ui.theme.VexPalette
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -78,13 +79,7 @@ fun ThreatListScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -99,22 +94,22 @@ fun ThreatListScreen() {
                 Column {
                     Text(
                         text = "INCIDENT LIFE CYCLE & XAI",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp
                     )
                     Text(
                         text = "Operational response flow & Explainable AI telemetry",
-                        color = Color(0xFF80A0B0),
+                        color = Color(0xFFA998C4),
                         fontSize = 11.sp
                     )
                 }
 
                 Box(
                     modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
+                        .border(1.dp, VexPalette.primary, RoundedCornerShape(20.dp))
+                        .background(VexPalette.pillBackground, RoundedCornerShape(20.dp))
                         .clickable { loadEvents() }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
@@ -126,12 +121,12 @@ fun ThreatListScreen() {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "Refresh",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -150,7 +145,7 @@ fun ThreatListScreen() {
                     TierFilterChip(
                         label = "ALL",
                         count = events.size,
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         isSelected = selectedFilter == "ALL",
                         onClick = { selectedFilter = "ALL" }
                     )
@@ -211,19 +206,19 @@ fun ThreatListScreen() {
                         .padding(40.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    CircularProgressIndicator(color = VexPalette.primary)
                 }
             }
         } else if (filteredEvents.isEmpty()) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Box(modifier = Modifier.padding(32.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
                             text = if (selectedFilter == "ALL") "No threat events recorded yet." else "No events in $selectedFilter tier.",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 13.sp
                         )
                     }
@@ -257,7 +252,7 @@ fun TierFilterChip(
                 RoundedCornerShape(16.dp)
             )
             .background(
-                if (isSelected) color.copy(alpha = 0.2f) else Color(0xFF0A1F28),
+                if (isSelected) color.copy(alpha = 0.2f) else VexPalette.pillBackground,
                 RoundedCornerShape(16.dp)
             )
             .clickable { onClick() }
@@ -274,7 +269,7 @@ fun TierFilterChip(
             )
             Text(
                 text = "$label ($count)",
-                color = if (isSelected) Color.White else Color(0xFF80A0B0),
+                color = if (isSelected) Color.White else Color(0xFFA998C4),
                 fontSize = 11.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
             )
@@ -323,7 +318,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
             .fillMaxWidth()
             .border(1.dp, levelColor.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
             .clip(RoundedCornerShape(14.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+        colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -369,7 +364,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                         )
                         Text(
                             text = "$source · $timestamp",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 10.sp
                         )
                     }
@@ -381,7 +376,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                 ) {
                     Text(
                         text = "$formattedScore/100",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -419,7 +414,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "OPERATIONAL LIFE CYCLE FLOW",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp
@@ -431,7 +426,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                         stepTitle = "INCIDENT DETECTED",
                         stepDetail = "Sensor telemetry triggered with severity: $standardLevel ($formattedScore pts)",
                         icon = Icons.Default.Search,
-                        badgeColor = Color(0xFF00FFE0)
+                        badgeColor = VexPalette.primary
                     )
 
                     // Step 2: Automated Action Taken
@@ -461,7 +456,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF081822), RoundedCornerShape(10.dp))
-                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(10.dp))
+                    .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(10.dp))
                     .padding(10.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -472,12 +467,12 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                         Icon(
                             imageVector = Icons.Default.AutoFixHigh,
                             contentDescription = "AI",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "EXPLAINABLE AI (XAI) FORENSIC REASONING",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -504,13 +499,13 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
             ) {
                 Text(
                     text = if (expanded) "Hide Technical Forensics" else "Inspect MITRE ATT&CK & Feature Breakdown",
-                    color = Color(0xFF80A0B0),
+                    color = Color(0xFFA998C4),
                     fontSize = 11.sp
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = Color(0xFF80A0B0),
+                    tint = Color(0xFFA998C4),
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -528,7 +523,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                     if (indicatorsList.isNotEmpty()) {
                         Text(
                             text = "Observed Attack Indicators (${indicatorsList.size}):",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -545,7 +540,7 @@ fun IncidentLifeCycleCard(event: Map<String, Any>) {
                                 ) {
                                     Text(
                                         text = ind,
-                                        color = Color(0xFF00FFE0),
+                                        color = VexPalette.primary,
                                         fontSize = 9.sp,
                                         fontFamily = FontFamily.Monospace
                                     )

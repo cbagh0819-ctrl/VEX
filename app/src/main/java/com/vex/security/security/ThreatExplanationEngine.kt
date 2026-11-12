@@ -116,7 +116,13 @@ object ThreatExplanationEngine {
 
                 // App & Permission threats
                 ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO ->
-                    reasons.add("Critical permission combination detected: SMS interception + background device state.")
+                    reasons.add("Critical permission combination detected: High privilege background automation.")
+                ThreatIndicators.ACCESSIBILITY_OVERLAY_TROJAN ->
+                    reasons.add("CRITICAL TROJAN SIGNATURE: Accessibility Service + System Alert Overlay window detected (Banking Trojan Cloak & Dagger).")
+                ThreatIndicators.ACCESSIBILITY_SMS_BYPASS ->
+                    reasons.add("CRITICAL 2FA BYPASS: Accessibility Service paired with SMS read access enables automated interception of one-time login passwords.")
+                ThreatIndicators.DREBIN_ML_MALWARE_PREDICTION ->
+                    reasons.add("Drebin ML permission vector classifier flagged this package as malicious based on behavioral tree splits.")
                 ThreatIndicators.ACCESSIBILITY_ABUSE ->
                     reasons.add("Application requests Accessibility Service permission, enabling full screen & keystroke monitoring.")
                 ThreatIndicators.OVERLAY_PERMISSION ->
@@ -127,8 +133,14 @@ object ThreatExplanationEngine {
                     reasons.add("Application requests critical capabilities requiring detailed scrutiny.")
                 ThreatIndicators.OUTDATED_TARGET_SDK ->
                     reasons.add("Package targets an obsolete Android version, bypassing modern runtime permission security.")
-                ThreatIndicators.DEBUG_SIGNATURE ->
-                    reasons.add("Application is signed with a developer debug certificate rather than a release key.")
+                ThreatIndicators.DEBUG_SIGNATURE, ThreatIndicators.DEBUG_CERTIFICATE_DETECTED ->
+                    reasons.add("Application is signed with a developer debug certificate (CN=Android Debug) rather than an authentic release keystore.")
+                ThreatIndicators.EXPIRED_CERTIFICATE ->
+                    reasons.add("Application code signing certificate has expired, compromising software integrity.")
+                ThreatIndicators.WEAK_SIGNATURE_ALGORITHM ->
+                    reasons.add("Certificate uses obsolete or weak hashing algorithm (MD5/SHA1), vulnerable to signature spoofing.")
+                ThreatIndicators.SELF_SIGNED_CERTIFICATE ->
+                    reasons.add("Package certificate is self-signed without a recognized developer identity.")
 
                 // Call & SMS Bombing threats
                 ThreatIndicators.SMS_BOMB_BURST ->

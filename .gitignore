@@ -18,3 +18,17 @@ __pycache__/
 *.pyo
 screen_*.png
 screenshot_*.png
+cloudflared.exe
+*.log
+*.jks
+*.xml
+!app/src/**/*.xml
+!gradle/**/*.xml
+phone_*.png
+uid_*.png
+unique_id_*.png
+stolen_*.jpg
+decoy_*.jpg
+*.mp4
+test_dataset/
+*.bak

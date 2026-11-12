@@ -1,5 +1,6 @@
 package com.vex.security.ui.scan
 
+import com.vex.security.ui.theme.VexPalette
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -122,13 +123,7 @@ fun FileScanScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -143,14 +138,14 @@ fun FileScanScreen() {
                 Column {
                     Text(
                         text = "FILE SECURITY SCAN",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
                     Text(
                         text = "Upload and deep-scan files for hidden threats",
-                        color = Color(0xFF80A0B0),
+                        color = Color(0xFFA998C4),
                         fontSize = 11.sp
                     )
                 }
@@ -162,9 +157,9 @@ fun FileScanScreen() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -182,14 +177,14 @@ fun FileScanScreen() {
                             Box(
                                 modifier = Modifier
                                     .size(54.dp)
-                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                    .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
+                                    .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CloudUpload,
                                     contentDescription = "Upload",
-                                    tint = Color(0xFF00FFE0),
+                                    tint = VexPalette.primary,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -197,14 +192,14 @@ fun FileScanScreen() {
                             Column {
                                 Text(
                                     text = "Upload & Scan Any File",
-                                    color = Color(0xFFFFFFFF),
+                                    color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Check file hashes, extensions, and threat signatures.",
-                                    color = Color(0xFF80A0B0),
+                                    color = Color(0xFFA998C4),
                                     fontSize = 11.sp
                                 )
                             }
@@ -226,7 +221,7 @@ fun FileScanScreen() {
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                        listOf(Color(0xFFFF3358), VexPalette.primary)
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -238,12 +233,12 @@ fun FileScanScreen() {
                                 Icon(
                                     imageVector = Icons.Default.FolderOpen,
                                     contentDescription = "Folder",
-                                    tint = Color(0xFF000810),
+                                    tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = if (scanning) "ANALYZING FILE..." else "SELECT FILE TO SCAN",
-                                    color = Color(0xFF000810),
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp
@@ -255,151 +250,36 @@ fun FileScanScreen() {
                     OutlinedButton(
                         onClick = { FileMonitor.scanNow(context) },
                         modifier = Modifier.fillMaxWidth().height(42.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00FFE0)),
-                        border = BorderStroke(1.dp, Color(0xFF005566))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = VexPalette.primary),
+                        border = BorderStroke(1.dp, VexPalette.cardBorder)
                     ) {
                         Icon(Icons.Default.Storage, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Scan Device Storage Files Now", fontSize = 12.sp)
                     }
 
-                    // 1-Click Evaluation Demo Scenarios for Evaluators
-                    HorizontalDivider(color = Color(0xFF003344))
-                    Text(
-                        text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
-                        color = Color(0xFF00FFE0),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    )
-
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = VexPalette.cardBorder)
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                fileName = "Invoice_2026_Report.pdf.exe"
-                                fileHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
-                                riskScore = 85
-                                riskLevel = "CRITICAL"
-                                action = "QUARANTINE"
-                                indicators = listOf(ThreatIndicators.DOUBLE_EXTENSION, ThreatIndicators.EXECUTABLE_PAYLOAD)
-                                explanation = ThreatExplanation(
-                                    reasons = listOf(
-                                        "Double file extension exploit (.pdf.exe) disguising Windows/Android executable payload (MITRE T1036.007)",
-                                        "High binary entropy matching compiled executable dropper",
-                                        "Controlled test ransomware fixture validated"
-                                    ),
-                                    recommendation = "Malicious executable masquerading as PDF document. File quarantined immediately."
-                                )
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "FILE",
-                                            riskScore = 85,
-                                            riskLevel = "CRITICAL",
-                                            action = "QUARANTINE",
-                                            status = "OPEN",
-                                            indicators = listOf(ThreatIndicators.DOUBLE_EXTENSION, ThreatIndicators.EXECUTABLE_PAYLOAD),
-                                            source = "ANDROID_FILE_DEMO",
-                                            explanation = "Double extension (.pdf.exe) executable dropper payload detected.",
-                                            recommendation = "Malicious payload isolated from storage."
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = BorderStroke(1.dp, Color(0xFFFF4D6D)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Dropper .pdf.exe", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                fileName = "sys_root_exploit.sh"
-                                fileHash = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-                                riskScore = 60
-                                riskLevel = "HIGH"
-                                action = "BLOCK"
-                                indicators = listOf(ThreatIndicators.EXECUTABLE_PAYLOAD, ThreatIndicators.SUSPICIOUS_EXTENSION)
-                                explanation = ThreatExplanation(
-                                    reasons = listOf(
-                                        "Privileged shell script payload (.sh) detected in unmanaged storage",
-                                        "Execution vectors match privilege escalation scripts",
-                                        "Proactive block enforced by endpoint protection policy"
-                                    ),
-                                    recommendation = "Suspicious shell script payload. Prevent execution or transfer."
-                                )
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "FILE",
-                                            riskScore = 60,
-                                            riskLevel = "HIGH",
-                                            action = "BLOCK",
-                                            status = "OPEN",
-                                            indicators = listOf(ThreatIndicators.EXECUTABLE_PAYLOAD, ThreatIndicators.SUSPICIOUS_EXTENSION),
-                                            source = "ANDROID_FILE_DEMO",
-                                            explanation = "Suspicious shell script payload (.sh) blocked.",
-                                            recommendation = "Script execution blocked."
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = BorderStroke(1.dp, Color(0xFFFF9F43)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9F43)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Shell Script .sh", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                fileName = "CyberGuard_Whitepaper.pdf"
-                                fileHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-                                riskScore = 10
-                                riskLevel = "SAFE"
-                                action = "ALLOW"
-                                indicators = listOf(ThreatIndicators.CLEAN_FILE)
-                                explanation = ThreatExplanation(
-                                    reasons = listOf(
-                                        "Standard PDF document format validated (%PDF-1.7 magic bytes)",
-                                        "No embedded JavaScript or executable binary objects detected",
-                                        "File signature matches clean baseline"
-                                    ),
-                                    recommendation = "Document is verified clean. Safe to open and share."
-                                )
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "FILE",
-                                            riskScore = 10,
-                                            riskLevel = "SAFE",
-                                            action = "ALLOW",
-                                            status = "RESOLVED",
-                                            indicators = listOf(ThreatIndicators.CLEAN_FILE),
-                                            source = "ANDROID_FILE_DEMO",
-                                            explanation = "Standard PDF document verified clean.",
-                                            recommendation = "Safe to open."
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = BorderStroke(1.dp, Color(0xFF35E08A)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Clean PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
+                        Icon(Icons.Default.Security, contentDescription = null, tint = VexPalette.primary, modifier = Modifier.size(16.dp))
+                        Text(
+                            text = "REAL DEEP FORENSIC SCANNER ACTIVE",
+                            color = VexPalette.primary,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Examines SHA-256 cryptographic hashes, double extension cloaking, magic bytes, hidden payloads, and script execution vectors.",
+                        color = Color(0xFFA998C4),
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp
+                    )
                 }
             }
         }
@@ -410,9 +290,9 @@ fun FileScanScreen() {
                     modifier = Modifier.fillMaxWidth().padding(30.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    CircularProgressIndicator(color = VexPalette.primary)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Deep-scanning file and calculating threat score...", color = Color(0xFF00FFE0), fontSize = 13.sp)
+                    Text("Deep-scanning file and calculating threat score...", color = VexPalette.primary, fontSize = 13.sp)
                 }
             }
         }
@@ -422,9 +302,9 @@ fun FileScanScreen() {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -432,16 +312,16 @@ fun FileScanScreen() {
                     ) {
                         Text(
                             text = "FILE SECURITY RESULT",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
 
-                        HorizontalDivider(color = Color(0xFF005566))
+                        HorizontalDivider(color = VexPalette.cardBorder)
 
                         Text("File: $fileName", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
-                        Text("SHA-256 Hash:\n$fileHash", color = Color(0xFF80A0B0), fontSize = 11.sp)
+                        Text("SHA-256 Hash:\n$fileHash", color = Color(0xFFA998C4), fontSize = 11.sp)
 
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -451,11 +331,11 @@ fun FileScanScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text("$riskScore / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$riskScore / 100", color = VexPalette.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text(riskLevel, color = when(riskLevel) {
                                     "SAFE" -> Color(0xFF35E08A)
                                     "WARN" -> Color(0xFFFFD166)

@@ -1,5 +1,6 @@
 package com.vex.security.ui.scan
 
+import com.vex.security.ui.theme.VexPalette
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -84,13 +85,7 @@ fun NoMetadataCheckScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -109,15 +104,15 @@ fun NoMetadataCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
+                            .background(VexPalette.pillBackground, RoundedCornerShape(50))
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -125,14 +120,14 @@ fun NoMetadataCheckScreen(
                     Column {
                         Text(
                             text = "NO METADATA PHOTO CHECK",
-                            color = Color(0xFFFFFFFF),
+                            color = VexPalette.headerText,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
                         )
                         Text(
                             text = "Find photos with missing or suspicious metadata",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 10.sp
                         )
                     }
@@ -145,9 +140,9 @@ fun NoMetadataCheckScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -165,14 +160,14 @@ fun NoMetadataCheckScreen(
                             Box(
                                 modifier = Modifier
                                     .size(54.dp)
-                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                    .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
+                                    .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.DocumentScanner,
                                     contentDescription = "Document",
-                                    tint = Color(0xFF00FFE0),
+                                    tint = VexPalette.primary,
                                     modifier = Modifier.size(30.dp)
                                 )
                             }
@@ -180,14 +175,14 @@ fun NoMetadataCheckScreen(
                             Column {
                                 Text(
                                     text = "Check Photo Metadata",
-                                    color = Color(0xFFFFFFFF),
+                                    color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Analyze EXIF metadata to find missing, modified or stripped information.",
-                                    color = Color(0xFF80A0B0),
+                                    color = Color(0xFFA998C4),
                                     fontSize = 11.sp,
                                     lineHeight = 15.sp
                                 )
@@ -210,7 +205,7 @@ fun NoMetadataCheckScreen(
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                        listOf(Color(0xFFFF3358), VexPalette.primary)
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -222,12 +217,12 @@ fun NoMetadataCheckScreen(
                                 Icon(
                                     imageVector = Icons.Default.Image,
                                     contentDescription = "Photo",
-                                    tint = Color(0xFF000810),
+                                    tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = if (scanning) "ANALYZING PHOTO..." else "SELECT PHOTO TO CHECK METADATA",
-                                    color = Color(0xFF000810),
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp
@@ -245,9 +240,9 @@ fun NoMetadataCheckScreen(
                     modifier = Modifier.fillMaxWidth().padding(30.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    CircularProgressIndicator(color = VexPalette.primary)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Extracting photo EXIF metadata...", color = Color(0xFF00FFE0), fontSize = 13.sp)
+                    Text("Extracting photo EXIF metadata...", color = VexPalette.primary, fontSize = 13.sp)
                 }
             }
         }
@@ -262,7 +257,7 @@ fun NoMetadataCheckScreen(
                         .fillMaxWidth()
                         .border(1.dp, cardBorder.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -286,15 +281,15 @@ fun NoMetadataCheckScreen(
                             )
                         }
 
-                        HorizontalDivider(color = Color(0xFF005566))
+                        HorizontalDivider(color = VexPalette.cardBorder)
 
                         Text("File Name: ${meta.name}", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
-                        Text("File Size: ${meta.size / 1024} KB", color = Color(0xFF80A0B0), fontSize = 12.sp)
-                        Text("Mime Type: ${meta.mimeType ?: "Unknown"}", color = Color(0xFF80A0B0), fontSize = 12.sp)
+                        Text("File Size: ${meta.size / 1024} KB", color = Color(0xFFA998C4), fontSize = 12.sp)
+                        Text("Mime Type: ${meta.mimeType ?: "Unknown"}", color = Color(0xFFA998C4), fontSize = 12.sp)
 
                         if (meta.details.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("EXIF Details:", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("EXIF Details:", color = VexPalette.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             meta.details.forEach { (k, v) ->
                                 Text("• $k: $v", color = Color(0xFFFFFFFF), fontSize = 11.sp)
                             }

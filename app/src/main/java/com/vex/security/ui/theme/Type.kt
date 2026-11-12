@@ -1,4 +1,5 @@
 package com.vex.security.ui.theme
+import com.vex.security.ui.theme.VexPalette
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

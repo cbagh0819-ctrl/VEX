@@ -1,5 +1,6 @@
 package com.vex.security.ui.telecom
 
+import com.vex.security.ui.theme.VexPalette
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -97,13 +98,7 @@ fun BombShieldScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -123,13 +118,13 @@ fun BombShieldScreen(
                         onClick = onBackPressed,
                         modifier = Modifier
                             .size(38.dp)
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp))
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(10.dp))
+                            .background(VexPalette.pillBackground, RoundedCornerShape(10.dp))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(10.dp))
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -137,7 +132,7 @@ fun BombShieldScreen(
                     Column {
                         Text(
                             text = "BOMB SHIELD",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             letterSpacing = 2.sp
@@ -160,7 +155,7 @@ fun BombShieldScreen(
                 Box(
                     modifier = Modifier
                         .border(1.dp, statusColor.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
+                        .background(VexPalette.pillBackground, RoundedCornerShape(20.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Row(
@@ -193,12 +188,12 @@ fun BombShieldScreen(
                     .fillMaxWidth()
                     .border(
                         1.dp,
-                        if (isShieldEnabled) Color(0xFF00FFE0).copy(alpha = 0.6f) else Color(0xFF405565),
+                        if (isShieldEnabled) VexPalette.primary.copy(alpha = 0.6f) else Color(0xFF405565),
                         RoundedCornerShape(16.dp)
                     )
                     .clip(RoundedCornerShape(16.dp)),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isShieldEnabled) Color(0xFF08222E) else Color(0xFF0A141A)
+                    containerColor = if (isShieldEnabled) Color(0xFF08222E) else Color(0xFF241239)
                 )
             ) {
                 Row(
@@ -217,12 +212,12 @@ fun BombShieldScreen(
                             modifier = Modifier
                                 .size(46.dp)
                                 .background(
-                                    if (isShieldEnabled) Color(0xFF00FFE0).copy(alpha = 0.15f) else Color(0xFF162530),
+                                    if (isShieldEnabled) VexPalette.primary.copy(alpha = 0.15f) else Color(0xFF162530),
                                     CircleShape
                                 )
                                 .border(
                                     1.dp,
-                                    if (isShieldEnabled) Color(0xFF00FFE0) else Color(0xFF3B4E5D),
+                                    if (isShieldEnabled) VexPalette.primary else Color(0xFF3B4E5D),
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -230,7 +225,7 @@ fun BombShieldScreen(
                             Icon(
                                 imageVector = if (isShieldEnabled) Icons.Default.Security else Icons.Default.Shield,
                                 contentDescription = "Shield",
-                                tint = if (isShieldEnabled) Color(0xFF00FFE0) else Color(0xFF708595),
+                                tint = if (isShieldEnabled) VexPalette.primary else Color(0xFF708595),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -262,7 +257,7 @@ fun BombShieldScreen(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color(0xFF001824),
-                            checkedTrackColor = Color(0xFF00FFE0),
+                            checkedTrackColor = VexPalette.primary,
                             uncheckedThumbColor = Color(0xFF8A9BA8),
                             uncheckedTrackColor = Color(0xFF162530)
                         )
@@ -342,7 +337,7 @@ fun BombShieldScreen(
                     title = "SMS BLOCKED",
                     count = blockedSms,
                     icon = Icons.Default.Sms,
-                    accentColor = Color(0xFF00FFE0)
+                    accentColor = VexPalette.primary
                 )
                 ShieldMetricTile(
                     modifier = Modifier.weight(1f),
@@ -366,8 +361,8 @@ fun BombShieldScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF005566).copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    .border(1.dp, VexPalette.cardBorder.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -402,7 +397,7 @@ fun BombShieldScreen(
                                     .clip(RoundedCornerShape(8.dp))
                                     .border(
                                         1.dp,
-                                        if (isSelected) Color(0xFF00FFE0) else Color(0xFF1E3545),
+                                        if (isSelected) VexPalette.primary else Color(0xFF1E3545),
                                         RoundedCornerShape(8.dp)
                                     )
                                     .background(
@@ -417,7 +412,7 @@ fun BombShieldScreen(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = mode.title,
-                                        color = if (isSelected) Color(0xFF00FFE0) else Color(0xFF8A9BA8),
+                                        color = if (isSelected) VexPalette.primary else Color(0xFF8A9BA8),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -446,8 +441,8 @@ fun BombShieldScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF005566).copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    .border(1.dp, VexPalette.cardBorder.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -500,7 +495,7 @@ fun BombShieldScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
+                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF081C26))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -511,12 +506,12 @@ fun BombShieldScreen(
                         Icon(
                             imageVector = Icons.Default.Bolt,
                             contentDescription = "Test",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = "LIVE ATTACK SIMULATOR",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -546,12 +541,12 @@ fun BombShieldScreen(
                                 ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(16.dp),
-                                        color = Color(0xFF00FFE0),
+                                        color = VexPalette.primary,
                                         strokeWidth = 2.dp
                                     )
                                     Text(
                                         text = simulationStatus.orEmpty(),
-                                        color = Color(0xFF00FFE0),
+                                        color = VexPalette.primary,
                                         fontSize = 11.sp,
                                         fontFamily = FontFamily.Monospace
                                     )
@@ -590,7 +585,7 @@ fun BombShieldScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(54.dp)
-                                .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                                .border(1.dp, VexPalette.primary.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Row(
@@ -600,7 +595,7 @@ fun BombShieldScreen(
                                     Icon(
                                         imageVector = Icons.Default.Sms,
                                         contentDescription = null,
-                                        tint = Color(0xFF00FFE0),
+                                        tint = VexPalette.primary,
                                         modifier = Modifier.size(15.dp)
                                     )
                                     Text(
@@ -692,7 +687,7 @@ fun BombShieldScreen(
                 if (incidentLogs.isNotEmpty()) {
                     Text(
                         text = "CLEAR LOGS",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -832,7 +827,7 @@ fun DefenseToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color(0xFF001824),
-                checkedTrackColor = Color(0xFF00FFE0),
+                checkedTrackColor = VexPalette.primary,
                 uncheckedThumbColor = Color(0xFF8A9BA8),
                 uncheckedTrackColor = Color(0xFF162530)
             )
@@ -872,7 +867,7 @@ fun IncidentItem(incident: com.vex.security.telecom.BombIncident) {
                     ) {
                         Text(
                             text = if (incident.type == "SMS_BOMB") "SMS BOMB" else "CALL FLOOD",
-                            color = if (incident.type == "SMS_BOMB") Color(0xFF00FFE0) else Color(0xFFFF5252),
+                            color = if (incident.type == "SMS_BOMB") VexPalette.primary else Color(0xFFFF5252),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.ExtraBold
                         )

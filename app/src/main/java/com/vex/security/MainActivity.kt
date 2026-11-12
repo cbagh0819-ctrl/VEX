@@ -32,6 +32,8 @@ class MainActivity : ComponentActivity() {
 
         FileMonitor.start(this)
         BombShieldManager.init(this)
+        com.vex.security.defense.VexAiDefenseEngine.initialize(this)
+        com.vex.security.ai.VexAiDefenseEngine.initModel(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             notificationPermissionLauncher.launch(
@@ -86,13 +88,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        com.vex.security.ui.theme.ThemeState.init(this)
+
         setContent {
-            VEXTheme {
-                var showSplash by remember { mutableStateOf(true) }
-                if (showSplash) {
-                    SplashScreen(onSplashFinished = { showSplash = false })
-                } else {
-                    MainScreen()
+            val currentTheme = com.vex.security.ui.theme.ThemeState.currentTheme
+            key(currentTheme) {
+                VEXTheme(themeMode = currentTheme) {
+                    var showSplash by remember { mutableStateOf(true) }
+                    if (showSplash) {
+                        SplashScreen(onSplashFinished = { showSplash = false })
+                    } else {
+                        MainScreen()
+                    }
                 }
             }
         }

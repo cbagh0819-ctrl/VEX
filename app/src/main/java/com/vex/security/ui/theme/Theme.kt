@@ -1,53 +1,57 @@
 package com.vex.security.ui.theme
+import com.vex.security.ui.theme.VexPalette
 
 import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 @Composable
 fun VEXTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    themeMode: AppThemeMode = ThemeState.currentTheme,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val darkTheme = themeMode.isDark
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = VexPalette.primary,
+            secondary = VexPalette.primaryVariant,
+            tertiary = VexCyan,
+            background = VexPalette.backgroundTop,
+            surface = VexPalette.cardBackground,
+            onPrimary = VexPalette.backgroundBottom,
+            onSecondary = VexPalette.textPrimary,
+            onBackground = VexPalette.textPrimary,
+            onSurface = VexPalette.textPrimary
+        )
+    } else {
+        lightColorScheme(
+            primary = VexPalette.primary,
+            secondary = VexPalette.primaryVariant,
+            tertiary = VexCobalt,
+            background = VexPalette.backgroundTop,
+            surface = VexPalette.cardBackground,
+            onPrimary = VexPalette.textPrimary,
+            onSecondary = VexPalette.textSecondary,
+            onBackground = VexPalette.textPrimary,
+            onSurface = VexPalette.textPrimary
+        )
+    }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window
+            if (window != null) {
+                window.statusBarColor = VexPalette.backgroundTop.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            }
+        }
     }
 
     MaterialTheme(

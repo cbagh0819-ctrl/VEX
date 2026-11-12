@@ -1,14 +1,19 @@
 package com.vex.security.ui
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vex.security.ui.home.HomeScreen
 import com.vex.security.ui.home.SocDashboardScreen
 import com.vex.security.ui.browser.VexBrowserScreen
@@ -24,11 +29,12 @@ import com.vex.security.ui.scan.FileScanScreen
 import com.vex.security.ui.settings.SettingsScreen
 import com.vex.security.ui.telecom.BombShieldScreen
 import com.vex.security.ui.threats.ThreatListScreen
+import com.vex.security.ui.theme.VexPalette
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Home : Screen("home", "Home", Icons.Default.Home)
-    object Browser : Screen("browser", "VB", Icons.Default.Language)
-    object Reports : Screen("reports", "Reports", Icons.Default.List)
+    object Browser : Screen("browser", "VB", Icons.Default.Shield)
+    object Reports : Screen("reports", "Reports", Icons.Default.Layers)
     object Dashboard : Screen("dashboard", "Dashboard", Icons.Default.BarChart)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
     object BombShield : Screen("bomb_shield", "Bomb Shield", Icons.Default.Shield)
@@ -45,44 +51,76 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 
 @Composable
 fun MainScreen() {
-    val items = listOf(
-        Screen.Home,
-        Screen.Browser,
-        Screen.Reports,
-        Screen.Dashboard,
-        Screen.Settings
-    )
-    var selectedRoute by remember { mutableStateOf(Screen.Home.route) }
+    val currentTheme = com.vex.security.ui.theme.ThemeState.currentTheme
+    key(currentTheme) {
+        val items = listOf(
+            Screen.Home,
+            Screen.Browser,
+            Screen.Reports,
+            Screen.Dashboard,
+            Screen.Settings
+        )
+        var selectedRoute by remember { mutableStateOf(Screen.Home.route) }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color(0xFF071118),
-                contentColor = Color(0xFF00FFE0)
-            ) {
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title) },
-                        selected = selectedRoute == screen.route,
-                        onClick = { selectedRoute = screen.route },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF00FFE0),
-                            unselectedIconColor = Color(0xFF7090A0),
-                            selectedTextColor = Color(0xFF00FFE0),
-                            unselectedTextColor = Color(0xFF7090A0),
-                            indicatorColor = Color(0xFF0A2530)
+        Scaffold(
+            bottomBar = {
+                NavigationBar(
+                    containerColor = Color(0xFF241239),
+                    tonalElevation = 8.dp
+                ) {
+                    items.forEach { screen ->
+                        val isSelected = selectedRoute == screen.route
+                        NavigationBarItem(
+                            icon = {
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(width = 54.dp, height = 30.dp)
+                                            .background(
+                                                Color(0xFFFF3358),
+                                                RoundedCornerShape(16.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = screen.icon,
+                                            contentDescription = screen.title,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = screen.icon,
+                                        contentDescription = screen.title,
+                                        tint = Color(0xFFA998C4),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = screen.title,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) Color.White else Color(0xFFA998C4)
+                                )
+                            },
+                            selected = isSelected,
+                            onClick = { selectedRoute = screen.route },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = Color.Transparent
+                            )
                         )
-                    )
+                    }
                 }
             }
-        }
-    ) { innerPadding ->
+        ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            color = Color(0xFF000305)
+            color = VexPalette.backgroundTop
         ) {
             when (selectedRoute) {
                 Screen.Home.route -> HomeScreen(
@@ -137,5 +175,6 @@ fun MainScreen() {
                 )
             }
         }
+    }
     }
 }

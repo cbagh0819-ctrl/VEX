@@ -1,4 +1,5 @@
 package com.vex.security.ui.scan
+import com.vex.security.ui.theme.VexPalette
 
 import android.Manifest
 import android.content.pm.PackageManager

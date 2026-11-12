@@ -50,7 +50,27 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Pillar 1 Fix: Intercept System-Wide Web Links clicked in SMS/WhatsApp/Mail -->
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
         </activity>
+
+        <!-- Pillar 1 Fix: Notification Interceptor Service for SMS & Chat Phishing -->
+        <service
+            android:name=".interceptor.VexNotificationInterceptorService"
+            android:label="VEX Shield Message Protection"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".telecom.SmsBombReceiver"

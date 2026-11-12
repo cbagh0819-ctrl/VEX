@@ -2,14 +2,12 @@ package com.vex.security.scanner
 
 import android.content.Context
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import com.vex.security.model.FileMetadata
 import com.vex.security.security.RiskCalculator
 import com.vex.security.security.SecurityPolicy
-import com.vex.security.security.ThreatEngine
 import com.vex.security.security.ThreatExplanation
 import com.vex.security.security.ThreatExplanationEngine
 import com.vex.security.security.ThreatIndicators
@@ -27,7 +25,10 @@ data class ApkScanResult(
     val riskLevel: String,
     val action: String,
     val isControlledTest: Boolean,
-    val explanation: ThreatExplanation
+    val explanation: ThreatExplanation,
+    val certificate: CertificateInspectionResult? = null,
+    val drebinPrediction: DrebinPrediction? = null,
+    val dangerousPairs: List<DangerousPermissionPair> = emptyList()
 )
 
 object ApkScanManager {
@@ -67,10 +68,36 @@ object ApkScanManager {
         } else {
             val perms = analysisDetails.permissions.map { it.uppercase() }
 
-            // Real-world APK Security Analysis
+            // 1. Evaluate Drebin ML Model
+            val drebin = analysisDetails.drebinPrediction ?: DrebinApkClassifier.predict(analysisDetails.permissions)
+            if (drebin.isClassifiedMalicious) {
+                indicators.add(ThreatIndicators.DREBIN_ML_MALWARE_PREDICTION)
+            }
+
+            // 2. Evaluate Dangerous Permission Pairs
+            val dangPairs = analysisDetails.dangerousPairs.ifEmpty {
+                ApkDangerousPairsDetector.evaluate(analysisDetails.permissions)
+            }
+            for (pair in dangPairs) {
+                when (pair.id) {
+                    "ACCESSIBILITY_OVERLAY" -> {
+                        indicators.add(ThreatIndicators.ACCESSIBILITY_OVERLAY_TROJAN)
+                        indicators.add(ThreatIndicators.ACCESSIBILITY_ABUSE)
+                        indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
+                    }
+                    "ACCESSIBILITY_SMS" -> {
+                        indicators.add(ThreatIndicators.ACCESSIBILITY_SMS_BYPASS)
+                        indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
+                    }
+                    else -> {
+                        indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
+                    }
+                }
+            }
+
+            // Individual permission checks
             val hasAccessibility = perms.any { it.contains("BIND_ACCESSIBILITY_SERVICE") }
             val hasOverlay = perms.any { it.contains("SYSTEM_ALERT_WINDOW") }
-            val hasSms = perms.any { it.contains("READ_SMS") || it.contains("RECEIVE_SMS") || it.contains("SEND_SMS") }
             val hasInstall = perms.any { it.contains("REQUEST_INSTALL_PACKAGES") || it.contains("INSTALL_PACKAGES") }
             val hasSensitive = perms.count {
                 it.contains("CAMERA") ||
@@ -80,15 +107,10 @@ object ApkScanManager {
                 it.contains("READ_CALL_LOG")
             }
 
-            // High risk malware combinations
-            if (hasAccessibility && hasOverlay) {
+            if (hasAccessibility && !indicators.contains(ThreatIndicators.ACCESSIBILITY_ABUSE)) {
                 indicators.add(ThreatIndicators.ACCESSIBILITY_ABUSE)
-                indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
             }
-            if (hasSms && hasAccessibility) {
-                indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
-            }
-            if (hasOverlay) {
+            if (hasOverlay && !indicators.contains(ThreatIndicators.OVERLAY_PERMISSION)) {
                 indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
             }
             if (hasInstall) {
@@ -96,6 +118,24 @@ object ApkScanManager {
             }
             if (hasSensitive >= 3) {
                 indicators.add(ThreatIndicators.HIGH_RISK_PERMISSION)
+            }
+
+            // 3. Evaluate Certificate Checks
+            val cert = analysisDetails.certificate
+            if (cert != null) {
+                if (cert.isDebugSigned) {
+                    indicators.add(ThreatIndicators.DEBUG_CERTIFICATE_DETECTED)
+                    indicators.add(ThreatIndicators.DEBUG_SIGNATURE)
+                }
+                if (cert.isExpired) {
+                    indicators.add(ThreatIndicators.EXPIRED_CERTIFICATE)
+                }
+                if (cert.hasWeakAlgorithm) {
+                    indicators.add(ThreatIndicators.WEAK_SIGNATURE_ALGORITHM)
+                }
+                if (cert.isSelfSigned && !cert.isDebugSigned) {
+                    indicators.add(ThreatIndicators.SELF_SIGNED_CERTIFICATE)
+                }
             }
 
             if (metadata.extension != "apk" && metadata.extension != null) {
@@ -106,7 +146,13 @@ object ApkScanManager {
                 indicators.add(ThreatIndicators.CLEAN_APP)
             }
 
-            score = RiskCalculator.calculate(indicators)
+            // Calculate unified risk score
+            var calculatedScore = RiskCalculator.calculate(indicators)
+            // Weight with ML model prediction
+            if (drebin.malwareProbability > 0.60f && calculatedScore < drebin.mlRiskScore) {
+                calculatedScore = ((calculatedScore * 0.4f) + (drebin.mlRiskScore * 0.6f)).toInt()
+            }
+            score = calculatedScore.coerceIn(10, 100)
             level = RiskCalculator.getRiskLevel(score)
             action = SecurityPolicy.getAction(score)
         }
@@ -114,7 +160,7 @@ object ApkScanManager {
         Log.d("VEX_APK", "APK Scanned: ${metadata.fileName} | Score: $score | Level: $level")
 
         val explanation = ThreatExplanationEngine.explain(
-            indicators = indicators,
+            indicators = indicators.distinct(),
             riskScore = score,
             riskLevel = level,
             action = action
@@ -126,12 +172,15 @@ object ApkScanManager {
             versionName = analysisDetails.versionName,
             versionCode = analysisDetails.versionCode,
             permissions = analysisDetails.permissions,
-            indicators = indicators,
+            indicators = indicators.distinct(),
             riskScore = score,
             riskLevel = level,
             action = action,
             isControlledTest = analysisDetails.isControlledTest,
-            explanation = explanation
+            explanation = explanation,
+            certificate = analysisDetails.certificate,
+            drebinPrediction = analysisDetails.drebinPrediction,
+            dangerousPairs = analysisDetails.dangerousPairs
         )
         lastScannedResult = result
         result
@@ -148,9 +197,33 @@ object ApkScanManager {
 
         val indicators = mutableListOf<String>()
 
+        // 1. Drebin ML Prediction
+        val drebin = DrebinApkClassifier.predict(perms)
+        if (drebin.isClassifiedMalicious) {
+            indicators.add(ThreatIndicators.DREBIN_ML_MALWARE_PREDICTION)
+        }
+
+        // 2. Dangerous Permission Pairs
+        val dangPairs = ApkDangerousPairsDetector.evaluate(perms)
+        for (pair in dangPairs) {
+            when (pair.id) {
+                "ACCESSIBILITY_OVERLAY" -> {
+                    indicators.add(ThreatIndicators.ACCESSIBILITY_OVERLAY_TROJAN)
+                    indicators.add(ThreatIndicators.ACCESSIBILITY_ABUSE)
+                    indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
+                }
+                "ACCESSIBILITY_SMS" -> {
+                    indicators.add(ThreatIndicators.ACCESSIBILITY_SMS_BYPASS)
+                    indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
+                }
+                else -> {
+                    indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
+                }
+            }
+        }
+
         val hasAccessibility = upperPerms.any { it.contains("BIND_ACCESSIBILITY_SERVICE") }
         val hasOverlay = upperPerms.any { it.contains("SYSTEM_ALERT_WINDOW") }
-        val hasSms = upperPerms.any { it.contains("READ_SMS") || it.contains("RECEIVE_SMS") || it.contains("SEND_SMS") }
         val hasInstall = upperPerms.any { it.contains("REQUEST_INSTALL_PACKAGES") || it.contains("INSTALL_PACKAGES") }
         val sensitiveCount = upperPerms.count {
             it.contains("CAMERA") ||
@@ -160,14 +233,10 @@ object ApkScanManager {
             it.contains("READ_CALL_LOG")
         }
 
-        if (hasAccessibility && hasOverlay) {
+        if (hasAccessibility && !indicators.contains(ThreatIndicators.ACCESSIBILITY_ABUSE)) {
             indicators.add(ThreatIndicators.ACCESSIBILITY_ABUSE)
-            indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
         }
-        if (hasSms && hasAccessibility) {
-            indicators.add(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO)
-        }
-        if (hasOverlay) {
+        if (hasOverlay && !indicators.contains(ThreatIndicators.OVERLAY_PERMISSION)) {
             indicators.add(ThreatIndicators.OVERLAY_PERMISSION)
         }
         if (hasInstall) {
@@ -182,16 +251,36 @@ object ApkScanManager {
             indicators.add(ThreatIndicators.OUTDATED_TARGET_SDK)
         }
 
+        // 3. Certificate Inspection
+        val cert = ApkCertificateInspector.inspectPackageInfo(context, pkg)
+        if (cert.isDebugSigned) {
+            indicators.add(ThreatIndicators.DEBUG_CERTIFICATE_DETECTED)
+            indicators.add(ThreatIndicators.DEBUG_SIGNATURE)
+        }
+        if (cert.isExpired) {
+            indicators.add(ThreatIndicators.EXPIRED_CERTIFICATE)
+        }
+        if (cert.hasWeakAlgorithm) {
+            indicators.add(ThreatIndicators.WEAK_SIGNATURE_ALGORITHM)
+        }
+        if (cert.isSelfSigned && !cert.isDebugSigned) {
+            indicators.add(ThreatIndicators.SELF_SIGNED_CERTIFICATE)
+        }
+
         if (indicators.isEmpty()) {
             indicators.add(ThreatIndicators.CLEAN_APP)
         }
 
-        val score = RiskCalculator.calculate(indicators)
+        var score = RiskCalculator.calculate(indicators)
+        if (drebin.malwareProbability > 0.60f && score < drebin.mlRiskScore) {
+            score = ((score * 0.4f) + (drebin.mlRiskScore * 0.6f)).toInt()
+        }
+        score = score.coerceIn(10, 100)
         val level = RiskCalculator.getRiskLevel(score)
         val action = SecurityPolicy.getAction(score)
 
         val explanation = ThreatExplanationEngine.explain(
-            indicators = indicators,
+            indicators = indicators.distinct(),
             riskScore = score,
             riskLevel = level,
             action = action
@@ -212,7 +301,7 @@ object ApkScanManager {
             sizeBytes = 10_000_000L,
             createdTime = null,
             modifiedTime = null,
-            sha256 = "INSTALLED_SYSTEM_PACKAGE",
+            sha256 = cert.sha256Fingerprint ?: "INSTALLED_SYSTEM_PACKAGE",
             source = "INSTALLED_PACKAGE"
         )
 
@@ -222,162 +311,17 @@ object ApkScanManager {
             versionName = pkg.versionName ?: "1.0",
             versionCode = versionCode,
             permissions = perms,
-            indicators = indicators,
+            indicators = indicators.distinct(),
             riskScore = score,
             riskLevel = level,
             action = action,
             isControlledTest = false,
-            explanation = explanation
+            explanation = explanation,
+            certificate = cert,
+            drebinPrediction = drebin,
+            dangerousPairs = dangPairs
         )
         lastScannedResult = result
         return result
-    }
-
-    fun getDemoBankingTrojan(): ApkScanResult {
-        val perms = listOf(
-            "android.permission.BIND_ACCESSIBILITY_SERVICE",
-            "android.permission.SYSTEM_ALERT_WINDOW",
-            "android.permission.RECEIVE_SMS",
-            "android.permission.READ_SMS",
-            "android.permission.INTERNET",
-            "android.permission.RECEIVE_BOOT_COMPLETED"
-        )
-        val indicators = listOf(
-            ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO,
-            ThreatIndicators.ACCESSIBILITY_ABUSE,
-            ThreatIndicators.OVERLAY_PERMISSION
-        )
-        val score = 85
-        val level = "CRITICAL"
-        val action = "QUARANTINE"
-        val explanation = ThreatExplanation(
-            reasons = listOf(
-                "Critical permission abuse: Accessibility Service allows keylogging and reading 2FA screen content (MITRE T1056.001)",
-                "System Overlay (SYSTEM_ALERT_WINDOW) allows drawing invisible credential overlays over banking apps (MITRE T1411)",
-                "SMS Interception capabilities enable automated bypass of one-time SMS passwords"
-            ),
-            recommendation = "Severe banking trojan capability detected. Quarantine immediately and prevent installation."
-        )
-        val meta = FileMetadata(
-            fileName = "Update_QuickBanking_v3.apk",
-            filePath = "/storage/emulated/0/Download/Update_QuickBanking_v3.apk",
-            mimeType = "application/vnd.android.package-archive",
-            extension = "apk",
-            sizeBytes = 8_420_000L,
-            createdTime = null,
-            modifiedTime = null,
-            sha256 = "c7d1e8924f928e8201a0bcdef0123456789abcdef0123456789abcdef0123456",
-            source = "EVALUATION_DEMO"
-        )
-        val res = ApkScanResult(
-            metadata = meta,
-            packageName = "com.secureservice.update.quickpay",
-            versionName = "3.2.1-trojan",
-            versionCode = 321L,
-            permissions = perms,
-            indicators = indicators,
-            riskScore = score,
-            riskLevel = level,
-            action = action,
-            isControlledTest = false,
-            explanation = explanation
-        )
-        lastScannedResult = res
-        return res
-    }
-
-    fun getDemoAdwareSpyware(): ApkScanResult {
-        val perms = listOf(
-            "android.permission.SYSTEM_ALERT_WINDOW",
-            "android.permission.ACCESS_FINE_LOCATION",
-            "android.permission.INTERNET",
-            "android.permission.ACCESS_NETWORK_STATE"
-        )
-        val indicators = listOf(
-            ThreatIndicators.OVERLAY_PERMISSION,
-            ThreatIndicators.HIGH_RISK_PERMISSION
-        )
-        val score = 40
-        val level = "MEDIUM"
-        val action = "NOTIFY"
-        val explanation = ThreatExplanation(
-            reasons = listOf(
-                "Application requests System Overlay permission to display aggressive pop-up advertisements",
-                "Unnecessary fine location tracking requested by utility app",
-                "Monetization telemetry framework embedded"
-            ),
-            recommendation = "Adware overlay characteristics identified. Exercise caution before granting overlay permissions."
-        )
-        val meta = FileMetadata(
-            fileName = "SpeedMaster_Booster.apk",
-            filePath = "/storage/emulated/0/Download/SpeedMaster_Booster.apk",
-            mimeType = "application/vnd.android.package-archive",
-            extension = "apk",
-            sizeBytes = 14_200_000L,
-            createdTime = null,
-            modifiedTime = null,
-            sha256 = "a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
-            source = "EVALUATION_DEMO"
-        )
-        val res = ApkScanResult(
-            metadata = meta,
-            packageName = "com.fastcleaner.booster.battery",
-            versionName = "2.0.4",
-            versionCode = 204L,
-            permissions = perms,
-            indicators = indicators,
-            riskScore = score,
-            riskLevel = level,
-            action = action,
-            isControlledTest = false,
-            explanation = explanation
-        )
-        lastScannedResult = res
-        return res
-    }
-
-    fun getDemoCleanApp(): ApkScanResult {
-        val perms = listOf(
-            "android.permission.INTERNET",
-            "android.permission.READ_EXTERNAL_STORAGE"
-        )
-        val indicators = listOf(ThreatIndicators.CLEAN_APP)
-        val score = 10
-        val level = "SAFE"
-        val action = "ALLOW"
-        val explanation = ThreatExplanation(
-            reasons = listOf(
-                "Package uses standard, safe Android permissions with no privilege abuse",
-                "Valid developer release certificate verified",
-                "No overlay or background SMS capabilities requested"
-            ),
-            recommendation = "Application verified safe and compliant with Android security standards."
-        )
-        val meta = FileMetadata(
-            fileName = "VLC_Player_v3.5.apk",
-            filePath = "/storage/emulated/0/Download/VLC_Player_v3.5.apk",
-            mimeType = "application/vnd.android.package-archive",
-            extension = "apk",
-            sizeBytes = 22_500_000L,
-            createdTime = null,
-            modifiedTime = null,
-            sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            source = "EVALUATION_DEMO"
-        )
-        val res = ApkScanResult(
-            metadata = meta,
-            packageName = "org.videolan.vlc",
-            versionName = "3.5.4",
-            versionCode = 354L,
-            permissions = perms,
-            indicators = indicators,
-            riskScore = score,
-            riskLevel = level,
-            action = action,
-            isControlledTest = false,
-            explanation = explanation
-        )
-        lastScannedResult = res
-        return res
     }
 }

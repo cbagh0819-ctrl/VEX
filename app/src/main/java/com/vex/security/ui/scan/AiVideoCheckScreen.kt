@@ -1,5 +1,6 @@
 package com.vex.security.ui.scan
 
+import com.vex.security.ui.theme.VexPalette
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -98,13 +99,7 @@ fun AiVideoCheckScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -123,15 +118,15 @@ fun AiVideoCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
+                            .background(VexPalette.pillBackground, RoundedCornerShape(50))
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -139,14 +134,14 @@ fun AiVideoCheckScreen(
                     Column {
                         Text(
                             text = "AI VIDEO CHECK",
-                            color = Color(0xFFFFFFFF),
+                            color = VexPalette.headerText,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Detect AI generated videos, deepfakes & synthetic media",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp
                         )
                     }
@@ -159,9 +154,9 @@ fun AiVideoCheckScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -179,14 +174,14 @@ fun AiVideoCheckScreen(
                             Box(
                                 modifier = Modifier
                                     .size(54.dp)
-                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                    .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
+                                    .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Videocam,
                                     contentDescription = "AI Video",
-                                    tint = Color(0xFF00FFE0),
+                                    tint = VexPalette.primary,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -194,14 +189,14 @@ fun AiVideoCheckScreen(
                             Column {
                                 Text(
                                     text = "Scan Any Video Clip",
-                                    color = Color(0xFFFFFFFF),
+                                    color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Deep-inspect video containers, frame temporal\ncadence, Sora/Runway markers & deepfakes.",
-                                    color = Color(0xFF80A0B0),
+                                    color = Color(0xFFA998C4),
                                     fontSize = 11.sp,
                                     lineHeight = 15.sp
                                 )
@@ -224,7 +219,7 @@ fun AiVideoCheckScreen(
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                        listOf(Color(0xFFFF3358), VexPalette.primary)
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -236,12 +231,12 @@ fun AiVideoCheckScreen(
                                 Icon(
                                     imageVector = Icons.Default.FolderOpen,
                                     contentDescription = null,
-                                    tint = Color(0xFF000810),
+                                    tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = if (scanning) "ANALYZING VIDEO..." else "SELECT VIDEO TO SCAN",
-                                    color = Color(0xFF000810),
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp
@@ -250,107 +245,28 @@ fun AiVideoCheckScreen(
                         }
                     }
 
-                    // 1-Click Evaluation Demo Scenarios for Evaluators
-                    HorizontalDivider(color = Color(0xFF003344))
-                    Text(
-                        text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
-                        color = Color(0xFF00FFE0),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    )
-
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = VexPalette.cardBorder)
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                val demo = RealAiVideoAnalyzer.getDemoDeepfake()
-                                analysisResult = demo
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "AI_VIDEO",
-                                            riskScore = demo.score,
-                                            riskLevel = demo.level,
-                                            action = demo.action,
-                                            status = "OPEN",
-                                            indicators = demo.indicators,
-                                            source = "ANDROID_AI_VIDEO_DEMO",
-                                            explanation = demo.reasons.joinToString(" | "),
-                                            recommendation = demo.recommendation
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4D6D)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Deepfake Swap", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                val demo = RealAiVideoAnalyzer.getDemoGenerativeVideo()
-                                analysisResult = demo
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "AI_VIDEO",
-                                            riskScore = demo.score,
-                                            riskLevel = demo.level,
-                                            action = demo.action,
-                                            status = "OPEN",
-                                            indicators = demo.indicators,
-                                            source = "ANDROID_AI_VIDEO_DEMO",
-                                            explanation = demo.reasons.joinToString(" | "),
-                                            recommendation = demo.recommendation
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF9F43)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9F43)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Sora GenAI", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                val demo = RealAiVideoAnalyzer.getDemoAuthenticVideo()
-                                analysisResult = demo
-                                scope.launch {
-                                    try {
-                                        ThreatRepository.sendThreatEvent(
-                                            deviceId = DeviceIdentity.getDeviceId(context),
-                                            threatType = "AI_VIDEO",
-                                            riskScore = demo.score,
-                                            riskLevel = demo.level,
-                                            action = demo.action,
-                                            status = "RESOLVED",
-                                            indicators = demo.indicators,
-                                            source = "ANDROID_AI_VIDEO_DEMO",
-                                            explanation = demo.reasons.joinToString(" | "),
-                                            recommendation = demo.recommendation
-                                        )
-                                    } catch (_: Exception) {}
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(38.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF35E08A)),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            Text("Real Camera", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        }
+                        Icon(Icons.Default.MovieFilter, contentDescription = null, tint = VexPalette.primary, modifier = Modifier.size(16.dp))
+                        Text(
+                            text = "FRAME SAMPLING & SIGHTENGINE VIDEO PIPELINE ACTIVE",
+                            color = VexPalette.primary,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Samples keyframes at 10%, 25%, 50%, and 75% video duration using MediaMetadataRetriever, checks MP4 container atoms, and runs deepfake / generative AI classification via backend Sightengine video API.",
+                        color = Color(0xFFA998C4),
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp
+                    )
                 }
             }
         }
@@ -361,8 +277,8 @@ fun AiVideoCheckScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(
                         modifier = Modifier
@@ -370,11 +286,11 @@ fun AiVideoCheckScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF00FFE0))
+                        CircularProgressIndicator(color = VexPalette.primary)
                         Spacer(modifier = Modifier.height(14.dp))
                         Text(
                             text = scanningStep,
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -398,7 +314,7 @@ fun AiVideoCheckScreen(
                         .fillMaxWidth()
                         .border(1.dp, levelColor.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -406,13 +322,13 @@ fun AiVideoCheckScreen(
                     ) {
                         Text(
                             text = "VIDEO FORENSIC RESULT",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
 
-                        HorizontalDivider(color = Color(0xFF003344))
+                        HorizontalDivider(color = VexPalette.cardBorder)
 
                         // Preview Frame (Thumbnail extracted from video)
                         res.previewFrame?.let { bitmap ->
@@ -421,7 +337,7 @@ fun AiVideoCheckScreen(
                                     .fillMaxWidth()
                                     .height(180.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
+                                    .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(12.dp))
                             ) {
                                 Image(
                                     bitmap = bitmap.asImageBitmap(),
@@ -438,7 +354,7 @@ fun AiVideoCheckScreen(
                                 ) {
                                     Text(
                                         text = "Sampled Frame @ 25%",
-                                        color = Color(0xFF00FFE0),
+                                        color = VexPalette.primary,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -455,7 +371,7 @@ fun AiVideoCheckScreen(
 
                         Text(
                             text = "Duration: $durationSec  ·  Resolution: $resStr  ·  Size: $sizeMb",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp
                         )
 
@@ -468,11 +384,11 @@ fun AiVideoCheckScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text("${res.score} / 100", color = levelColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text(res.level, color = levelColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -487,7 +403,7 @@ fun AiVideoCheckScreen(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF07141C))
                         ) {
                             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Technical Markers", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Technical Markers", color = VexPalette.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
                                 VideoFeatureRow(
                                     label = "AI Generative Model",
@@ -531,7 +447,7 @@ fun VideoFeatureRow(label: String, value: String, isWarning: Boolean) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = Color(0xFF80A0B0), fontSize = 11.sp)
+        Text(label, color = Color(0xFFA998C4), fontSize = 11.sp)
         Text(
             text = value,
             color = if (isWarning) Color(0xFFFF9F43) else Color(0xFF35E08A),

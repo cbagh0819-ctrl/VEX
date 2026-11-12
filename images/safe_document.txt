@@ -1,0 +1,1 @@
+VEX Secure Audit Document: Status SAFE. Integrity verified. No executable shell payload.

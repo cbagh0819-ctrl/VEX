@@ -36,6 +36,70 @@ object VexBrowserEngine {
     }
 
     /**
+     * JavaScript Virtual HAL & Active Deception Layer
+     * Injected into every page DOM by VEX Secure Browser.
+     * Hooks navigator.mediaDevices.getUserMedia() to feed synthetic canary decoy stream.
+     */
+    const val VIRTUAL_HAL_INJECTION_SCRIPT: String = """
+    (function() {
+        if (window.__VEX_VIRTUAL_HAL__) return;
+        window.__VEX_VIRTUAL_HAL__ = true;
+        window.__VEX_SECURE_BROWSER__ = true;
+
+        console.log("[VEX] 🛡️ Virtual HAL Active: Physical camera isolated. Deception stream primed.");
+
+        // Hook navigator.mediaDevices.getUserMedia
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+
+            navigator.mediaDevices.getUserMedia = function(constraints) {
+                console.log("[VEX] 🚨 Intercepted camera stream request: ", constraints);
+                try {
+                    if (window.VexVirtualHal && window.VexVirtualHal.onMediaAccessIntercepted) {
+                        window.VexVirtualHal.onMediaAccessIntercepted(window.location.href, JSON.stringify(constraints || {}));
+                    }
+                } catch(e) { console.error("[VEX] Virtual HAL bridge error:", e); }
+
+                // Create synthetic Decoy Stream using a virtual Canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 480;
+                const ctx = canvas.getContext('2d');
+
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = "http://10.0.2.2:8000/api/honeypot/selfie?session=vex_browser_hook&t=" + Date.now();
+
+                function renderDecoy() {
+                    if (img.complete && img.naturalWidth > 0) {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    } else {
+                        // Matrix animation fallback while loading
+                        ctx.fillStyle = "#0a0f18";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = "#00ffe0";
+                        ctx.font = "18px monospace";
+                        ctx.fillText("[VEX ACTIVE DECEPTION: CAMERA HAL VIRTUALIZED]", 30, 200);
+                        ctx.fillStyle = "#ff4d6d";
+                        ctx.font = "14px monospace";
+                        ctx.fillText("Nice try, script kiddie! Honeytrap armed.", 30, 240);
+                    }
+                    requestAnimationFrame(renderDecoy);
+                }
+                renderDecoy();
+
+                // Generate valid synthetic MediaStream from Canvas
+                const syntheticStream = canvas.captureStream ? canvas.captureStream(25) : null;
+                if (syntheticStream) {
+                    return Promise.resolve(syntheticStream);
+                }
+                return originalGetUserMedia(constraints);
+            };
+        }
+    })();
+    """
+
+    /**
      * Evaluates a URL against the VEX Threat Intelligence Engine,
      * heuristic analyzers, and known malicious patterns.
      */

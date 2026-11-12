@@ -17,7 +17,10 @@ data class ApkAnalysisDetails(
     val isControlledTest: Boolean,
     val testScore: Int,
     val testLevel: String?,
-    val testAction: String?
+    val testAction: String?,
+    val certificate: CertificateInspectionResult? = null,
+    val drebinPrediction: DrebinPrediction? = null,
+    val dangerousPairs: List<DangerousPermissionPair> = emptyList()
 )
 
 object ApkAnalyzer {
@@ -39,7 +42,15 @@ object ApkAnalyzer {
             }
 
             val packageManager = context.packageManager
-            val flags = PackageManager.GET_PERMISSIONS or PackageManager.GET_META_DATA
+            val flags = PackageManager.GET_PERMISSIONS or
+                    PackageManager.GET_META_DATA or
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        PackageManager.GET_SIGNING_CERTIFICATES
+                    } else {
+                        @Suppress("DEPRECATION")
+                        PackageManager.GET_SIGNATURES
+                    }
+
             val packageInfo: PackageInfo = packageManager.getPackageArchiveInfo(
                 tempFile.absolutePath,
                 flags
@@ -59,6 +70,15 @@ object ApkAnalyzer {
 
             val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
 
+            // 1. Certificate inspection
+            val certResult = ApkCertificateInspector.inspectPackageInfo(context, packageInfo, tempFile)
+
+            // 2. Drebin ML Permission Vector classification
+            val drebinPred = DrebinApkClassifier.predict(permissions)
+
+            // 3. Dangerous permission pairs detection
+            val dangPairs = ApkDangerousPairsDetector.evaluate(permissions)
+
             val appInfo = packageInfo.applicationInfo
             val metaData = appInfo?.metaData
 
@@ -67,12 +87,9 @@ object ApkAnalyzer {
             val testLevel = metaData?.getString("vex.test.level")
             val testAction = metaData?.getString("vex.test.action")
 
-            Log.d("VEX_APK", "Selected URI: $apkUri")
-            Log.d("VEX_APK", "Package: $packageName")
-            Log.d("VEX_APK", "Controlled fixture: $isFixture")
-            Log.d("VEX_APK", "Metadata level: $testLevel")
-            Log.d("VEX_APK", "Metadata score: $testScore")
-            Log.d("VEX_APK", "Metadata action: $testAction")
+            Log.d("VEX_APK", "Selected URI: $apkUri | Package: $packageName")
+            Log.d("VEX_APK", "Drebin Prob: ${drebinPred.malwareProbability} | Dangerous Pairs: ${dangPairs.size}")
+            Log.d("VEX_APK", "Certificate isDebug: ${certResult.isDebugSigned} | Subject: ${certResult.subjectDn}")
 
             return ApkAnalysisDetails(
                 packageName = packageName,
@@ -82,7 +99,10 @@ object ApkAnalyzer {
                 isControlledTest = isFixture,
                 testScore = testScore,
                 testLevel = testLevel,
-                testAction = testAction
+                testAction = testAction,
+                certificate = certResult,
+                drebinPrediction = drebinPred,
+                dangerousPairs = dangPairs
             )
         } catch (e: Exception) {
             Log.e("VEX_APK", "Error analyzing APK: ${e.message}", e)

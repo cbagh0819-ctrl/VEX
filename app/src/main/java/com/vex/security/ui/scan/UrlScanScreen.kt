@@ -1,5 +1,6 @@
 package com.vex.security.ui.scan
 
+import com.vex.security.ui.theme.VexPalette
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,13 +50,7 @@ fun UrlScanScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -74,15 +69,15 @@ fun UrlScanScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
+                            .background(VexPalette.pillBackground, RoundedCornerShape(50))
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -90,14 +85,14 @@ fun UrlScanScreen(
                     Column {
                         Text(
                             text = "URL SECURITY & PHISHING",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Detect phishing links, shorteners & IP URLs",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp
                         )
                     }
@@ -110,9 +105,9 @@ fun UrlScanScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -125,14 +120,14 @@ fun UrlScanScreen(
                         Box(
                             modifier = Modifier
                                 .size(54.dp)
-                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
+                                .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Language,
                                 contentDescription = "URL",
-                                tint = Color(0xFF00FFE0),
+                                tint = VexPalette.primary,
                                 modifier = Modifier.size(30.dp)
                             )
                         }
@@ -140,14 +135,14 @@ fun UrlScanScreen(
                         Column {
                             Text(
                                 text = "Analyze Link / URL",
-                                color = Color(0xFFFFFFFF),
+                                color = VexPalette.headerText,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "Paste any URL or test link (e.g. https://example.com/?vex_test=BLOCK_60)",
-                                color = Color(0xFF80A0B0),
+                                color = Color(0xFFA998C4),
                                 fontSize = 11.sp,
                                 lineHeight = 15.sp
                             )
@@ -157,16 +152,16 @@ fun UrlScanScreen(
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
-                        label = { Text("Paste URL here...", color = Color(0xFF80A0B0)) },
+                        label = { Text("Paste URL here...", color = Color(0xFFA998C4)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF00FFE0),
-                            unfocusedBorderColor = Color(0xFF005566),
+                            focusedBorderColor = VexPalette.primary,
+                            unfocusedBorderColor = VexPalette.cardBorder,
                             focusedTextColor = Color(0xFFFFFFFF),
                             unfocusedTextColor = Color(0xFFFFFFFF),
-                            focusedLabelColor = Color(0xFF00FFE0),
-                            cursorColor = Color(0xFF00FFE0)
+                            focusedLabelColor = VexPalette.primary,
+                            cursorColor = VexPalette.primary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -216,7 +211,7 @@ fun UrlScanScreen(
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                        listOf(Color(0xFFFF3358), VexPalette.primary)
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -228,12 +223,12 @@ fun UrlScanScreen(
                                 Icon(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = "Scan",
-                                    tint = Color(0xFF000810),
+                                    tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = "ANALYZE URL THREAT",
-                                    color = Color(0xFF000810),
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp
@@ -250,9 +245,9 @@ fun UrlScanScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -260,13 +255,13 @@ fun UrlScanScreen(
                     ) {
                         Text(
                             text = "URL SECURITY RESULT",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
 
-                        HorizontalDivider(color = Color(0xFF005566))
+                        HorizontalDivider(color = VexPalette.cardBorder)
 
                         Text("URL: $url", color = Color(0xFFFFFFFF), fontSize = 12.sp)
 
@@ -278,11 +273,11 @@ fun UrlScanScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text("$riskScore / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$riskScore / 100", color = VexPalette.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text(riskLevel, color = when(riskLevel) {
                                     "SAFE" -> Color(0xFF35E08A)
                                     "WARN" -> Color(0xFFFFD166)

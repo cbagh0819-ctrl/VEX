@@ -7,6 +7,8 @@ from database import get_db
 import models
 from api.policies import get_action_for_risk
 from ai_engine import AIThreatReasoningEngine
+from api.blocklist import blocklist_cache, ws_manager
+import asyncio
 
 router = APIRouter(prefix="/events", tags=["Events"])
 
@@ -88,6 +90,43 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
 
     if not event_data.get("timestamp"):
         event_data["timestamp"] = int(time.time() * 1000)
+
+    # 4. CRITICAL: Blast Radius Containment Engine Trigger
+    # The instant a threat is classified as HIGH/CRITICAL or quarantined, containment executes globally
+    if standard_level in ["HIGH", "CRITICAL"] or admin_action in ["BLOCK", "QUARANTINE"]:
+        # Extract targets from explanation, indicators, or source
+        candidate_target = event_data.get("target") or event_data.get("url")
+        if not candidate_target and indicators_list:
+            for ind in indicators_list:
+                if any(x in ind.lower() for x in ["http", ".com", ".xyz", ".ru", ".net", ".org", "192.", "10."]):
+                    candidate_target = ind
+                    break
+        if not candidate_target:
+            # Fallback to threat type or device event target
+            candidate_target = f"{threat_type}_{event_data.get('device_id', 'DEV')}"
+
+        meta = {
+            "target_type": "URL" if "http" in str(candidate_target) else "THREAT_ENTITY",
+            "threat_type": threat_type,
+            "risk_level": standard_level,
+            "source_device_id": event_data.get("device_id", "MOBILE_AGENT"),
+            "source_platform": event_data.get("source_platform", "ANDROID"),
+            "reason": event_data.get("explanation", f"Instant Automated Containment on {threat_type}"),
+            "timestamp": event_data["timestamp"]
+        }
+        blocklist_cache.add(str(candidate_target), meta)
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(ws_manager.broadcast_containment({
+                    "target": str(candidate_target),
+                    "threat_type": threat_type,
+                    "risk_level": standard_level,
+                    "action": admin_action,
+                    "source_device_id": event_data.get("device_id", "MOBILE_AGENT")
+                }))
+        except Exception:
+            pass
 
     event_id = event_data.get("event_id")
     existing = None

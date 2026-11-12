@@ -1,5 +1,6 @@
 package com.vex.security.ui.scan
 
+import com.vex.security.ui.theme.VexPalette
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -154,13 +155,7 @@ fun ApkCheckScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -179,15 +174,15 @@ fun ApkCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
-                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
+                            .background(VexPalette.pillBackground, RoundedCornerShape(50))
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -195,14 +190,14 @@ fun ApkCheckScreen(
                     Column {
                         Text(
                             text = "APK & APP CHECK",
-                            color = Color(0xFFFFFFFF),
+                            color = VexPalette.headerText,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Scan APK files and installed device applications",
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             fontSize = 11.sp
                         )
                     }
@@ -221,11 +216,11 @@ fun ApkCheckScreen(
                         .weight(1f)
                         .border(
                             1.dp,
-                            if (activeTab == "APK_FILE") Color(0xFF00FFE0) else Color(0xFF005566),
+                            if (activeTab == "APK_FILE") Color(0xFFFF3358) else VexPalette.cardBorder,
                             RoundedCornerShape(12.dp)
                         )
                         .background(
-                            if (activeTab == "APK_FILE") Color(0xFF0A2530) else Color(0xFF0A141A),
+                            if (activeTab == "APK_FILE") Color(0xFFFF3358) else Color(0xFF241239),
                             RoundedCornerShape(12.dp)
                         )
                         .clickable { activeTab = "APK_FILE" }
@@ -234,7 +229,7 @@ fun ApkCheckScreen(
                 ) {
                     Text(
                         text = "APK FILE SCAN",
-                        color = if (activeTab == "APK_FILE") Color(0xFF00FFE0) else Color(0xFF80A0B0),
+                        color = if (activeTab == "APK_FILE") Color.White else Color(0xFFA998C4),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -245,11 +240,11 @@ fun ApkCheckScreen(
                         .weight(1f)
                         .border(
                             1.dp,
-                            if (activeTab == "INSTALLED_APPS") Color(0xFF00FFE0) else Color(0xFF005566),
+                            if (activeTab == "INSTALLED_APPS") Color(0xFFFF3358) else VexPalette.cardBorder,
                             RoundedCornerShape(12.dp)
                         )
                         .background(
-                            if (activeTab == "INSTALLED_APPS") Color(0xFF0A2530) else Color(0xFF0A141A),
+                            if (activeTab == "INSTALLED_APPS") Color(0xFFFF3358) else Color(0xFF241239),
                             RoundedCornerShape(12.dp)
                         )
                         .clickable { activeTab = "INSTALLED_APPS" }
@@ -258,7 +253,7 @@ fun ApkCheckScreen(
                 ) {
                     Text(
                         text = "INSTALLED APPS",
-                        color = if (activeTab == "INSTALLED_APPS") Color(0xFF00FFE0) else Color(0xFF80A0B0),
+                        color = if (activeTab == "INSTALLED_APPS") Color.White else Color(0xFFA998C4),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -272,9 +267,9 @@ fun ApkCheckScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Row(
@@ -289,14 +284,14 @@ fun ApkCheckScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(54.dp)
-                                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                        .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                        .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
+                                        .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Android,
                                         contentDescription = "Android",
-                                        tint = Color(0xFF00FFE0),
+                                        tint = VexPalette.primary,
                                         modifier = Modifier.size(30.dp)
                                     )
                                 }
@@ -304,14 +299,14 @@ fun ApkCheckScreen(
                                 Column {
                                     Text(
                                         text = "Scan Any APK Package",
-                                        color = Color(0xFFFFFFFF),
+                                        color = Color.White,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Detect trojans, dangerous permissions,\nand banking overlay vulnerabilities.",
-                                        color = Color(0xFF80A0B0),
+                                        color = Color(0xFFA998C4),
                                         fontSize = 11.sp,
                                         lineHeight = 15.sp
                                     )
@@ -337,7 +332,7 @@ fun ApkCheckScreen(
                                     .fillMaxSize()
                                     .background(
                                         Brush.horizontalGradient(
-                                            listOf(Color(0xFF007788), Color(0xFF00FFE0))
+                                            listOf(Color(0xFFFF3358), VexPalette.primary)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center
@@ -349,12 +344,12 @@ fun ApkCheckScreen(
                                     Icon(
                                         imageVector = Icons.Default.FolderOpen,
                                         contentDescription = "Folder",
-                                        tint = Color(0xFF000810),
+                                        tint = Color.White,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Text(
                                         text = "CHOOSE APK FROM STORAGE",
-                                        color = Color(0xFF000810),
+                                        color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
                                         letterSpacing = 1.sp
@@ -363,110 +358,28 @@ fun ApkCheckScreen(
                             }
                         }
 
-                        // 1-Click Evaluation Demo Scenarios for Evaluators
                         Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(color = Color(0xFF003344))
+                        HorizontalDivider(color = VexPalette.cardBorder)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
-                            color = Color(0xFF00FFE0),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            OutlinedButton(
-                                onClick = {
-                                    val demo = ApkScanManager.getDemoBankingTrojan()
-                                    apkResult = demo
-                                    scope.launch {
-                                        try {
-                                            ThreatRepository.sendThreatEvent(
-                                                deviceId = DeviceIdentity.getDeviceId(context),
-                                                threatType = "APK",
-                                                riskScore = demo.riskScore,
-                                                riskLevel = demo.riskLevel,
-                                                action = demo.action,
-                                                status = "OPEN",
-                                                indicators = demo.indicators,
-                                                source = "ANDROID_APK_DEMO",
-                                                explanation = demo.explanation.reasons.joinToString(" | "),
-                                                recommendation = demo.explanation.recommendation
-                                            )
-                                        } catch (_: Exception) {}
-                                    }
-                                },
-                                modifier = Modifier.weight(1f).height(38.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4D6D)),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Text("Banking Trojan", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    val demo = ApkScanManager.getDemoAdwareSpyware()
-                                    apkResult = demo
-                                    scope.launch {
-                                        try {
-                                            ThreatRepository.sendThreatEvent(
-                                                deviceId = DeviceIdentity.getDeviceId(context),
-                                                threatType = "APK",
-                                                riskScore = demo.riskScore,
-                                                riskLevel = demo.riskLevel,
-                                                action = demo.action,
-                                                status = "OPEN",
-                                                indicators = demo.indicators,
-                                                source = "ANDROID_APK_DEMO",
-                                                explanation = demo.explanation.reasons.joinToString(" | "),
-                                                recommendation = demo.explanation.recommendation
-                                            )
-                                        } catch (_: Exception) {}
-                                    }
-                                },
-                                modifier = Modifier.weight(1f).height(38.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD166)),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD166)),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Text("Adware Overlay", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    val demo = ApkScanManager.getDemoCleanApp()
-                                    apkResult = demo
-                                    scope.launch {
-                                        try {
-                                            ThreatRepository.sendThreatEvent(
-                                                deviceId = DeviceIdentity.getDeviceId(context),
-                                                threatType = "APK",
-                                                riskScore = demo.riskScore,
-                                                riskLevel = demo.riskLevel,
-                                                action = demo.action,
-                                                status = "RESOLVED",
-                                                indicators = demo.indicators,
-                                                source = "ANDROID_APK_DEMO",
-                                                explanation = demo.explanation.reasons.joinToString(" | "),
-                                                recommendation = demo.explanation.recommendation
-                                            )
-                                        } catch (_: Exception) {}
-                                    }
-                                },
-                                modifier = Modifier.weight(1f).height(38.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF35E08A)),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Text("Clean VLC App", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            }
+                            Icon(Icons.Default.Security, contentDescription = null, tint = VexPalette.primary, modifier = Modifier.size(16.dp))
+                            Text(
+                                text = "DREBIN ML & ADVANCED HEURISTICS ACTIVE",
+                                color = VexPalette.primary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Scans 50-dimensional permission vectors via Random Forest / Gradient-Boosted tree splits, identifies dangerous permission pairs (e.g. Accessibility + Overlay), and audits X.509 certificates.",
+                            color = Color(0xFFA998C4),
+                            fontSize = 10.sp,
+                            lineHeight = 14.sp
+                        )
                     }
                 }
             }
@@ -480,16 +393,16 @@ fun ApkCheckScreen(
                             .padding(40.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF00FFE0))
+                        CircularProgressIndicator(color = VexPalette.primary)
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Reading installed packages...", color = Color(0xFF80A0B0), fontSize = 12.sp)
+                        Text("Reading installed packages...", color = Color(0xFFA998C4), fontSize = 12.sp)
                     }
                 }
             } else {
                 item {
                     Text(
                         text = "Installed Packages (${installedApps.size})",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -503,8 +416,8 @@ fun ApkCheckScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, Color(0xFF003344), RoundedCornerShape(12.dp)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(12.dp)),
+                        colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
                     ) {
                         Row(
                             modifier = Modifier
@@ -521,13 +434,13 @@ fun ApkCheckScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(38.dp)
-                                        .background(Color(0xFF0A1F28), RoundedCornerShape(10.dp)),
+                                        .background(VexPalette.pillBackground, RoundedCornerShape(10.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Android,
                                         contentDescription = null,
-                                        tint = if (isSystem) Color(0xFF608090) else Color(0xFF00FFE0),
+                                        tint = if (isSystem) Color(0xFF608090) else VexPalette.primary,
                                         modifier = Modifier.size(22.dp)
                                     )
                                 }
@@ -557,11 +470,11 @@ fun ApkCheckScreen(
                             Button(
                                 onClick = { scanApp(pkg) },
                                 modifier = Modifier.height(34.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A2530)),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00FFE0)),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3358)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, VexPalette.primary),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                             ) {
-                                Text("SCAN", color = Color(0xFF00FFE0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("SCAN", color = VexPalette.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -577,9 +490,9 @@ fun ApkCheckScreen(
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    CircularProgressIndicator(color = VexPalette.primary)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(scanningMessage, color = Color(0xFF00FFE0), fontSize = 12.sp)
+                    Text(scanningMessage, color = VexPalette.primary, fontSize = 12.sp)
                 }
             }
         }
@@ -590,8 +503,8 @@ fun ApkCheckScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF005566), RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0A1F28))
+                        .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = VexPalette.pillBackground)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -601,7 +514,7 @@ fun ApkCheckScreen(
                         ) {
                             Text(
                                 text = "ANALYSIS RESULT",
-                                color = Color(0xFF00FFE0),
+                                color = VexPalette.primary,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -610,15 +523,15 @@ fun ApkCheckScreen(
                             Button(
                                 onClick = { onNavigateToDetail() },
                                 modifier = Modifier.height(32.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF005566)),
+                                colors = ButtonDefaults.buttonColors(containerColor = VexPalette.cardBorder),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Text("Full Report", color = Color(0xFF00FFE0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color(0xFF00FFE0), modifier = Modifier.size(12.dp))
+                                    Text("Full Report", color = VexPalette.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = VexPalette.primary, modifier = Modifier.size(12.dp))
                                 }
                             }
                         }
@@ -627,10 +540,10 @@ fun ApkCheckScreen(
 
                         Text("Target: ${result.metadata.fileName}", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
                         result.packageName?.let {
-                            Text("Package: $it", color = Color(0xFF80A0B0), fontSize = 12.sp)
+                            Text("Package: $it", color = Color(0xFFA998C4), fontSize = 12.sp)
                         }
                         result.versionName?.let {
-                            Text("Version: $it", color = Color(0xFF80A0B0), fontSize = 12.sp)
+                            Text("Version: $it", color = Color(0xFFA998C4), fontSize = 12.sp)
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -641,11 +554,11 @@ fun ApkCheckScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text("${result.riskScore} / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("${result.riskScore} / 100", color = VexPalette.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text(
                                     result.riskLevel,
                                     color = when (result.riskLevel) {
@@ -667,7 +580,7 @@ fun ApkCheckScreen(
 
                         Text(
                             text = "Requested Permissions (${result.permissions.size})",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             style = MaterialTheme.typography.titleMedium
                         )
 
@@ -721,10 +634,122 @@ fun ApkCheckScreen(
                         if (result.permissions.size > 8) {
                             Text(
                                 text = "+ ${result.permissions.size - 8} more permissions (view in Full Report)",
-                                color = Color(0xFF80A0B0),
+                                color = Color(0xFFA998C4),
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(vertical = 4.dp)
                             )
+                        }
+
+                        // 1. Drebin ML Prediction Section
+                        result.drebinPrediction?.let { drebin ->
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, if (drebin.isClassifiedMalicious) Color(0xFFFF4D6D) else VexPalette.primary, RoundedCornerShape(12.dp)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF071822))
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("DREBIN ML ENSEMBLE", color = VexPalette.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            "${(drebin.malwareProbability * 100).toInt()}% Malicious Prob",
+                                            color = if (drebin.isClassifiedMalicious) Color(0xFFFF4D6D) else Color(0xFF35E08A),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Text(
+                                        "Binary Vector: ${drebin.activeFeaturesCount} of ${drebin.binaryVectorSize} sensitive permissions active",
+                                        color = Color(0xFFA998C4),
+                                        fontSize = 11.sp
+                                    )
+                                    if (drebin.topContributingFeatures.isNotEmpty()) {
+                                        Text(
+                                            "Tree Splits: ${drebin.topContributingFeatures.joinToString(", ")}",
+                                            color = Color(0xFFFFD166),
+                                            fontSize = 10.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // 2. Dangerous Permission Pairs Section
+                        if (result.dangerousPairs.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Text(
+                                text = "Dangerous Permission Pairs (${result.dangerousPairs.size})",
+                                color = Color(0xFFFF4D6D),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            result.dangerousPairs.forEach { pair ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 3.dp)
+                                        .border(1.dp, Color(0xFFFF4D6D).copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E0B12))
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(pair.title, color = Color(0xFFFF4D6D), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                            Text(pair.ruleSeverity, color = Color(0xFFFF4D6D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                        Text(pair.explanation, color = Color(0xFFD0DCE5), fontSize = 10.sp)
+                                        Text(pair.mitreTechnique, color = Color(0xFFA998C4), fontSize = 9.sp)
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3. Certificate Inspection Section
+                        result.certificate?.let { cert ->
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, if (cert.isDebugSigned || cert.isExpired) Color(0xFFFF4D6D) else VexPalette.cardBorder, RoundedCornerShape(12.dp)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF081A24))
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("X.509 CERTIFICATE AUDIT", color = VexPalette.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            if (cert.isDebugSigned) "DEBUG SIGNATURE" else "RELEASE SIGNED",
+                                            color = if (cert.isDebugSigned) Color(0xFFFF4D6D) else Color(0xFF35E08A),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    cert.subjectDn?.let {
+                                        Text("Subject: $it", color = Color(0xFFB0C4DE), fontSize = 10.sp, maxLines = 1)
+                                    }
+                                    Text("Algorithm: ${cert.sigAlgName ?: "Unknown"} • Valid Until: ${cert.validUntil ?: "N/A"}", color = Color(0xFFA998C4), fontSize = 10.sp)
+                                    cert.sha256Fingerprint?.let {
+                                        Text("SHA-256: ${it.take(32)}...", color = Color(0xFFA998C4), fontSize = 9.sp)
+                                    }
+                                    if (cert.warnings.isNotEmpty()) {
+                                        cert.warnings.forEach { warn ->
+                                            Text("⚠️ $warn", color = Color(0xFFFF9F43), fontSize = 10.sp)
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -751,7 +776,7 @@ fun SummaryCard(title: String, count: String, color: Color, icon: ImageVector) {
             .fillMaxWidth()
             .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+        colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -775,7 +800,7 @@ fun SummaryCard(title: String, count: String, color: Color, icon: ImageVector) {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = title,
-                color = Color(0xFF80A0B0),
+                color = Color(0xFFA998C4),
                 fontSize = 11.sp
             )
         }

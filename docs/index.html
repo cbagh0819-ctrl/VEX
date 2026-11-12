@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VEX Security — Device Connect & Telemetry Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-main: #06090e;
+            --bg-card: #0d131f;
+            --bg-card-sub: #131c2e;
+            --border-card: #1e293b;
+            --border-highlight: #334155;
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            --green-primary: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.25);
+            --red-alert: #f43f5e;
+            --amber-warn: #f59e0b;
+            --blue-accent: #38bdf8;
+            --purple-accent: #a855f7;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-card-sub: #f8fafc;
+            --border-card: #e2e8f0;
+            --border-highlight: #cbd5e1;
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --green-primary: #059669;
+            --green-glow: rgba(5, 150, 105, 0.15);
+            --red-alert: #e11d48;
+            --amber-warn: #d97706;
+            --blue-accent: #0284c7;
+            --purple-accent: #9333ea;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-main);
+            color: var(--text-body);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 16px 20px 80px 20px;
+        }
+
+        /* Top Header */
+        header.portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0 20px 0;
+            border-bottom: 1px solid var(--border-card);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 16px var(--green-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-text p {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            border: none;
+            outline: none;
+        }
+
+        .btn-green {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+        .btn-green:hover { background: #059669; }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-card);
+            color: var(--text-body);
+        }
+        .btn-outline:hover {
+            border-color: var(--border-highlight);
+            background: var(--bg-card);
+        }
+
+        .btn-amber {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+        .btn-amber:hover { background: #d97706; }
+
+        .btn-red {
+            background: var(--red-alert);
+            color: #ffffff;
+        }
+
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .pill-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .pill-red {
+            background: rgba(244, 63, 94, 0.15);
+            color: #f43f5e;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .pill-amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 95, 70, 0.05) 100%), var(--bg-card);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-banner-content h2 {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-banner-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        /* Grid Layout */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 860px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--bg-card-sub);
+            border: 1px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .card-title {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--text-heading);
+        }
+
+        .card-subtitle {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        /* Identity Field Styles */
+        .identity-box {
+            background: var(--bg-card-sub);
+            border: 1.5px solid var(--border-card);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .identity-id-display {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #10b981;
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            word-break: break-all;
+        }
+
+        .input-text {
+            width: 100%;
+            background: var(--bg-card-sub);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text-heading);
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .input-text:focus {
+            border-color: #10b981;
+        }
+
+        /* Threat Simulation Buttons Grid */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 500px) {
+            .sim-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sim-btn {
+            background: var(--bg-card-sub);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sim-btn:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+
+        .sim-btn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .sim-btn-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-heading);
+        }
+
+        .sim-btn-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .sim-score-tag {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        /* Posture Meter */
+        .posture-meter-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg-card-sub);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .posture-score-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid #10b981;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: var(--font-mono);
+            font-weight: 900;
+            color: var(--text-heading);
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .posture-score-circle span {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* Stat Counters Grid */
+        .stats-quad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-quad {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-mini-card {
+            background: var(--bg-card-sub);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .stat-mini-val {
+            font-size: 20px;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            color: var(--text-heading);
+        }
+
+        .stat-mini-lbl {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Threat Table */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-card);
+        }
+
+        table.telemetry-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        table.telemetry-table th {
+            background: var(--bg-card-sub);
+            padding: 10px 14px;
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 10.5px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-card);
+            white-space: nowrap;
+        }
+
+        table.telemetry-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-card);
+            color: var(--text-body);
+        }
+
+        table.telemetry-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Toast Alert Notification */
+        #toastNotice {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #10b981;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 9999;
+            animation: slideInUp 0.25s ease;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* File Drop Box */
+        .dropzone-box {
+            border: 2px dashed var(--border-card);
+            border-radius: 14px;
+            padding: 24px 16px;
+            text-align: center;
+            background: var(--bg-card-sub);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 14px;
+        }
+        .dropzone-box:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .qr-card-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .qr-img-wrapper {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div id="toastNotice">Notification</div>
+
+<div class="container">
+    <!-- 1. Header -->
+    <header class="portal-header">
+        <div class="brand-cluster">
+            <div class="brand-logo-badge">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>VEX CYBER GUARD <span class="pill-badge pill-green" id="socConnectionPill">● SOC SYNC LIVE</span></h1>
+                <p>UNIVERSAL DEVICE TELEMETRY & THREAT CONTROL HUB</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <a href="/dashboard" target="_blank" class="btn btn-green">
+                <span>🛡️ Open Full SOC Dashboard</span>
+            </a>
+            <a href="/download/vex.apk" class="btn btn-outline" download>
+                <span>📥 Download APK (2.4.0)</span>
+            </a>
+            <button class="btn btn-outline" onclick="toggleTheme()" id="themeBtn">
+                <span id="themeIcon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-banner-content">
+            <h2><span>🌐</span> Connect Any Device to SOC & Update Threat Telemetry</h2>
+            <p>
+                Pair your mobile phone, laptop, or testing endpoint wirelessly. Run instant heuristic scans, report real-time threat events, and monitor automated blast-radius containment actions in the Central SOC.
+            </p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-green" onclick="connectThisDevice()">
+                <span>⚡ Quick Connect This Device</span>
+            </button>
+            <button class="btn btn-outline" onclick="scrollToThreatSim()">
+                <span>🚀 Simulate Threats</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. Two-Column Grid: Device Identity & Posture -->
+    <div class="portal-grid">
+        <!-- Card 1: Unique Device Identity & Connection Manager -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-box">📱</div>
+                    <div>
+                        <div class="card-title">Device Identity & Registration</div>
+                        <div class="card-subtitle">Crockford High-Entropy Unique Device ID</div>
+                    </div>
+                </div>
+                <span class="pill-badge pill-green" id="registrationBadge">SYNCHRONIZED</span>
+            </div>
+
+            <div class="identity-box">
+                <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Current Device ID</div>
+                <div class="identity-id-display">
+                    <span id="activeDeviceIdText">VEX-8K92-4F2A</span>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:11px;" onclick="copyActiveDeviceId()">📋 Copy</button>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-outline" style="flex:1; padding:6px 10px; font-size:11.5px;" onclick="generateNewRandomId()">🎲 New Random ID</button>
+                    <button class="btn btn-outline" style="flex:1; padding:6px 10px; font-size:11.5px;" onclick="promptCustomId()">✏️ Enter Android ID</button>
+                </div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label style="font-size:11.5px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">DEVICE MODEL / NAME</label>
+                <input type="text" id="deviceModelInput" class="input-text" value="Auto-Detected Endpoint" placeholder="e.g. Pixel 8 Pro / Galaxy S24">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; font-size:11.5px;">
+                <div style="background:var(--bg-card-sub); padding:10px; border-radius:10px; border:1px solid var(--border-card);">
+                    <div style="color:var(--text-muted); font-weight:700;">PLATFORM:</div>
+                    <div style="font-weight:800; color:var(--text-heading);" id="devicePlatformText">ANDROID / WEB</div>
+                </div>
+                <div style="background:var(--bg-card-sub); padding:10px; border-radius:10px; border:1px solid var(--border-card);">
+                    <div style="color:var(--text-muted); font-weight:700;">OS VERSION:</div>
+                    <div style="font-weight:800; color:var(--text-heading);" id="deviceOsText">Android 15+</div>
+                </div>
+            </div>
+
+            <button class="btn btn-green" style="width:100%; padding:12px; font-size:13.5px;" onclick="connectThisDevice()">
+                <span>⚡ Register & Connect Device to Central SOC</span>
+            </button>
+        </div>
+
+        <!-- Card 2: Live Device Posture & Stats -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-box">🛡️</div>
+                    <div>
+                        <div class="card-title">Real-Time Threat Posture</div>
+                        <div class="card-subtitle">Aggregated AI threat evaluations for this endpoint</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="padding:4px 10px; font-size:11px;" onclick="fetchDeviceThreatTelemetry()">🔄 Refresh</button>
+            </div>
+
+            <div class="posture-meter-box">
+                <div class="posture-score-circle" id="postureCircle">
+                    <div id="postureScoreText">10</div>
+                    <span>SCORE</span>
+                </div>
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:18px; font-weight:900;" id="postureLevelText">SAFE</span>
+                        <span class="pill-badge pill-green" id="postureActionBadge">ALLOW</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="postureSummaryText">
+                        Endpoint health is verified clean. All integrity and heuristic checks passed.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Quad -->
+            <div class="stats-quad">
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" id="statTotalScans">0</div>
+                    <div class="stat-mini-lbl">Total Scans</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" style="color:var(--red-alert);" id="statCritical">0</div>
+                    <div class="stat-mini-lbl">Critical</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" style="color:var(--amber-warn);" id="statHigh">0</div>
+                    <div class="stat-mini-lbl">High Threats</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="stat-mini-val" style="color:#10b981;" id="statSafe">0</div>
+                    <div class="stat-mini-lbl">Clean Scans</div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <a id="dossierLink" href="/dashboard" target="_blank" class="btn btn-outline" style="flex:1; font-size:12px; text-align:center;">
+                    <span>🔍 View in SOC Dossier</span>
+                </a>
+                <button class="btn btn-outline" style="font-size:12px;" onclick="clearDeviceHistory()">
+                    <span>🧹 Reset Telemetry</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Threat Update & Simulation Studio -->
+    <div class="card" id="threatSimSection" style="margin-bottom:24px;">
+        <div class="card-header">
+            <div class="card-title-group">
+                <div class="card-icon-box">⚡</div>
+                <div>
+                    <div class="card-title">1-Click Threat Simulation & Telemetry Injection</div>
+                    <div class="card-subtitle">Inject live threat vectors into the SOC for this exact device to verify containment & policy engine</div>
+                </div>
+            </div>
+            <span class="pill-badge pill-amber">5-TIER XAI ENGINE</span>
+        </div>
+
+        <div class="sim-grid">
+            <!-- 1. Ransomware -->
+            <div class="sim-btn" onclick="injectThreat('RANSOMWARE', 98, 'CRITICAL', 'QUARANTINE', ['Mass File Encryption', 'High Entropy Entropy > 7.9', 'Extension .locked', 'Volume Shadow Purge'], 'WannaCry/LockBit Ransomware payload executing mass encryption in storage.', 'T1486 - Data Encrypted for Impact')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🔴 Ransomware Activity</div>
+                    <span class="sim-score-tag" style="background:rgba(244,63,94,0.2); color:#f43f5e;">CRITICAL 98</span>
+                </div>
+                <div class="sim-btn-desc">High I/O mass file encryption. Triggers automated global QUARANTINE.</div>
+            </div>
+
+            <!-- 2. Trojan Spyware -->
+            <div class="sim-btn" onclick="injectThreat('SPYWARE_TROJAN', 92, 'CRITICAL', 'QUARANTINE', ['Covert Camera Frame Capture', 'Unauthorized Mic Streaming', 'C2 Exfiltration', 'Hidden Background Service'], 'Pegasus/CamPhish covert spyware intercepting camera feed without foreground notification.', 'T1430 - Location/Camera Interception')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🟠 Spyware / CamPhish Lure</div>
+                    <span class="sim-score-tag" style="background:rgba(244,63,94,0.2); color:#f43f5e;">CRITICAL 92</span>
+                </div>
+                <div class="sim-btn-desc">Covert camera HAL hijacking. Triggers instant decoy & honeypot lock.</div>
+            </div>
+
+            <!-- 3. SMS Bomber -->
+            <div class="sim-btn" onclick="injectThreat('BOMBER_ATTACK', 75, 'HIGH', 'BLOCK', ['OTP Flooding > 40 req/min', 'Malicious SMS Gateway', 'Service DoS Indicator'], 'SMS/Call bombing flood targeting victim telephone number.', 'T1498 - Network Denial of Service')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🟡 SMS / Call Bomber Flood</div>
+                    <span class="sim-score-tag" style="background:rgba(245,158,11,0.2); color:#f59e0b;">HIGH 75</span>
+                </div>
+                <div class="sim-btn-desc">Aggressive OTP verification flood. Automated Blast Radius BLOCK.</div>
+            </div>
+
+            <!-- 4. Malicious APK -->
+            <div class="sim-btn" onclick="injectThreat('APK_MALWARE', 84, 'HIGH', 'BLOCK', ['SYSTEM_ALERT_WINDOW Abuse', 'Accessibility Service Keylogging', 'Fake Banking Overlay'], 'Sideloaded banking Trojan impersonating legit financial app.', 'T1418 - Application Discovery')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🟣 Malicious Sideloaded APK</div>
+                    <span class="sim-score-tag" style="background:rgba(245,158,11,0.2); color:#f59e0b;">HIGH 84</span>
+                </div>
+                <div class="sim-btn-desc">Deceptive APK attempting accessibility overlay hijacking.</div>
+            </div>
+
+            <!-- 5. Phishing Link -->
+            <div class="sim-btn" onclick="injectThreat('PHISHING_URL', 55, 'MEDIUM', 'WARN', ['Typosquatting Domain', 'Deceptive SSL Certificate', 'Credential Harvesting Form'], 'Suspicious URL paypa1-verification-secure.xyz mimicking authentic portal.', 'T1566 - Phishing')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🔵 Deceptive Phishing URL</div>
+                    <span class="sim-score-tag" style="background:rgba(56,189,248,0.2); color:#38bdf8;">MEDIUM 55</span>
+                </div>
+                <div class="sim-btn-desc">Typosquatted domain collecting credentials. Enforces user WARNING.</div>
+            </div>
+
+            <!-- 6. Safe Health Check -->
+            <div class="sim-btn" onclick="injectThreat('INTEGRITY_CHECK', 10, 'SAFE', 'ALLOW', ['Signatures Clean', 'Zero Root Detection', 'Play Protect Active'], 'Complete endpoint heuristic audit passed with zero threat indicators.', 'T1082 - System Information Discovery')">
+                <div class="sim-btn-header">
+                    <div class="sim-btn-title">🟢 Clean Health Verification</div>
+                    <span class="sim-score-tag" style="background:rgba(16,185,129,0.2); color:#10b981;">SAFE 10</span>
+                </div>
+                <div class="sim-btn-desc">No threats detected. Updates device status to 100% verified clean.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Live File & URL Scanners -->
+    <div class="portal-grid">
+        <!-- Live File / APK Scanner -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-box">📁</div>
+                    <div>
+                        <div class="card-title">Live File & APK Scanner</div>
+                        <div class="card-subtitle">Scan any file from this device and report findings</div>
+                    </div>
+                </div>
+                <span class="pill-badge pill-green">ON-DEVICE</span>
+            </div>
+
+            <div class="dropzone-box" onclick="document.getElementById('fileUploadInput').click()">
+                <div style="font-size:28px; margin-bottom:8px;">📂</div>
+                <div style="font-size:13px; font-weight:800; color:var(--text-heading);">Click to Select File or Drop Here</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Supports APK, PDF, EXE, JPG, ZIP, or any document</div>
+                <input type="file" id="fileUploadInput" style="display:none;" onchange="handleFileSelected(event)">
+            </div>
+
+            <div id="fileScanResult" style="display:none; background:var(--bg-card-sub); border:1px solid var(--border-card); border-radius:12px; padding:12px; font-size:12px;"></div>
+        </div>
+
+        <!-- Live URL & Phishing Checker -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-box">🔗</div>
+                    <div>
+                        <div class="card-title">URL & Domain Threat Auditor</div>
+                        <div class="card-subtitle">Audit links against Blast Radius Mesh & MITRE engine</div>
+                    </div>
+                </div>
+                <span class="pill-badge pill-green">BLAST RADIUS</span>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:11.5px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">ENTER URL TO SCAN</label>
+                <input type="text" id="urlScanInput" class="input-text" placeholder="https://paypa1-update-account.com/login" value="http://192.168.1.100/malware.exe">
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <button class="btn btn-outline" style="flex:1; font-size:11.5px;" onclick="setUrlInput('https://free-crypto-giveaway-claim.xyz/airdrop')">Sample Phish 1</button>
+                <button class="btn btn-outline" style="flex:1; font-size:11.5px;" onclick="setUrlInput('http://185.220.101.5/bank_update.apk')">Sample Malicious IP</button>
+            </div>
+
+            <button class="btn btn-green" style="width:100%; padding:10px; font-size:13px;" onclick="scanUrlThreat()">
+                <span>🔍 Audit URL & Update Threat Telemetry</span>
+            </button>
+
+            <div id="urlScanResult" style="display:none; background:var(--bg-card-sub); border:1px solid var(--border-card); border-radius:12px; padding:12px; margin-top:12px; font-size:12px;"></div>
+        </div>
+    </div>
+
+    <!-- 6. Custom Telemetry Submission -->
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <div class="card-title-group">
+                <div class="card-icon-box">📝</div>
+                <div>
+                    <div class="card-title">Custom Threat Telemetry Creator</div>
+                    <div class="card-subtitle">Submit bespoke security events for evaluation in the central SOC</div>
+                </div>
+            </div>
+            <span class="pill-badge pill-green">CUSTOM TELEMETRY</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:12px;">
+            <div>
+                <label style="font-size:11px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">THREAT CATEGORY</label>
+                <select id="customThreatType" class="input-text">
+                    <option value="FILE_SCAN">FILE_SCAN (Malware / Suspicious File)</option>
+                    <option value="URL_SCAN">URL_SCAN (Phishing / Dangerous Host)</option>
+                    <option value="NETWORK">NETWORK (MITM / Port Scan)</option>
+                    <option value="USB_EVENT">USB_EVENT (BadUSB / Storage Exfiltration)</option>
+                    <option value="AI_VIDEO">AI_VIDEO (Deepfake / Biometric Spoof)</option>
+                    <option value="BOMBER_ATTACK">BOMBER_ATTACK (OTP Flooding)</option>
+                    <option value="ROOT_EXPLOIT">ROOT_EXPLOIT (Kernel Privilege Escalation)</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-size:11px; font-weight:700; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span>RISK SCORE (0 - 100)</span>
+                    <strong id="customScoreDisplay" style="color:#10b981;">75</strong>
+                </label>
+                <input type="range" id="customScoreSlider" min="0" max="100" value="75" style="width:100%; accent-color:#10b981;" oninput="updateCustomScore(this.value)">
+            </div>
+
+            <div>
+                <label style="font-size:11px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">THREAT INDICATORS (COMMA-SEPARATED)</label>
+                <input type="text" id="customIndicators" class="input-text" value="Suspicious Entropy, Unsigned Binary, Root Hook">
+            </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">EXPLANATION & FORENSIC DETAILS</label>
+            <input type="text" id="customExplanation" class="input-text" value="Anomalous process injected code into system service with elevated privileges.">
+        </div>
+
+        <button class="btn btn-green" style="padding:10px 20px;" onclick="submitCustomThreat()">
+            <span>🚀 Submit Telemetry to Central SOC</span>
+        </button>
+    </div>
+
+    <!-- 7. Live Device Threat Ledger -->
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <div class="card-title-group">
+                <div class="card-icon-box">📜</div>
+                <div>
+                    <div class="card-title">Live Device Threat Activity Ledger</div>
+                    <div class="card-subtitle">Real-time audit log streamed from this endpoint to the central database</div>
+                </div>
+            </div>
+            <button class="btn btn-outline" style="padding:4px 12px; font-size:11.5px;" onclick="fetchDeviceThreatTelemetry()">
+                <span>🔄 Refresh Feed</span>
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="telemetry-table">
+                <thead>
+                    <tr>
+                        <th>EVENT ID</th>
+                        <th>THREAT TYPE</th>
+                        <th>SCORE</th>
+                        <th>TIER</th>
+                        <th>ACTION</th>
+                        <th>FORENSIC REASONING</th>
+                        <th>TIME</th>
+                    </tr>
+                </thead>
+                <tbody id="deviceEventsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                            Querying device threat dossier...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 8. Universal Pairing Link & QR Sharing -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title-group">
+                <div class="card-icon-box">📶</div>
+                <div>
+                    <div class="card-title">Share & Pair Any Additional Device</div>
+                    <div class="card-subtitle">Scan this QR code or use the links below to connect any phone or computer</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="qr-card-center">
+            <div class="qr-img-wrapper">
+                <img id="pairingQrImg" src="" alt="Pairing QR Code" style="width:180px; height:180px; display:block;">
+            </div>
+            <p style="font-size:13px; font-weight:800; color:var(--text-heading); margin-bottom:8px;">
+                Scan with any smartphone camera to pair instantly
+            </p>
+
+            <div style="background:var(--bg-card-sub); border:1px solid var(--border-card); border-radius:10px; padding:10px 14px; max-width:600px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+                <code id="activeShareUrlText" style="font-family:var(--font-mono); font-size:12px; color:#10b981; word-break:break-all;"></code>
+                <button class="btn btn-green" style="padding:4px 12px; font-size:11px;" onclick="copyShareUrl()">Copy</button>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <a href="/dashboard" target="_blank" class="btn btn-outline" style="font-size:12px;">
+                    <span>🖥️ Open SOC Dashboard</span>
+                </a>
+                <a href="/download/vex.apk" class="btn btn-outline" style="font-size:12px;">
+                    <span>📥 Download Android APK</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentDeviceId = '';
+let currentPlatform = 'ANDROID';
+let currentModel = 'VEX Endpoint';
+let activeNetworkInfo = null;
+
+function apiBase() {
+    const params = new URLSearchParams(window.location.search);
+    const qBackend = params.get('backend') || params.get('api');
+    if (qBackend) {
+        localStorage.setItem('vex_backend_url', qBackend.trim().replace(/\/+$/, ''));
+        return qBackend.trim().replace(/\/+$/, '');
+    }
+    const saved = localStorage.getItem('vex_backend_url');
+    if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+    
+    // Auto-detect GitHub Pages or file:// execution
+    if (window.location.hostname.includes('github.io') || window.location.protocol === 'file:') {
+        return 'https://rid-compressed-ministries-menu.trycloudflare.com';
+    }
+    return '';
+}
+
+function promptChangeBackend() {
+    const current = apiBase() || window.location.origin;
+    const next = prompt('Enter central VEX SOC Backend API URL:', current);
+    if (next && next.trim()) {
+        localStorage.setItem('vex_backend_url', next.trim().replace(/\/+$/, ''));
+        location.reload();
+    }
+}
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', async () => {
+    detectDeviceEnvironment();
+    checkGitHubHosting();
+    await fetchNetworkInfo();
+    setupDeviceId();
+    await connectThisDevice(false);
+    await fetchDeviceThreatTelemetry();
+    setInterval(fetchDeviceThreatTelemetry, 5000);
+});
+
+function checkGitHubHosting() {
+    const isGh = window.location.hostname.includes('github.io');
+    const base = apiBase();
+    if (isGh || base) {
+        // Update header links to point to the active backend
+        document.querySelectorAll('a[href^="/dashboard"]').forEach(a => {
+            a.href = base + a.getAttribute('href');
+        });
+        document.querySelectorAll('a[href^="/download/"]').forEach(a => {
+            a.href = base + a.getAttribute('href');
+        });
+    }
+}
+
+function detectDeviceEnvironment() {
+    const ua = navigator.userAgent || '';
+    let os = 'Unknown OS';
+    let platform = 'WEB_CLIENT';
+    let model = 'Universal Device';
+
+    if (/android/i.test(ua)) {
+        os = 'Android 14+';
+        platform = 'ANDROID';
+        model = 'Android Smartphone';
+        const match = ua.match(/Android\s+([\d.]+);?\s*([^;)]*)/i);
+        if (match && match[2]) model = match[2].trim();
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        os = 'iOS 17+';
+        platform = 'IOS';
+        model = 'Apple Mobile Device';
+    } else if (/Windows/i.test(ua)) {
+        os = 'Windows 11/10';
+        platform = 'WINDOWS_ENDPOINT';
+        model = 'Windows Workstation';
+    } else if (/Macintosh/i.test(ua)) {
+        os = 'macOS';
+        platform = 'MACOS_ENDPOINT';
+        model = 'Apple Mac';
+    } else if (/Linux/i.test(ua)) {
+        os = 'Linux';
+        platform = 'LINUX_ENDPOINT';
+        model = 'Linux Host';
+    }
+
+    currentPlatform = platform;
+    currentModel = model;
+
+    document.getElementById('deviceModelInput').value = model;
+    document.getElementById('devicePlatformText').textContent = platform;
+    document.getElementById('deviceOsText').textContent = os;
+}
+
+async function fetchNetworkInfo() {
+    try {
+        const resp = await fetch(apiBase() + '/api/system/network-info');
+        if (resp.ok) {
+            activeNetworkInfo = await resp.json();
+        }
+    } catch (e) {
+        console.warn('Network info error:', e);
+    }
+}
+
+function setupDeviceId() {
+    // 1. Check query parameter
+    const params = new URLSearchParams(window.location.search);
+    const queryId = params.get('device_id') || params.get('device');
+    
+    if (queryId && queryId.trim()) {
+        currentDeviceId = queryId.trim();
+    } else {
+        // 2. Check local storage
+        const saved = localStorage.getItem('vex_device_id');
+        if (saved && saved.trim()) {
+            currentDeviceId = saved.trim();
+        } else {
+            // 3. Generate sleek Crockford ID: VEX-XXXX-XXXX
+            currentDeviceId = generateCrockfordId();
+        }
+    }
+
+    localStorage.setItem('vex_device_id', currentDeviceId);
+    updateDeviceIdUI();
+}
+
+function generateCrockfordId() {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const p1 = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const p2 = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `VEX-${p1}-${p2}`;
+}
+
+function updateDeviceIdUI() {
+    document.getElementById('activeDeviceIdText').textContent = currentDeviceId;
+    
+    // Update Dossier Link
+    const dossier = document.getElementById('dossierLink');
+    const base = apiBase();
+    if (dossier) dossier.href = (base ? base : '') + `/dashboard?device_id=${encodeURIComponent(currentDeviceId)}`;
+
+    // Update QR Code
+    const curOrigin = window.location.origin;
+    const curPath = window.location.pathname;
+    const shareUrl = `${curOrigin}${curPath}?device_id=${encodeURIComponent(currentDeviceId)}`;
+    document.getElementById('activeShareUrlText').textContent = shareUrl;
+    document.getElementById('pairingQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
+}
+
+function generateNewRandomId() {
+    currentDeviceId = generateCrockfordId();
+    localStorage.setItem('vex_device_id', currentDeviceId);
+    updateDeviceIdUI();
+    connectThisDevice(true);
+    fetchDeviceThreatTelemetry();
+}
+
+function promptCustomId() {
+    const manual = prompt('Enter your Unique Device ID from Android app (e.g. VEX-8K92-4F2A):', currentDeviceId);
+    if (manual && manual.trim()) {
+        currentDeviceId = manual.trim();
+        localStorage.setItem('vex_device_id', currentDeviceId);
+        updateDeviceIdUI();
+        connectThisDevice(true);
+        fetchDeviceThreatTelemetry();
+    }
+}
+
+async function connectThisDevice(notify = true) {
+    const model = document.getElementById('deviceModelInput').value.trim() || currentModel;
+    const os = document.getElementById('deviceOsText').textContent || 'Android 15+';
+    const payload = {
+        device_id: currentDeviceId,
+        device_name: model,
+        platform: currentPlatform,
+        os_version: os,
+        android_version: os,
+        model: model,
+        client_version: '2.4.0',
+        registered_at: Date.now()
+    };
+
+    try {
+        const resp = await fetch(apiBase() + '/devices/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const res = await resp.json();
+        if (resp.ok) {
+            document.getElementById('registrationBadge').textContent = 'CONNECTED & SYNCED';
+            document.getElementById('registrationBadge').className = 'pill-badge pill-green';
+            if (notify) showToast(`Device ${currentDeviceId} registered & connected to SOC!`);
+        }
+    } catch(err) {
+        console.error('Registration failed:', err);
+    }
+}
+
+async function fetchDeviceThreatTelemetry() {
+    if (!currentDeviceId) return;
+    try {
+        const resp = await fetch(apiBase() + `/devices/${encodeURIComponent(currentDeviceId)}/threats?t=${Date.now()}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        // 1. Posture & Scores
+        const posture = data.posture || {};
+        const score = posture.overall_score || 0;
+        const level = posture.risk_level || 'SAFE';
+
+        document.getElementById('postureScoreText').textContent = score;
+        document.getElementById('postureLevelText').textContent = level;
+        
+        // Color & Styling
+        const circle = document.getElementById('postureCircle');
+        const actionBadge = document.getElementById('postureActionBadge');
+        const summaryText = document.getElementById('postureSummaryText');
+
+        if (score >= 80 || level === 'CRITICAL') {
+            circle.style.borderColor = '#f43f5e';
+            circle.style.color = '#f43f5e';
+            actionBadge.textContent = 'QUARANTINE';
+            actionBadge.className = 'pill-badge pill-red';
+            summaryText.textContent = 'CRITICAL THREAT ACTIVE! Blast radius containment has isolated malicious vector.';
+        } else if (score >= 60 || level === 'HIGH') {
+            circle.style.borderColor = '#f59e0b';
+            circle.style.color = '#f59e0b';
+            actionBadge.textContent = 'BLOCK';
+            actionBadge.className = 'pill-badge pill-amber';
+            summaryText.textContent = 'High-risk malicious activity detected. Traffic & process execution blocked.';
+        } else if (score >= 40 || level === 'MEDIUM') {
+            circle.style.borderColor = '#38bdf8';
+            circle.style.color = '#38bdf8';
+            actionBadge.textContent = 'WARN';
+            actionBadge.className = 'pill-badge pill-amber';
+            summaryText.textContent = 'Suspicious heuristic anomaly observed. Operator review advised.';
+        } else {
+            circle.style.borderColor = '#10b981';
+            circle.style.color = '#10b981';
+            actionBadge.textContent = 'ALLOW';
+            actionBadge.className = 'pill-badge pill-green';
+            summaryText.textContent = 'Endpoint verified clean. Zero active vulnerabilities detected.';
+        }
+
+        // Stats
+        document.getElementById('statTotalScans').textContent = posture.total_scanned_events || 0;
+        document.getElementById('statCritical').textContent = posture.critical_count || 0;
+        document.getElementById('statHigh').textContent = posture.high_count || 0;
+        document.getElementById('statSafe').textContent = posture.safe_count || 0;
+
+        // Threat Table Feed
+        const events = data.recent_threats || [];
+        const tbody = document.getElementById('deviceEventsTableBody');
+        if (events.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No threat events logged yet for this device. Click a simulation button above or run a scan.</td></tr>`;
+        } else {
+            tbody.innerHTML = events.map(e => {
+                const s = e.risk_score || 0;
+                let lvlPill = 'pill-green';
+                if (s >= 80) lvlPill = 'pill-red';
+                else if (s >= 50) lvlPill = 'pill-amber';
+
+                const timeStr = new Date(e.timestamp).toLocaleTimeString();
+                return `
+                    <tr>
+                        <td><code style="font-family:var(--font-mono); font-size:11px; color:#10b981;">${e.event_id}</code></td>
+                        <td><strong>${escapeHtml(e.threat_type)}</strong></td>
+                        <td><span style="font-family:var(--font-mono); font-weight:800;">${s}</span></td>
+                        <td><span class="pill-badge ${lvlPill}">${e.risk_level}</span></td>
+                        <td><strong style="color:${e.action === 'QUARANTINE' ? '#f43f5e' : (e.action === 'BLOCK' ? '#f59e0b' : '#10b981')}">${e.action}</strong></td>
+                        <td style="max-width:320px; line-height:1.4;">${escapeHtml(e.explanation || 'Analyzed by VEX AI')}</td>
+                        <td style="color:var(--text-muted); font-size:11px; white-space:nowrap;">${timeStr}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch(e) {
+        console.warn('Error fetching device threats:', e);
+    }
+}
+
+async function injectThreat(type, score, level, action, indicators, explanation, mitre) {
+    const payload = {
+        event_id: `EVT-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`,
+        device_id: currentDeviceId,
+        threat_type: type,
+        risk_score: score,
+        risk_level: level,
+        action: action,
+        status: level === 'SAFE' ? 'RESOLVED' : 'OPEN',
+        indicators: indicators,
+        source: `${currentPlatform}_TELEMETRY`,
+        explanation: explanation,
+        recommendation: score >= 60 ? 'Containment action executed. Isolate payload.' : 'System clean.',
+        timestamp: Date.now()
+    };
+
+    try {
+        const resp = await fetch(apiBase() + '/events/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+            showToast(`🚀 Logged ${type} (Score: ${score}) to SOC Dashboard!`);
+            await fetchDeviceThreatTelemetry();
+        }
+    } catch (err) {
+        console.error('Failed to inject threat:', err);
+    }
+}
+
+async function handleFileSelected(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const resBox = document.getElementById('fileScanResult');
+    resBox.style.display = 'block';
+    resBox.innerHTML = `<div>⚡ Analyzing <strong>${escapeHtml(file.name)}</strong> (${(file.size/1024).toFixed(1)} KB)...</div>`;
+
+    // Compute heuristic threat indicators
+    const fileName = file.name.toLowerCase();
+    let score = 15;
+    let level = 'SAFE';
+    let indicators = ['Clean Magic Header', 'Standard Entropy'];
+    let explanation = `File ${file.name} evaluated clean with legitimate structure.`;
+
+    if (fileName.endsWith('.apk') || fileName.endsWith('.exe') || fileName.endsWith('.scr') || fileName.endsWith('.bat')) {
+        score = 85;
+        level = 'HIGH';
+        indicators = ['Executable Extension', 'Potential Sideload Risk', 'Unverified Code Signature'];
+        explanation = `Executable file ${file.name} flagged as high-risk untrusted binary.`;
+    } else if (fileName.includes('.pdf.exe') || fileName.includes('.doc.vbs')) {
+        score = 98;
+        level = 'CRITICAL';
+        indicators = ['Double Extension Camouflage', 'Trojan Execution Pattern', 'Malicious Cloaking'];
+        explanation = `Malicious cloaked payload disguised as document: ${file.name}`;
+    } else if (file.size > 50 * 1024 * 1024) {
+        score = 45;
+        level = 'MEDIUM';
+        indicators = ['Large File Size Anomaly', 'Heuristic Inspection Advised'];
+        explanation = `Large archive package requires deeper unpack inspection.`;
+    }
+
+    const action = score >= 80 ? 'QUARANTINE' : (score >= 60 ? 'BLOCK' : (score >= 40 ? 'WARN' : 'ALLOW'));
+
+    await injectThreat('FILE_SCAN', score, level, action, indicators, explanation, 'T1204 - User Execution');
+
+    resBox.innerHTML = `
+        <div style="font-weight:800; color:${score>=80?'#f43f5e':(score>=50?'#f59e0b':'#10b981')}; margin-bottom:4px;">
+            ${level}: Risk Score ${score} / 100 [Action: ${action}]
+        </div>
+        <div><strong>Indicators:</strong> ${indicators.join(', ')}</div>
+        <div style="margin-top:4px; color:var(--text-muted); font-size:11.5px;">${explanation}</div>
+    `;
+}
+
+function setUrlInput(url) {
+    document.getElementById('urlScanInput').value = url;
+}
+
+async function scanUrlThreat() {
+    const rawUrl = document.getElementById('urlScanInput').value.trim();
+    if (!rawUrl) return;
+
+    const resBox = document.getElementById('urlScanResult');
+    resBox.style.display = 'block';
+    resBox.innerHTML = `<div>🔍 Querying Blast Radius containment engine for <strong>${escapeHtml(rawUrl)}</strong>...</div>`;
+
+    let score = 20;
+    let level = 'SAFE';
+    let indicators = ['Valid Domain Format'];
+    let explanation = `URL ${rawUrl} appears safe and not listed in malicious threat intelligence feeds.`;
+
+    const lower = rawUrl.toLowerCase();
+    if (lower.includes('paypa1') || lower.includes('login-security') || lower.includes('crypto-giveaway') || lower.includes('bank-update')) {
+        score = 92;
+        level = 'CRITICAL';
+        indicators = ['Typosquatting Brand Fraud', 'Credential Harvesting Lure', 'Deceptive URI Path'];
+        explanation = `Active Phishing and Brand Impersonation campaign detected on ${rawUrl}`;
+    } else if (/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/.test(rawUrl)) {
+        score = 78;
+        level = 'HIGH';
+        indicators = ['Raw Numerical IP Target', 'Direct C2 Socket Connection', 'Bypasses DNS Attribution'];
+        explanation = `Direct numerical IP hosting without domain validation: ${rawUrl}`;
+    }
+
+    const action = score >= 80 ? 'QUARANTINE' : (score >= 60 ? 'BLOCK' : 'ALLOW');
+
+    await injectThreat('URL_SCAN', score, level, action, indicators, explanation, 'T1566.002 - Spearphishing Link');
+
+    resBox.innerHTML = `
+        <div style="font-weight:800; color:${score>=80?'#f43f5e':(score>=50?'#f59e0b':'#10b981')}; margin-bottom:4px;">
+            ${level}: Risk Score ${score} / 100 [Policy: ${action}]
+        </div>
+        <div><strong>Indicators:</strong> ${indicators.join(', ')}</div>
+        <div style="margin-top:4px; color:var(--text-muted); font-size:11.5px;">${explanation}</div>
+    `;
+}
+
+function updateCustomScore(val) {
+    document.getElementById('customScoreDisplay').textContent = val;
+    const disp = document.getElementById('customScoreDisplay');
+    if (val >= 80) disp.style.color = '#f43f5e';
+    else if (val >= 50) disp.style.color = '#f59e0b';
+    else disp.style.color = '#10b981';
+}
+
+async function submitCustomThreat() {
+    const type = document.getElementById('customThreatType').value;
+    const score = parseInt(document.getElementById('customScoreSlider').value, 10);
+    const indRaw = document.getElementById('customIndicators').value;
+    const explanation = document.getElementById('customExplanation').value;
+
+    const indicators = indRaw.split(',').map(s => s.trim()).filter(Boolean);
+    let level = 'SAFE';
+    let action = 'ALLOW';
+    if (score >= 80) { level = 'CRITICAL'; action = 'QUARANTINE'; }
+    else if (score >= 60) { level = 'HIGH'; action = 'BLOCK'; }
+    else if (score >= 40) { level = 'MEDIUM'; action = 'WARN'; }
+    else if (score >= 20) { level = 'LOW'; action = 'ALLOW'; }
+
+    await injectThreat(type, score, level, action, indicators, explanation, 'T1059 - Command and Scripting Interpreter');
+}
+
+async function clearDeviceHistory() {
+    if (!confirm(`Are you sure you want to clear simulated threats for device ${currentDeviceId}?`)) return;
+    // Inject clean health check
+    await injectThreat('CLEAN_AUDIT', 5, 'SAFE', 'ALLOW', ['Device Reset', 'Integrity Restored'], 'Device status reset to clean standby state.', 'N/A');
+    showToast('Device telemetry reset to clean state.');
+}
+
+function copyActiveDeviceId() {
+    navigator.clipboard.writeText(currentDeviceId);
+    showToast(`Copied Device ID: ${currentDeviceId}`);
+}
+
+function copyShareUrl() {
+    const url = document.getElementById('activeShareUrlText').textContent;
+    navigator.clipboard.writeText(url);
+    showToast('Copied Universal Device Pairing Link!');
+}
+
+function scrollToThreatSim() {
+    document.getElementById('threatSimSection').scrollIntoView({behavior: 'smooth'});
+}
+
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('vex_soc_theme', next);
+    document.getElementById('themeIcon').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toastNotice');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3200);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

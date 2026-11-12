@@ -1,5 +1,6 @@
 package com.vex.security.ui.home
 
+import com.vex.security.ui.theme.VexPalette
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -65,13 +66,7 @@ fun SocDashboardScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF03141C),
-                        Color(0xFF01080C),
-                        Color(0xFF000305)
-                    )
-                )
+                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -86,22 +81,22 @@ fun SocDashboardScreen() {
                 Column {
                     Text(
                         text = "SOC OPERATIONS CENTER",
-                        color = Color(0xFF00FFE0),
+                        color = VexPalette.primary,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
                     Text(
                         text = "Real-time threat monitoring & telemetry",
-                        color = Color(0xFF80A0B0),
+                        color = Color(0xFFA998C4),
                         fontSize = 11.sp
                     )
                 }
 
                 Box(
                     modifier = Modifier
-                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
-                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
+                        .border(1.dp, VexPalette.primary, RoundedCornerShape(20.dp))
+                        .background(VexPalette.pillBackground, RoundedCornerShape(20.dp))
                         .clickable { loadData() }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
@@ -113,12 +108,12 @@ fun SocDashboardScreen() {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh",
-                            tint = Color(0xFF00FFE0),
+                            tint = VexPalette.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "Refresh",
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -130,7 +125,7 @@ fun SocDashboardScreen() {
         if (loading) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF00FFE0))
+                    CircularProgressIndicator(color = VexPalette.primary)
                 }
             }
         } else {
@@ -154,7 +149,7 @@ fun SocDashboardScreen() {
                         CyberMetricCard(
                             title = "Total Threats",
                             value = totalThreats,
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             icon = Icons.Default.Security
                         )
                     }
@@ -229,7 +224,7 @@ fun SocDashboardScreen() {
                         CyberMetricCard(
                             title = "Files Scanned",
                             value = filesScanned,
-                            color = Color(0xFF80A0B0),
+                            color = Color(0xFFA998C4),
                             icon = Icons.Default.Description
                         )
                     }
@@ -249,7 +244,7 @@ fun SocDashboardScreen() {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                        .border(1.dp, VexPalette.primary.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
                         .clip(RoundedCornerShape(14.dp)),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF07141C))
                 ) {
@@ -267,14 +262,14 @@ fun SocDashboardScreen() {
                             Box(
                                 modifier = Modifier
                                     .size(36.dp)
-                                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF00FFE0).copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                    .background(VexPalette.primary.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PhoneAndroid,
                                     contentDescription = null,
-                                    tint = Color(0xFF00FFE0),
+                                    tint = VexPalette.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -295,7 +290,7 @@ fun SocDashboardScreen() {
 
                         Text(
                             text = formatMetric(devices),
-                            color = Color(0xFF00FFE0),
+                            color = VexPalette.primary,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
                             maxLines = 1,
@@ -372,7 +367,7 @@ fun CyberMetricCard(
                 )
                 Text(
                     text = title,
-                    color = Color(0xFF80A0B0),
+                    color = Color(0xFFA998C4),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
