@@ -142,8 +142,62 @@ object VexAiDefenseEngine {
             }
         }
 
-        // Quantized Neural Heuristic Fallback (matching Gemma 2 2B intent evaluation)
+        // 2. Query Central Cloud Gemma Engine (Enables any device without local model to use Gemma)
+        try {
+            val cloudEvaluation = queryCloudGemmaEndpoint(log)
+            if (cloudEvaluation != null) {
+                return@withContext cloudEvaluation
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Cloud Gemma query skipped: ${e.message}")
+        }
+
+        // 3. Quantized Neural Heuristic Fallback (Local on-device execution)
         return@withContext executeGemmaHeuristicEvaluation(log, eventJson)
+    }
+
+    private fun queryCloudGemmaEndpoint(log: InterceptedBehaviorLog): GemmaDefenseEvaluation? {
+        val candidateHosts = com.vex.security.network.ApiClient.getCandidateEndpoints()
+        for (host in candidateHosts) {
+            try {
+                val isHttps = host.contains("trycloudflare.com") || host.startsWith("https://")
+                val cleanHost = host.removePrefix("https://").removePrefix("http://").substringBefore("/").substringBefore(":")
+                val urlStr = if (isHttps) "https://$cleanHost/ai/gemma/evaluate" else "http://$cleanHost:8000/ai/gemma/evaluate"
+                val conn = URL(urlStr).openConnection() as HttpURLConnection
+                conn.connectTimeout = 2500
+                conn.readTimeout = 3000
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+
+                val payload = JSONObject().apply {
+                    put("event_type", log.eventType)
+                    put("source_package", log.sourcePackage)
+                    put("caller_url", log.callerUrl ?: "")
+                    put("requested_constraints", log.requestedConstraints ?: "")
+                    put("is_background", log.isBackgroundProcess)
+                }
+
+                conn.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }
+                if (conn.responseCode == 200) {
+                    val resp = conn.inputStream.bufferedReader().use { it.readText() }
+                    val json = JSONObject(resp)
+                    return GemmaDefenseEvaluation(
+                        threatScore = json.getInt("threat_score"),
+                        threatLevel = json.getString("threat_level"),
+                        isThreat = json.getBoolean("is_threat"),
+                        mitreTechnique = json.getString("mitre_technique"),
+                        mitigationAction = json.getString("mitigation_action"),
+                        reasoning = json.getString("reasoning"),
+                        rawJson = resp,
+                        modelEngine = json.optString("model_engine", "Gemma 2 2B (Cloud)")
+                    )
+                }
+            } catch (e: Exception) {
+                // Try next endpoint
+            }
+        }
+        return null
     }
 
     private fun executeGemmaHeuristicEvaluation(
