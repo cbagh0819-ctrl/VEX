@@ -14,7 +14,7 @@ object VexSocClient {
         .build()
     
     // Configurable endpoint (local IP, Cloudflare Tunnel, or Render cloud URL)
-    var socBaseUrl: String = "https://questionnaire-solution-tri-move.trycloudflare.com"
+    var socBaseUrl: String = "https://rid-compressed-ministries-menu.trycloudflare.com"
 
     fun reportThreatToSoc(deviceId: String, decision: com.vex.security.ai.SecurityDecision, callback: ((Boolean) -> Unit)? = null) {
         val jsonPayload = """
@@ -32,7 +32,7 @@ object VexSocClient {
         // Prioritize Cloudflare Tunnel, then USB reverse tunnel, then LAN
         val targetUrls = listOfNotNull(
             "$socBaseUrl/api/canary/track/$deviceId",
-            "https://questionnaire-solution-tri-move.trycloudflare.com/api/canary/track/$deviceId",
+            "https://rid-compressed-ministries-menu.trycloudflare.com/api/canary/track/$deviceId",
             "http://127.0.0.1:8000/api/canary/track/$deviceId",
             "http://192.168.64.235:8000/api/canary/track/$deviceId",
             "http://10.0.2.2:8000/api/canary/track/$deviceId"

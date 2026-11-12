@@ -54,23 +54,31 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
             except Exception:
                 indicators_list = [event_data["indicators"]]
 
-    raw_score = event_data.get("risk_score", 10)
-    raw_level = event_data.get("risk_level", "SAFE")
-    threat_type = event_data.get("threat_type", "UNKNOWN_THREAT")
-    source = event_data.get("source", "MOBILE_AGENT")
+    # Map legacy / alternative incoming fields
+    raw_score = event_data.get("risk_score")
+    if raw_score is None:
+        raw_score = event_data.get("threat_score", 10)
+    raw_score = int(raw_score)
+
+    raw_level = event_data.get("risk_level") or event_data.get("severity") or "SAFE"
+    threat_type = event_data.get("threat_type") or event_data.get("event_type") or "UNKNOWN_THREAT"
+    source = event_data.get("source") or "MOBILE_AGENT"
+    event_data["threat_type"] = threat_type
+    event_data["risk_score"] = raw_score
+    event_data["source"] = source
+    if "status" not in event_data:
+        event_data["status"] = "DETECTED"
 
     # 1. Standardize 5-tier Risk Level
     standard_level = normalize_risk_level(raw_score, raw_level)
     event_data["risk_level"] = standard_level
 
     # 2. Enforce Admin-Configured Automated Policy Action
-    # Evaluator requirement: Automated response based on risk level configured by administrator
     admin_action = get_action_for_risk(standard_level)
     event_data["action"] = admin_action
 
     # 3. AI Reasoning & Forensic Diagnostics (XAI)
-    # Evaluator requirement: Explainable AI natural language explanation for why classified with this risk score
-    existing_explanation = event_data.get("explanation")
+    existing_explanation = event_data.get("explanation") or event_data.get("details")
     existing_recommendation = event_data.get("recommendation")
 
     ai_diagnostics = AIThreatReasoningEngine.analyze(
@@ -84,6 +92,8 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
 
     if not existing_explanation or len(existing_explanation.strip()) < 10:
         event_data["explanation"] = ai_diagnostics["reasoning"]
+    else:
+        event_data["explanation"] = existing_explanation
 
     if not existing_recommendation or len(existing_recommendation.strip()) < 10:
         event_data["recommendation"] = ai_diagnostics["remediation"]
@@ -91,18 +101,25 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
     if not event_data.get("timestamp"):
         event_data["timestamp"] = int(time.time() * 1000)
 
+    # Clean payload to only recognized ThreatEvent model attributes to avoid kwargs failures
+    allowed_cols = {
+        "event_id", "device_id", "platform", "target_entity", "threat_type",
+        "risk_score", "risk_level", "action", "status", "indicators",
+        "explanation", "recommendation", "source", "timestamp"
+    }
+    clean_event_data = {k: v for k, v in event_data.items() if k in allowed_cols}
+    if not clean_event_data.get("event_id"):
+        clean_event_data["event_id"] = f"EVT-{int(time.time()*1000)}"
+
     # 4. CRITICAL: Blast Radius Containment Engine Trigger
-    # The instant a threat is classified as HIGH/CRITICAL or quarantined, containment executes globally
     if standard_level in ["HIGH", "CRITICAL"] or admin_action in ["BLOCK", "QUARANTINE"]:
-        # Extract targets from explanation, indicators, or source
-        candidate_target = event_data.get("target") or event_data.get("url")
+        candidate_target = event_data.get("target") or event_data.get("url") or event_data.get("target_entity")
         if not candidate_target and indicators_list:
             for ind in indicators_list:
                 if any(x in ind.lower() for x in ["http", ".com", ".xyz", ".ru", ".net", ".org", "192.", "10."]):
                     candidate_target = ind
                     break
         if not candidate_target:
-            # Fallback to threat type or device event target
             candidate_target = f"{threat_type}_{event_data.get('device_id', 'DEV')}"
 
         meta = {
@@ -111,8 +128,8 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
             "risk_level": standard_level,
             "source_device_id": event_data.get("device_id", "MOBILE_AGENT"),
             "source_platform": event_data.get("source_platform", "ANDROID"),
-            "reason": event_data.get("explanation", f"Instant Automated Containment on {threat_type}"),
-            "timestamp": event_data["timestamp"]
+            "reason": clean_event_data.get("explanation", f"Instant Automated Containment on {threat_type}"),
+            "timestamp": clean_event_data["timestamp"]
         }
         blocklist_cache.add(str(candidate_target), meta)
         try:
@@ -128,19 +145,19 @@ def create_event(event_data: dict, db: Session = Depends(get_db)):
         except Exception:
             pass
 
-    event_id = event_data.get("event_id")
+    event_id = clean_event_data.get("event_id")
     existing = None
     if event_id:
         existing = db.query(models.ThreatEvent).filter(models.ThreatEvent.event_id == event_id).first()
 
     if existing:
-        for k, v in event_data.items():
+        for k, v in clean_event_data.items():
             setattr(existing, k, v)
         db.commit()
         db.refresh(existing)
         return existing
     else:
-        event = models.ThreatEvent(**event_data)
+        event = models.ThreatEvent(**clean_event_data)
         db.add(event)
         db.commit()
         db.refresh(event)

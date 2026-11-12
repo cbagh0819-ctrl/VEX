@@ -27,9 +27,8 @@ object ApiClient {
     fun getCandidateEndpoints(): List<String> {
         val list = mutableListOf<String>()
         customCloudEndpoint?.let { if (it.isNotBlank()) list.add(it.trim()) }
-        list.add("127.0.0.1")
         list.add(PUBLIC_CLOUD_HOST)
-        list.add("questionnaire-solution-tri-move.trycloudflare.com")
+        list.add("127.0.0.1")
         list.add("192.168.64.235")
         list.add("10.0.2.2")
         return list.distinct()
