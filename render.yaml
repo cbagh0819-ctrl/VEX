@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: vex-security-soc
+    env: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/system/network-info
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SIGHTENGINE_API_USER
+        value: 1708562466
+      - key: SIGHTENGINE_API_SECRET
+        value: n7K5s9bAYgwiCN2NUpDpXT2fZRvQnX6j
