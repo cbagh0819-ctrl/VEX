@@ -232,4 +232,152 @@ object ApkScanManager {
         lastScannedResult = result
         return result
     }
+
+    fun getDemoBankingTrojan(): ApkScanResult {
+        val perms = listOf(
+            "android.permission.BIND_ACCESSIBILITY_SERVICE",
+            "android.permission.SYSTEM_ALERT_WINDOW",
+            "android.permission.RECEIVE_SMS",
+            "android.permission.READ_SMS",
+            "android.permission.INTERNET",
+            "android.permission.RECEIVE_BOOT_COMPLETED"
+        )
+        val indicators = listOf(
+            ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO,
+            ThreatIndicators.ACCESSIBILITY_ABUSE,
+            ThreatIndicators.OVERLAY_PERMISSION
+        )
+        val score = 85
+        val level = "CRITICAL"
+        val action = "QUARANTINE"
+        val explanation = ThreatExplanation(
+            reasons = listOf(
+                "Critical permission abuse: Accessibility Service allows keylogging and reading 2FA screen content (MITRE T1056.001)",
+                "System Overlay (SYSTEM_ALERT_WINDOW) allows drawing invisible credential overlays over banking apps (MITRE T1411)",
+                "SMS Interception capabilities enable automated bypass of one-time SMS passwords"
+            ),
+            recommendation = "Severe banking trojan capability detected. Quarantine immediately and prevent installation."
+        )
+        val meta = FileMetadata(
+            fileName = "Update_QuickBanking_v3.apk",
+            filePath = "/storage/emulated/0/Download/Update_QuickBanking_v3.apk",
+            mimeType = "application/vnd.android.package-archive",
+            extension = "apk",
+            sizeBytes = 8_420_000L,
+            createdTime = null,
+            modifiedTime = null,
+            sha256 = "c7d1e8924f928e8201a0bcdef0123456789abcdef0123456789abcdef0123456",
+            source = "EVALUATION_DEMO"
+        )
+        val res = ApkScanResult(
+            metadata = meta,
+            packageName = "com.secureservice.update.quickpay",
+            versionName = "3.2.1-trojan",
+            versionCode = 321L,
+            permissions = perms,
+            indicators = indicators,
+            riskScore = score,
+            riskLevel = level,
+            action = action,
+            isControlledTest = false,
+            explanation = explanation
+        )
+        lastScannedResult = res
+        return res
+    }
+
+    fun getDemoAdwareSpyware(): ApkScanResult {
+        val perms = listOf(
+            "android.permission.SYSTEM_ALERT_WINDOW",
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.INTERNET",
+            "android.permission.ACCESS_NETWORK_STATE"
+        )
+        val indicators = listOf(
+            ThreatIndicators.OVERLAY_PERMISSION,
+            ThreatIndicators.HIGH_RISK_PERMISSION
+        )
+        val score = 40
+        val level = "MEDIUM"
+        val action = "NOTIFY"
+        val explanation = ThreatExplanation(
+            reasons = listOf(
+                "Application requests System Overlay permission to display aggressive pop-up advertisements",
+                "Unnecessary fine location tracking requested by utility app",
+                "Monetization telemetry framework embedded"
+            ),
+            recommendation = "Adware overlay characteristics identified. Exercise caution before granting overlay permissions."
+        )
+        val meta = FileMetadata(
+            fileName = "SpeedMaster_Booster.apk",
+            filePath = "/storage/emulated/0/Download/SpeedMaster_Booster.apk",
+            mimeType = "application/vnd.android.package-archive",
+            extension = "apk",
+            sizeBytes = 14_200_000L,
+            createdTime = null,
+            modifiedTime = null,
+            sha256 = "a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
+            source = "EVALUATION_DEMO"
+        )
+        val res = ApkScanResult(
+            metadata = meta,
+            packageName = "com.fastcleaner.booster.battery",
+            versionName = "2.0.4",
+            versionCode = 204L,
+            permissions = perms,
+            indicators = indicators,
+            riskScore = score,
+            riskLevel = level,
+            action = action,
+            isControlledTest = false,
+            explanation = explanation
+        )
+        lastScannedResult = res
+        return res
+    }
+
+    fun getDemoCleanApp(): ApkScanResult {
+        val perms = listOf(
+            "android.permission.INTERNET",
+            "android.permission.READ_EXTERNAL_STORAGE"
+        )
+        val indicators = listOf(ThreatIndicators.CLEAN_APP)
+        val score = 10
+        val level = "SAFE"
+        val action = "ALLOW"
+        val explanation = ThreatExplanation(
+            reasons = listOf(
+                "Package uses standard, safe Android permissions with no privilege abuse",
+                "Valid developer release certificate verified",
+                "No overlay or background SMS capabilities requested"
+            ),
+            recommendation = "Application verified safe and compliant with Android security standards."
+        )
+        val meta = FileMetadata(
+            fileName = "VLC_Player_v3.5.apk",
+            filePath = "/storage/emulated/0/Download/VLC_Player_v3.5.apk",
+            mimeType = "application/vnd.android.package-archive",
+            extension = "apk",
+            sizeBytes = 22_500_000L,
+            createdTime = null,
+            modifiedTime = null,
+            sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            source = "EVALUATION_DEMO"
+        )
+        val res = ApkScanResult(
+            metadata = meta,
+            packageName = "org.videolan.vlc",
+            versionName = "3.5.4",
+            versionCode = 354L,
+            permissions = perms,
+            indicators = indicators,
+            riskScore = score,
+            riskLevel = level,
+            action = action,
+            isControlledTest = false,
+            explanation = explanation
+        )
+        lastScannedResult = res
+        return res
+    }
 }

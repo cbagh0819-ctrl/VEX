@@ -30,6 +30,8 @@ import com.vex.security.scanner.ApkScanManager
 import com.vex.security.scanner.FileScanner
 import com.vex.security.security.ThreatEngine
 import com.vex.security.security.ThreatIndicators
+import com.vex.security.security.RiskCalculator
+import com.vex.security.security.SecurityPolicy
 import com.vex.security.repository.ThreatRepository
 import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
@@ -110,21 +112,27 @@ fun HomeScreen(
                     e.printStackTrace()
                 }
 
-                when {
-                    maxScore >= 75 -> {
-                        riskStatus = "QUARANTINE"
+                val standardLvl = RiskCalculator.getRiskLevel(maxScore)
+                when (standardLvl) {
+                    "CRITICAL" -> {
+                        riskStatus = "CRITICAL"
                         riskColor = Color(0xFFFF4D6D) // Red
-                        riskMessage = "Harmful threat: $mostThreateningItem\nImmediate action required."
+                        riskMessage = "Critical threat: $mostThreateningItem\nImmediate action required."
                     }
-                    maxScore >= 50 -> {
-                        riskStatus = "BLOCK"
+                    "HIGH" -> {
+                        riskStatus = "HIGH"
                         riskColor = Color(0xFFFF9F43) // Orange
                         riskMessage = "Suspicious item: $mostThreateningItem\nThreat blocked."
                     }
-                    maxScore >= 25 -> {
-                        riskStatus = "WARN"
+                    "MEDIUM" -> {
+                        riskStatus = "MEDIUM"
                         riskColor = Color(0xFFFFD166) // Yellow
                         riskMessage = "Warning: Review activity for $mostThreateningItem"
+                    }
+                    "LOW" -> {
+                        riskStatus = "LOW"
+                        riskColor = Color(0xFF00E5FF) // Cyan
+                        riskMessage = "Notice: Low risk item: $mostThreateningItem"
                     }
                     else -> {
                         riskStatus = "SAFE"
@@ -137,17 +145,18 @@ fun HomeScreen(
                 lastScanText = "Just now"
 
                 try {
+                    val finalScore = if (maxScore > 0) maxScore else 10
                     ThreatRepository.sendThreatEvent(
                         deviceId = DeviceIdentity.getDeviceId(context),
                         threatType = "FILE",
-                        riskScore = if (maxScore > 0) maxScore else 10,
+                        riskScore = finalScore,
                         riskLevel = riskStatus,
-                        action = if (riskStatus == "SAFE") "ALLOW" else riskStatus,
+                        action = SecurityPolicy.getAction(finalScore),
                         status = if (riskStatus == "SAFE") "RESOLVED" else "OPEN",
                         indicators = if (foundThreatIndicators.isNotEmpty()) foundThreatIndicators else listOf(ThreatIndicators.CLEAN_FILE),
                         source = "ANDROID_QUICK_SCAN",
                         explanation = riskMessage.replace("\n", " "),
-                        recommendation = if (maxScore >= 50) "Action required" else "Device verified secure"
+                        recommendation = if (maxScore >= 60) "Quarantine or isolate item immediately" else "Device verified secure"
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()

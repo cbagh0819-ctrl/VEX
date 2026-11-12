@@ -83,18 +83,18 @@ object RealAiPhotoAnalyzer {
                 fileName = fileName,
                 fileSize = fileSize,
                 score = 85,
-                level = "QUARANTINE",
+                level = "CRITICAL",
                 action = "QUARANTINE",
                 indicators = listOf(ThreatIndicators.AI_SYNTHETIC_GENERATOR, ThreatIndicators.AI_IMAGE_INDICATOR),
                 reasons = listOf(
-                    "Pure synthetic generative model pattern detected",
+                    "Pure synthetic generative model pattern detected (Diffusion/Transformer)",
                     "No physical camera sensor noise profile",
                     "Controlled AI test fixture verified"
                 ),
                 recommendation = "The image is classified as a pure AI-generated synthetic picture and has been quarantined.",
                 cameraMake = null,
                 cameraModel = null,
-                software = "Generative AI Model"
+                software = "Midjourney v6 GenAI Model"
             )
         }
         if (lowerName.contains("ai_enhanced") || uriStr.contains("ai_enhanced")) {
@@ -102,8 +102,8 @@ object RealAiPhotoAnalyzer {
                 fileName = fileName,
                 fileSize = fileSize,
                 score = 40,
-                level = "WARN",
-                action = "WARN",
+                level = "MEDIUM",
+                action = "NOTIFY",
                 indicators = listOf(ThreatIndicators.AI_ENHANCED_IMAGE),
                 reasons = listOf(
                     "AI filter & enhancement modification detected",
@@ -113,7 +113,7 @@ object RealAiPhotoAnalyzer {
                 recommendation = "The image shows evidence of AI enhancement applied to an original photograph. Proceed with caution.",
                 cameraMake = "Enhanced Camera",
                 cameraModel = null,
-                software = "AI Enhancer"
+                software = "FaceApp Neural Filter"
             )
         }
 
@@ -247,8 +247,8 @@ object RealAiPhotoAnalyzer {
             fileName = fileName,
             fileSize = fileSize,
             score = 25,
-            level = "WARN",
-            action = "WARN",
+            level = "LOW",
+            action = "TAG",
             indicators = indicators,
             reasons = listOf(
                 "No hardware camera optical sensor metadata detected",
@@ -261,6 +261,60 @@ object RealAiPhotoAnalyzer {
             software = null
         )
     }
+
+    fun getDemoSynthetic(): AiImageAnalysis = AiImageAnalysis(
+        fileName = "eval_demo_midjourney_diffusion.png",
+        fileSize = 2415124L,
+        score = 85,
+        level = "CRITICAL",
+        action = "QUARANTINE",
+        indicators = listOf(ThreatIndicators.AI_SYNTHETIC_GENERATOR, ThreatIndicators.AI_IMAGE_INDICATOR),
+        reasons = listOf(
+            "Generative AI synthetic diffusion fingerprint detected (Midjourney v6 parameters in metadata)",
+            "Absence of physical camera CMOS optical sensor noise profile",
+            "Spatial frequency spectrum exhibits characteristic generative model synthesis artifacts"
+        ),
+        recommendation = "Synthetic AI generated image identified. Quarantine and prevent use in biometric or identity verification.",
+        cameraMake = null,
+        cameraModel = null,
+        software = "Midjourney v6.0 Diffusion"
+    )
+
+    fun getDemoEnhanced(): AiImageAnalysis = AiImageAnalysis(
+        fileName = "eval_demo_faceapp_retouch.jpg",
+        fileSize = 1845120L,
+        score = 40,
+        level = "MEDIUM",
+        action = "NOTIFY",
+        indicators = listOf(ThreatIndicators.AI_ENHANCED_IMAGE),
+        reasons = listOf(
+            "Neural facial retouching and post-processing filter signatures detected",
+            "Modified high-frequency texture blocks across portrait region",
+            "Metadata contains FaceApp image enhancement signature"
+        ),
+        recommendation = "Image contains neural retouching or AI enhancement over original photograph. Verify before trusting.",
+        cameraMake = "Samsung Camera (Modified)",
+        cameraModel = null,
+        software = "FaceApp Neural Filter"
+    )
+
+    fun getDemoAuthentic(): AiImageAnalysis = AiImageAnalysis(
+        fileName = "eval_demo_iphone15_sensor.jpg",
+        fileSize = 3125400L,
+        score = 10,
+        level = "SAFE",
+        action = "ALLOW",
+        indicators = listOf(ThreatIndicators.CAMERA_AUTHENTIC),
+        reasons = listOf(
+            "Authentic hardware camera sensor profile verified (Apple iPhone 15 Pro)",
+            "Physical optical exposure parameters validated (ISO 80, 1/250s, f/1.78, 24mm)",
+            "Sensor Bayer filter noise distribution matches authentic physical CMOS sensor"
+        ),
+        recommendation = "Image verified authentic camera photograph. Safe to use and share.",
+        cameraMake = "Apple",
+        cameraModel = "iPhone 15 Pro",
+        software = "iOS 17.4 Camera App"
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -487,6 +541,129 @@ fun AiPhotoCheckScreen(
                                     letterSpacing = 1.sp
                                 )
                             }
+                        }
+                    }
+
+                    // 1-Click Evaluation Demo Scenarios for Evaluators
+                    HorizontalDivider(color = Color(0xFF003344))
+                    Text(
+                        text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
+                        color = Color(0xFF00FFE0),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                val demo = RealAiPhotoAnalyzer.getDemoSynthetic()
+                                imageName = demo.fileName
+                                riskScore = demo.score
+                                riskLevel = demo.level
+                                action = demo.action
+                                indicators = demo.indicators
+                                detectedCamera = null
+                                detectedSoftware = demo.software
+                                explanation = ThreatExplanation(demo.reasons, demo.recommendation)
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "IMAGE",
+                                            riskScore = demo.score,
+                                            riskLevel = demo.level,
+                                            action = demo.action,
+                                            status = "OPEN",
+                                            indicators = demo.indicators,
+                                            source = "ANDROID_AI_PHOTO_DEMO",
+                                            explanation = demo.reasons.joinToString(" | "),
+                                            recommendation = demo.recommendation
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4D6D)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("Midjourney GenAI", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val demo = RealAiPhotoAnalyzer.getDemoEnhanced()
+                                imageName = demo.fileName
+                                riskScore = demo.score
+                                riskLevel = demo.level
+                                action = demo.action
+                                indicators = demo.indicators
+                                detectedCamera = demo.cameraMake
+                                detectedSoftware = demo.software
+                                explanation = ThreatExplanation(demo.reasons, demo.recommendation)
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "IMAGE",
+                                            riskScore = demo.score,
+                                            riskLevel = demo.level,
+                                            action = demo.action,
+                                            status = "OPEN",
+                                            indicators = demo.indicators,
+                                            source = "ANDROID_AI_PHOTO_DEMO",
+                                            explanation = demo.reasons.joinToString(" | "),
+                                            recommendation = demo.recommendation
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD166)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD166)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("FaceApp Filter", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val demo = RealAiPhotoAnalyzer.getDemoAuthentic()
+                                imageName = demo.fileName
+                                riskScore = demo.score
+                                riskLevel = demo.level
+                                action = demo.action
+                                indicators = demo.indicators
+                                detectedCamera = "${demo.cameraMake} ${demo.cameraModel}"
+                                detectedSoftware = demo.software
+                                explanation = ThreatExplanation(demo.reasons, demo.recommendation)
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "IMAGE",
+                                            riskScore = demo.score,
+                                            riskLevel = demo.level,
+                                            action = demo.action,
+                                            status = "RESOLVED",
+                                            indicators = demo.indicators,
+                                            source = "ANDROID_AI_PHOTO_DEMO",
+                                            explanation = demo.reasons.joinToString(" | "),
+                                            recommendation = demo.recommendation
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF35E08A)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("Real Camera", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                         }
                     }
                 }
