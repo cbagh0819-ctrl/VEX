@@ -262,6 +262,144 @@ fun FileScanScreen() {
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Scan Device Storage Files Now", fontSize = 12.sp)
                     }
+
+                    // 1-Click Evaluation Demo Scenarios for Evaluators
+                    HorizontalDivider(color = Color(0xFF003344))
+                    Text(
+                        text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
+                        color = Color(0xFF00FFE0),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                fileName = "Invoice_2026_Report.pdf.exe"
+                                fileHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+                                riskScore = 85
+                                riskLevel = "CRITICAL"
+                                action = "QUARANTINE"
+                                indicators = listOf(ThreatIndicators.DOUBLE_EXTENSION, ThreatIndicators.EXECUTABLE_PAYLOAD)
+                                explanation = ThreatExplanation(
+                                    reasons = listOf(
+                                        "Double file extension exploit (.pdf.exe) disguising Windows/Android executable payload (MITRE T1036.007)",
+                                        "High binary entropy matching compiled executable dropper",
+                                        "Controlled test ransomware fixture validated"
+                                    ),
+                                    recommendation = "Malicious executable masquerading as PDF document. File quarantined immediately."
+                                )
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "FILE",
+                                            riskScore = 85,
+                                            riskLevel = "CRITICAL",
+                                            action = "QUARANTINE",
+                                            status = "OPEN",
+                                            indicators = listOf(ThreatIndicators.DOUBLE_EXTENSION, ThreatIndicators.EXECUTABLE_PAYLOAD),
+                                            source = "ANDROID_FILE_DEMO",
+                                            explanation = "Double extension (.pdf.exe) executable dropper payload detected.",
+                                            recommendation = "Malicious payload isolated from storage."
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = BorderStroke(1.dp, Color(0xFFFF4D6D)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("Dropper .pdf.exe", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                fileName = "sys_root_exploit.sh"
+                                fileHash = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+                                riskScore = 60
+                                riskLevel = "HIGH"
+                                action = "BLOCK"
+                                indicators = listOf(ThreatIndicators.EXECUTABLE_PAYLOAD, ThreatIndicators.SUSPICIOUS_EXTENSION)
+                                explanation = ThreatExplanation(
+                                    reasons = listOf(
+                                        "Privileged shell script payload (.sh) detected in unmanaged storage",
+                                        "Execution vectors match privilege escalation scripts",
+                                        "Proactive block enforced by endpoint protection policy"
+                                    ),
+                                    recommendation = "Suspicious shell script payload. Prevent execution or transfer."
+                                )
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "FILE",
+                                            riskScore = 60,
+                                            riskLevel = "HIGH",
+                                            action = "BLOCK",
+                                            status = "OPEN",
+                                            indicators = listOf(ThreatIndicators.EXECUTABLE_PAYLOAD, ThreatIndicators.SUSPICIOUS_EXTENSION),
+                                            source = "ANDROID_FILE_DEMO",
+                                            explanation = "Suspicious shell script payload (.sh) blocked.",
+                                            recommendation = "Script execution blocked."
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = BorderStroke(1.dp, Color(0xFFFF9F43)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9F43)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("Shell Script .sh", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                fileName = "CyberGuard_Whitepaper.pdf"
+                                fileHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                                riskScore = 10
+                                riskLevel = "SAFE"
+                                action = "ALLOW"
+                                indicators = listOf(ThreatIndicators.CLEAN_FILE)
+                                explanation = ThreatExplanation(
+                                    reasons = listOf(
+                                        "Standard PDF document format validated (%PDF-1.7 magic bytes)",
+                                        "No embedded JavaScript or executable binary objects detected",
+                                        "File signature matches clean baseline"
+                                    ),
+                                    recommendation = "Document is verified clean. Safe to open and share."
+                                )
+                                scope.launch {
+                                    try {
+                                        ThreatRepository.sendThreatEvent(
+                                            deviceId = DeviceIdentity.getDeviceId(context),
+                                            threatType = "FILE",
+                                            riskScore = 10,
+                                            riskLevel = "SAFE",
+                                            action = "ALLOW",
+                                            status = "RESOLVED",
+                                            indicators = listOf(ThreatIndicators.CLEAN_FILE),
+                                            source = "ANDROID_FILE_DEMO",
+                                            explanation = "Standard PDF document verified clean.",
+                                            recommendation = "Safe to open."
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            border = BorderStroke(1.dp, Color(0xFF35E08A)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            Text("Clean PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+                    }
                 }
             }
         }

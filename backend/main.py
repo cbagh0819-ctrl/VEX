@@ -10,6 +10,7 @@ from api.alerts import router as alerts_router
 from api.reports import router as reports_router
 from api.policies import router as policies_router
 from api.testlab import router as testlab_router
+from api.ai import router as ai_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +26,7 @@ app.include_router(alerts_router)
 app.include_router(reports_router)
 app.include_router(policies_router)
 app.include_router(testlab_router)
+app.include_router(ai_router)
 
 @app.get("/health")
 def health_check():

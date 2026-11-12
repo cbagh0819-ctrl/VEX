@@ -1,0 +1,10 @@
+import sqlite3
+conn = sqlite3.connect('vex.db')
+cursor = conn.cursor()
+cursor.execute("UPDATE security_policies SET action='ALLOW' WHERE risk_level='SAFE'")
+cursor.execute("UPDATE security_policies SET action='WARN' WHERE risk_level='WARN'")
+cursor.execute("UPDATE security_policies SET action='BLOCK' WHERE risk_level='BLOCK'")
+cursor.execute("UPDATE security_policies SET action='QUARANTINE' WHERE risk_level='QUARANTINE' OR risk_level='CRITICAL'")
+conn.commit()
+conn.close()
+print("Security policies database rows updated successfully")

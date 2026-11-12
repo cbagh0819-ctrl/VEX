@@ -362,6 +362,111 @@ fun ApkCheckScreen(
                                 }
                             }
                         }
+
+                        // 1-Click Evaluation Demo Scenarios for Evaluators
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = Color(0xFF003344))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "🧪 1-CLICK EVALUATION DEMO SCENARIOS",
+                            color = Color(0xFF00FFE0),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    val demo = ApkScanManager.getDemoBankingTrojan()
+                                    apkResult = demo
+                                    scope.launch {
+                                        try {
+                                            ThreatRepository.sendThreatEvent(
+                                                deviceId = DeviceIdentity.getDeviceId(context),
+                                                threatType = "APK",
+                                                riskScore = demo.riskScore,
+                                                riskLevel = demo.riskLevel,
+                                                action = demo.action,
+                                                status = "OPEN",
+                                                indicators = demo.indicators,
+                                                source = "ANDROID_APK_DEMO",
+                                                explanation = demo.explanation.reasons.joinToString(" | "),
+                                                recommendation = demo.explanation.recommendation
+                                            )
+                                        } catch (_: Exception) {}
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(38.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4D6D)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF4D6D)),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                Text("Banking Trojan", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    val demo = ApkScanManager.getDemoAdwareSpyware()
+                                    apkResult = demo
+                                    scope.launch {
+                                        try {
+                                            ThreatRepository.sendThreatEvent(
+                                                deviceId = DeviceIdentity.getDeviceId(context),
+                                                threatType = "APK",
+                                                riskScore = demo.riskScore,
+                                                riskLevel = demo.riskLevel,
+                                                action = demo.action,
+                                                status = "OPEN",
+                                                indicators = demo.indicators,
+                                                source = "ANDROID_APK_DEMO",
+                                                explanation = demo.explanation.reasons.joinToString(" | "),
+                                                recommendation = demo.explanation.recommendation
+                                            )
+                                        } catch (_: Exception) {}
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(38.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD166)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD166)),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                Text("Adware Overlay", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    val demo = ApkScanManager.getDemoCleanApp()
+                                    apkResult = demo
+                                    scope.launch {
+                                        try {
+                                            ThreatRepository.sendThreatEvent(
+                                                deviceId = DeviceIdentity.getDeviceId(context),
+                                                threatType = "APK",
+                                                riskScore = demo.riskScore,
+                                                riskLevel = demo.riskLevel,
+                                                action = demo.action,
+                                                status = "RESOLVED",
+                                                indicators = demo.indicators,
+                                                source = "ANDROID_APK_DEMO",
+                                                explanation = demo.explanation.reasons.joinToString(" | "),
+                                                recommendation = demo.explanation.recommendation
+                                            )
+                                        } catch (_: Exception) {}
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(38.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF35E08A)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF35E08A)),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                Text("Clean VLC App", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            }
+                        }
                     }
                 }
             }

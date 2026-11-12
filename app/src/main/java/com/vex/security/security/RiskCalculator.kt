@@ -118,10 +118,22 @@ object RiskCalculator {
 
     fun getRiskLevel(score: Int): String {
         return when (score) {
-            in 0..24 -> "SAFE"
-            in 25..49 -> "WARN"
-            in 50..74 -> "BLOCK"
-            else -> "QUARANTINE"
+            in 0..19 -> "SAFE"
+            in 20..39 -> "LOW"
+            in 40..59 -> "MEDIUM"
+            in 60..79 -> "HIGH"
+            else -> "CRITICAL"
+        }
+    }
+
+    fun normalizeRiskLevel(level: String?): String {
+        return when (level?.uppercase()?.trim()) {
+            "CRITICAL", "QUARANTINE" -> "CRITICAL"
+            "HIGH", "BLOCK" -> "HIGH"
+            "MEDIUM", "WARN" -> "MEDIUM"
+            "LOW" -> "LOW"
+            "SAFE" -> "SAFE"
+            else -> "SAFE"
         }
     }
 }
