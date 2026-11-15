@@ -27,6 +27,10 @@ object ApiClient {
         val formatted = if (trimmed.endsWith("/")) trimmed else "$trimmed/"
         if (formatted.startsWith("http://") || formatted.startsWith("https://")) {
             customBaseUrl = formatted
+            HttpUrl.parse(formatted)?.let {
+                activeEndpoint = it
+                activeHost = it.host()
+            }
             Log.i("ApiClient", "Custom backend URL set to: $formatted")
         }
     }

@@ -40,6 +40,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Initialize core security managers and channels
+        val prefs = getSharedPreferences("vex_settings", MODE_PRIVATE)
+        val savedBackendUrl = prefs.getString("backend_url", null)
+        if (!savedBackendUrl.isNullOrBlank()) {
+            ApiClient.setServerUrl(savedBackendUrl)
+        }
+
         SecurityNotificationManager.init(this)
         UsbSecurityManager.init(this)
         SystemMonitor.start(this)
