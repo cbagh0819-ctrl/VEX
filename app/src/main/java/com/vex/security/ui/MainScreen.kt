@@ -1,14 +1,23 @@
 package com.vex.security.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vex.security.ui.theme.*
 import com.vex.security.ui.home.HomeScreen
 import com.vex.security.ui.home.SocDashboardScreen
@@ -30,9 +39,9 @@ import com.vex.security.ui.threats.ThreatListScreen
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Home : Screen("home", "Home", Icons.Default.Home)
-    object Browser : Screen("browser", "Browser", Icons.Default.Language)
-    object Reports : Screen("reports", "Reports", Icons.Default.List)
-    object Dashboard : Screen("dashboard", "SOC Radar", Icons.Default.BarChart)
+    object Browser : Screen("browser", "VB", Icons.Default.Shield)
+    object Reports : Screen("reports", "Reports", Icons.Default.Layers)
+    object Dashboard : Screen("dashboard", "Dashboard", Icons.Default.BarChart)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
     object BombShield : Screen("bomb_shield", "Bomb Shield", Icons.Default.Shield)
     object ApkCheck : Screen("apk_check", "APK Check", Icons.Default.Security)
@@ -54,6 +63,7 @@ fun MainScreen() {
         Screen.Home,
         Screen.Browser,
         Screen.Reports,
+        Screen.Dashboard,
         Screen.Settings
     )
     var selectedRoute by remember { mutableStateOf(Screen.Home.route) }
@@ -66,21 +76,51 @@ fun MainScreen() {
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = VexNavContainer,
-                contentColor = VexCyan
+                containerColor = Color(0xFF241239),
+                tonalElevation = 8.dp
             ) {
                 items.forEach { screen ->
+                    val isSelected = selectedRoute == screen.route
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title) },
-                        selected = selectedRoute == screen.route,
+                        icon = {
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(width = 54.dp, height = 30.dp)
+                                        .background(
+                                            Color(0xFFFF3358),
+                                            RoundedCornerShape(16.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = screen.icon,
+                                        contentDescription = screen.title,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = screen.icon,
+                                    contentDescription = screen.title,
+                                    tint = Color(0xFFA998C4),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = screen.title,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) Color.White else Color(0xFFA998C4)
+                            )
+                        },
+                        selected = isSelected,
                         onClick = { selectedRoute = screen.route },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = VexCyan,
-                            unselectedIconColor = VexNavUnselected,
-                            selectedTextColor = VexCyan,
-                            unselectedTextColor = VexNavUnselected,
-                            indicatorColor = VexNavIndicator
+                            indicatorColor = Color.Transparent
                         )
                     )
                 }

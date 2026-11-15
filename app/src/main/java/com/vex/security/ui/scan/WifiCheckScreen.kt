@@ -21,11 +21,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.repository.ThreatRepository
-import com.vex.security.ui.theme.*
 import com.vex.security.utils.DeviceIdentity
 import com.vex.security.wifi.NearbyWifiAp
 import com.vex.security.wifi.WifiSecurityCheckItem
@@ -35,6 +35,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private val CoralPink = Color(0xFFFF3358)
+private val DarkPlumBg1 = Color(0xFF140D1E)
+private val DarkPlumBg2 = Color(0xFF1B1126)
+private val DarkPlumBg3 = Color(0xFF100818)
+private val DarkPlumCard = Color(0xFF241239)
+private val LavenderText = Color(0xFFA998C4)
+private val EmeraldSafe = Color(0xFF35E08A)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,10 +100,10 @@ fun WifiCheckScreen(
 
     val currentReport = report
     val levelColor = when (currentReport?.riskLevel) {
-        "QUARANTINE" -> VexCrimson
-        "WARN" -> VexAmber
-        "BLOCK" -> VexOrange
-        else -> VexEmerald
+        "QUARANTINE" -> CoralPink
+        "WARN" -> Color(0xFFFFD166)
+        "BLOCK" -> Color(0xFFFF9F43)
+        else -> EmeraldSafe
     }
 
     LazyColumn(
@@ -104,9 +112,9 @@ fun WifiCheckScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        VexBackgroundTop,
-                        VexBackgroundMid,
-                        VexVoid
+                        DarkPlumBg1,
+                        DarkPlumBg2,
+                        DarkPlumBg3
                     )
                 )
             )
@@ -127,15 +135,15 @@ fun WifiCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, VexCardBorder, CircleShape)
-                            .background(VexCardElevated, CircleShape)
+                            .clip(CircleShape)
+                            .background(DarkPlumCard)
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = VexCyan,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -143,14 +151,15 @@ fun WifiCheckScreen(
                     Column {
                         Text(
                             text = "WI-FI SECURITY CHECK",
-                            color = VexCyan,
+                            color = Color.White,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic,
+                            letterSpacing = 0.5.sp
                         )
                         Text(
                             text = "Inspect encryption, rogue APs & DNS integrity",
-                            color = VexTextMuted,
+                            color = LavenderText,
                             fontSize = 11.sp
                         )
                     }
@@ -159,24 +168,24 @@ fun WifiCheckScreen(
                 // Rescan Button
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .border(1.dp, VexCyan, CircleShape)
-                        .background(VexCardElevated, CircleShape)
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(CoralPink)
                         .clickable(enabled = !isScanning) { runWifiScan() },
                     contentAlignment = Alignment.Center
                 ) {
                     if (isScanning) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = VexCyan,
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Re-scan",
-                            tint = VexCyan,
-                            modifier = Modifier.size(18.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -188,10 +197,10 @@ fun WifiCheckScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, levelColor.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
-                    .clip(RoundedCornerShape(18.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexCardDark),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    .clip(RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkPlumCard),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -199,16 +208,16 @@ fun WifiCheckScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
-                            .background(VexNavIndicator, CircleShape)
-                            .border(1.5.dp, levelColor, CircleShape),
+                            .size(76.dp)
+                            .background(Color(0xFF180D28), CircleShape)
+                            .border(2.dp, levelColor, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = if (currentReport?.isConnected == true) Icons.Default.Wifi else Icons.Default.WifiOff,
                             contentDescription = "Wi-Fi Status",
                             tint = levelColor,
-                            modifier = Modifier.size(38.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
 
@@ -216,9 +225,10 @@ fun WifiCheckScreen(
 
                     Text(
                         text = if (isScanning) "SCANNING NETWORK..." else currentReport?.ssid ?: "No Connection",
-                        color = VexTextPrimary,
+                        color = Color.White,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -238,7 +248,7 @@ fun WifiCheckScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = VexCardBorder.copy(alpha = 0.4f))
+                    HorizontalDivider(color = Color(0xFF381A56))
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Row(
@@ -246,30 +256,30 @@ fun WifiCheckScreen(
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("RISK SCORE", color = VexTextDim, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("RISK SCORE", color = LavenderText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text(
                                 text = "${currentReport?.riskScore ?: 5} / 100",
                                 color = levelColor,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black
                             )
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("SIGNAL QUALITY", color = VexTextDim, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("SIGNAL QUALITY", color = LavenderText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text(
                                 text = "${currentReport?.signalStrengthPercent ?: 90}%",
-                                color = VexTextPrimary,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black
                             )
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("GATEWAY PING", color = VexTextDim, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("GATEWAY PING", color = LavenderText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text(
                                 text = "${currentReport?.pingLatencyMs ?: 2} ms",
-                                color = VexCyan,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+                                color = CoralPink,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black
                             )
                         }
                     }
@@ -282,8 +292,9 @@ fun WifiCheckScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VexCardBorder, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexCardElevated)
+                    .clip(RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkPlumCard)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -291,9 +302,10 @@ fun WifiCheckScreen(
                 ) {
                     Text(
                         text = "CONNECTION SPECIFICATIONS",
-                        color = VexCyan,
+                        color = CoralPink,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic,
                         letterSpacing = 1.sp
                     )
 
@@ -311,7 +323,7 @@ fun WifiCheckScreen(
         item {
             Text(
                 text = "SECURITY INTEGRITY AUDIT",
-                color = VexTextDim,
+                color = LavenderText,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -320,16 +332,17 @@ fun WifiCheckScreen(
 
         items(currentReport?.checks ?: emptyList()) { check ->
             val iconColor = when (check.status) {
-                "PASSED" -> VexEmerald
-                "WARNING" -> VexAmber
-                else -> VexCrimson
+                "PASSED" -> EmeraldSafe
+                "WARNING" -> Color(0xFFFFD166)
+                else -> CoralPink
             }
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VexCardBorder.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexCardDark)
+                    .clip(RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkPlumCard)
             ) {
                 Row(
                     modifier = Modifier
@@ -342,19 +355,19 @@ fun WifiCheckScreen(
                         imageVector = if (check.status == "PASSED") Icons.Default.CheckCircle else Icons.Default.Warning,
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(24.dp)
                     )
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = check.title,
-                            color = VexTextPrimary,
+                            color = Color.White,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = check.detail,
-                            color = VexTextMuted,
+                            color = LavenderText,
                             fontSize = 11.sp
                         )
                     }
@@ -367,7 +380,7 @@ fun WifiCheckScreen(
             item {
                 Text(
                     text = "NEARBY WI-FI ACCESS POINTS (${currentReport?.nearbyAps?.size})",
-                    color = VexTextDim,
+                    color = LavenderText,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -378,8 +391,9 @@ fun WifiCheckScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, VexCardBorder.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
-                    colors = CardDefaults.cardColors(containerColor = VexCardElevated)
+                        .clip(RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkPlumCard)
                 ) {
                     Row(
                         modifier = Modifier
@@ -395,19 +409,19 @@ fun WifiCheckScreen(
                             Icon(
                                 imageVector = if (ap.isSecure) Icons.Default.Lock else Icons.Default.LockOpen,
                                 contentDescription = null,
-                                tint = if (ap.isSecure) VexEmerald else VexCrimson,
-                                modifier = Modifier.size(20.dp)
+                                tint = if (ap.isSecure) EmeraldSafe else CoralPink,
+                                modifier = Modifier.size(22.dp)
                             )
                             Column {
                                 Text(
                                     text = ap.ssid,
-                                    color = VexTextPrimary,
+                                    color = Color.White,
                                     fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = "${ap.encryptionType} • ${String.format("%.1f", ap.frequencyGhz)} GHz • ${ap.signalPercent}% Signal",
-                                    color = VexTextMuted,
+                                    color = LavenderText,
                                     fontSize = 10.sp
                                 )
                             }
@@ -416,14 +430,14 @@ fun WifiCheckScreen(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    if (ap.isSecure) VexEmerald.copy(alpha = 0.15f) else VexCrimson.copy(alpha = 0.15f),
+                                    if (ap.isSecure) EmeraldSafe.copy(alpha = 0.2f) else CoralPink.copy(alpha = 0.2f),
                                     RoundedCornerShape(6.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
                                 text = if (ap.isSecure) "SECURE" else "INSECURE",
-                                color = if (ap.isSecure) VexEmerald else VexCrimson,
+                                color = if (ap.isSecure) EmeraldSafe else CoralPink,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -433,13 +447,14 @@ fun WifiCheckScreen(
             }
         }
 
-        // Action Recommendation
+        // Action Recommendation Card
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VexCyan.copy(alpha = 0.4f), RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF031923))
+                    .clip(RoundedCornerShape(18.dp)),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF2E1744))
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -449,12 +464,18 @@ fun WifiCheckScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Default.Info, contentDescription = null, tint = VexCyan, modifier = Modifier.size(18.dp))
-                        Text("SECURITY RECOMMENDATION", color = VexCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.Info, contentDescription = null, tint = CoralPink, modifier = Modifier.size(18.dp))
+                        Text(
+                            text = "SECURITY RECOMMENDATION",
+                            color = CoralPink,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic
+                        )
                     }
                     Text(
                         text = currentReport?.recommendations?.firstOrNull() ?: "Network is safe and encrypted. Enjoy private browsing.",
-                        color = VexTextSecondary,
+                        color = Color.White,
                         fontSize = 12.sp
                     )
                 }
@@ -474,7 +495,7 @@ private fun NetworkInfoRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, color = VexTextMuted, fontSize = 12.sp)
-        Text(text = value, color = VexTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(text = label, color = LavenderText, fontSize = 12.sp)
+        Text(text = value, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }

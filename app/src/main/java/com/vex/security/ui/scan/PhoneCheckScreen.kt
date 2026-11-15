@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+
+private val CoralPink = Color(0xFFFF3358)
+private val DarkPlumBg1 = Color(0xFF140D1E)
+private val DarkPlumBg2 = Color(0xFF1B1126)
+private val DarkPlumBg3 = Color(0xFF100818)
+private val DarkPlumCard = Color(0xFF241239)
+private val LavenderText = Color(0xFFA998C4)
+private val EmeraldSafe = Color(0xFF35E08A)
 
 data class AuditCategory(
     val title: String,
@@ -315,10 +324,10 @@ fun PhoneCheckScreen(
     }
 
     val scoreColor = when {
-        overallScore >= 80 -> VexEmerald
-        overallScore >= 60 -> VexAmber
-        overallScore >= 40 -> VexOrange
-        else -> VexCrimson
+        overallScore >= 80 -> EmeraldSafe
+        overallScore >= 60 -> Color(0xFFFFD166)
+        overallScore >= 40 -> Color(0xFFFF9F43)
+        else -> CoralPink
     }
 
     LazyColumn(
@@ -327,9 +336,9 @@ fun PhoneCheckScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        VexBackgroundTop,
-                        VexBackgroundMid,
-                        VexVoid
+                        DarkPlumBg1,
+                        DarkPlumBg2,
+                        DarkPlumBg3
                     )
                 )
             )
@@ -350,15 +359,15 @@ fun PhoneCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, VexCardBorder, CircleShape)
-                            .background(VexCardElevated, CircleShape)
+                            .clip(CircleShape)
+                            .background(DarkPlumCard)
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = VexCyan,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -366,14 +375,15 @@ fun PhoneCheckScreen(
                     Column {
                         Text(
                             text = "CHECK YOUR PHONE",
-                            color = VexCyan,
+                            color = Color.White,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                            fontWeight = FontWeight.Black,
+                            fontStyle = FontStyle.Italic,
+                            letterSpacing = 0.5.sp
                         )
                         Text(
                             text = "100% on-device standalone security audit",
-                            color = VexTextMuted,
+                            color = LavenderText,
                             fontSize = 11.sp
                         )
                     }
@@ -382,24 +392,24 @@ fun PhoneCheckScreen(
                 // Re-scan Button
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .border(1.dp, VexCyan, CircleShape)
-                        .background(VexCardElevated, CircleShape)
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(CoralPink)
                         .clickable(enabled = !isScanning) { runPhoneAudit() },
                     contentAlignment = Alignment.Center
                 ) {
                     if (isScanning) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = VexCyan,
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Re-scan",
-                            tint = VexCyan,
-                            modifier = Modifier.size(18.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -411,10 +421,10 @@ fun PhoneCheckScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, scoreColor.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
                     .clip(RoundedCornerShape(20.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexCardDark),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkPlumCard),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -430,7 +440,7 @@ fun PhoneCheckScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .rotate(rotation)
-                                    .border(2.dp, Brush.sweepGradient(listOf(Color.Transparent, VexCyan)), CircleShape)
+                                    .border(2.dp, Brush.sweepGradient(listOf(Color.Transparent, CoralPink)), CircleShape)
                             )
                         }
 
@@ -438,7 +448,7 @@ fun PhoneCheckScreen(
                         Box(
                             modifier = Modifier
                                 .size(90.dp)
-                                .background(VexNavIndicator, CircleShape)
+                                .background(Color(0xFF180D28), CircleShape)
                                 .border(2.dp, scoreColor, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -446,13 +456,13 @@ fun PhoneCheckScreen(
                                 if (isScanning) {
                                     Text(
                                         text = "${(scanProgress * 100).toInt()}%",
-                                        color = VexCyan,
+                                        color = CoralPink,
                                         fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         text = "SCANNING",
-                                        color = VexTextDim,
+                                        color = LavenderText,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -478,9 +488,10 @@ fun PhoneCheckScreen(
 
                     Text(
                         text = if (isScanning) "AUDITING PHONE SECURITY" else if (overallScore >= 80) "DEVICE VERIFIED SECURE" else "VULNERABILITIES DETECTED",
-                        color = VexTextPrimary,
+                        color = Color.White,
                         fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic,
                         letterSpacing = 0.5.sp
                     )
 
@@ -488,7 +499,7 @@ fun PhoneCheckScreen(
 
                     Text(
                         text = currentStepText,
-                        color = if (isScanning) VexCyan else VexTextSecondary,
+                        color = if (isScanning) CoralPink else LavenderText,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -501,7 +512,7 @@ fun PhoneCheckScreen(
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = scoreColor,
-                        trackColor = VexNavIndicator,
+                        trackColor = Color(0xFF180D28),
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -573,7 +584,7 @@ fun PhoneCheckScreen(
         item {
             Text(
                 text = "AUDIT CATEGORIES",
-                color = VexTextDim,
+                color = LavenderText,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -582,18 +593,19 @@ fun PhoneCheckScreen(
 
         items(categories) { category ->
             val statusColor = when (category.status) {
-                "PASSED" -> VexEmerald
-                "WARNING" -> VexAmber
-                "FAILED" -> VexCrimson
-                "SCANNING" -> VexCyan
-                else -> VexTextDim
+                "PASSED" -> EmeraldSafe
+                "WARNING" -> Color(0xFFFFD166)
+                "FAILED" -> CoralPink
+                "SCANNING" -> CoralPink
+                else -> LavenderText
             }
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VexCardBorder.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexCardElevated)
+                    .clip(RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkPlumCard)
             ) {
                 Row(
                     modifier = Modifier
@@ -605,28 +617,27 @@ fun PhoneCheckScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(VexNavIndicator, RoundedCornerShape(10.dp))
-                            .border(1.dp, VexCardBorder, RoundedCornerShape(10.dp)),
+                            .background(Color(0xFF180D28), RoundedCornerShape(10.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = category.icon,
                             contentDescription = category.title,
                             tint = statusColor,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = category.title,
-                            color = VexTextPrimary,
+                            color = Color.White,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = if (category.detail.isNotBlank()) category.detail else category.description,
-                            color = if (category.status == "SCANNING") VexCyan else VexTextMuted,
+                            color = if (category.status == "SCANNING") CoralPink else LavenderText,
                             fontSize = 11.sp
                         )
                     }
@@ -635,7 +646,7 @@ fun PhoneCheckScreen(
                         "SCANNING" -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = VexCyan,
+                                color = CoralPink,
                                 strokeWidth = 2.dp
                             )
                         }
@@ -643,31 +654,31 @@ fun PhoneCheckScreen(
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = "Passed",
-                                tint = VexEmerald,
-                                modifier = Modifier.size(22.dp)
+                                tint = EmeraldSafe,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                         "WARNING" -> {
                             Icon(
                                 imageVector = Icons.Default.Warning,
                                 contentDescription = "Warning",
-                                tint = VexAmber,
-                                modifier = Modifier.size(22.dp)
+                                tint = Color(0xFFFFD166),
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                         "FAILED" -> {
                             Icon(
                                 imageVector = Icons.Default.Cancel,
                                 contentDescription = "Failed",
-                                tint = VexCrimson,
-                                modifier = Modifier.size(22.dp)
+                                tint = CoralPink,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                         else -> {
                             Icon(
                                 imageVector = Icons.Default.HourglassEmpty,
                                 contentDescription = "Pending",
-                                tint = VexTextDim,
+                                tint = LavenderText,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -689,13 +700,13 @@ fun PhoneCheckScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = VexCyan),
-                shape = RoundedCornerShape(12.dp)
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CoralPink),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = if (auditCompleted) "DONE (BACK TO HOME)" else if (isScanning) "SCANNING IN PROGRESS..." else "START COMPLETE AUDIT",
-                    color = VexVoid,
+                    color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
@@ -709,8 +720,8 @@ fun PhoneCheckScreen(
 @Composable
 private fun MetricPill(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, color = VexTextDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(text = label, color = LavenderText, fontSize = 9.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(2.dp))
-        Text(text = value, color = VexTextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(text = value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
     }
 }
