@@ -1,6 +1,5 @@
 package com.vex.security.ui.scan
 
-import com.vex.security.ui.theme.VexPalette
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,10 +7,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,7 +40,9 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FileScanScreen() {
+fun FileScanScreen(
+    onBackPressed: () -> Unit = {}
+) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -95,6 +98,7 @@ fun FileScanScreen() {
 
                     try {
                         ThreatRepository.sendThreatEvent(
+                            context = context,
                             deviceId = deviceId,
                             threatType = "FILE",
                             riskScore = analysis.riskScore,
@@ -123,7 +127,13 @@ fun FileScanScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF03141C),
+                        Color(0xFF01080C),
+                        Color(0xFF000305)
+                    )
+                )
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -135,19 +145,40 @@ fun FileScanScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "FILE SECURITY SCAN",
-                        color = VexPalette.primary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = "Upload and deep-scan files for hidden threats",
-                        color = Color(0xFFA998C4),
-                        fontSize = 11.sp
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
+                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
+                            .clickable { onBackPressed() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color(0xFF00FFE0),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "FILE SECURITY SCAN",
+                            color = Color(0xFF00FFE0),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "Upload and deep-scan files for hidden threats",
+                            color = Color(0xFF80A0B0),
+                            fontSize = 11.sp
+                        )
+                    }
                 }
             }
         }
@@ -157,9 +188,9 @@ fun FileScanScreen() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -177,14 +208,14 @@ fun FileScanScreen() {
                             Box(
                                 modifier = Modifier
                                     .size(54.dp)
-                                    .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
-                                    .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
+                                    .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
+                                    .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CloudUpload,
                                     contentDescription = "Upload",
-                                    tint = VexPalette.primary,
+                                    tint = Color(0xFF00FFE0),
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -192,14 +223,14 @@ fun FileScanScreen() {
                             Column {
                                 Text(
                                     text = "Upload & Scan Any File",
-                                    color = Color.White,
+                                    color = Color(0xFFFFFFFF),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Check file hashes, extensions, and threat signatures.",
-                                    color = Color(0xFFA998C4),
+                                    color = Color(0xFF80A0B0),
                                     fontSize = 11.sp
                                 )
                             }
@@ -221,7 +252,7 @@ fun FileScanScreen() {
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(Color(0xFFFF3358), VexPalette.primary)
+                                        listOf(Color(0xFF007788), Color(0xFF00FFE0))
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -233,12 +264,12 @@ fun FileScanScreen() {
                                 Icon(
                                     imageVector = Icons.Default.FolderOpen,
                                     contentDescription = "Folder",
-                                    tint = Color.White,
+                                    tint = Color(0xFF000810),
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = if (scanning) "ANALYZING FILE..." else "SELECT FILE TO SCAN",
-                                    color = Color.White,
+                                    color = Color(0xFF000810),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp
@@ -250,36 +281,13 @@ fun FileScanScreen() {
                     OutlinedButton(
                         onClick = { FileMonitor.scanNow(context) },
                         modifier = Modifier.fillMaxWidth().height(42.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = VexPalette.primary),
-                        border = BorderStroke(1.dp, VexPalette.cardBorder)
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00FFE0)),
+                        border = BorderStroke(1.dp, Color(0xFF005566))
                     ) {
                         Icon(Icons.Default.Storage, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Scan Device Storage Files Now", fontSize = 12.sp)
                     }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = VexPalette.cardBorder)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(Icons.Default.Security, contentDescription = null, tint = VexPalette.primary, modifier = Modifier.size(16.dp))
-                        Text(
-                            text = "REAL DEEP FORENSIC SCANNER ACTIVE",
-                            color = VexPalette.primary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Examines SHA-256 cryptographic hashes, double extension cloaking, magic bytes, hidden payloads, and script execution vectors.",
-                        color = Color(0xFFA998C4),
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp
-                    )
                 }
             }
         }
@@ -290,9 +298,9 @@ fun FileScanScreen() {
                     modifier = Modifier.fillMaxWidth().padding(30.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = VexPalette.primary)
+                    CircularProgressIndicator(color = Color(0xFF00FFE0))
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Deep-scanning file and calculating threat score...", color = VexPalette.primary, fontSize = 13.sp)
+                    Text("Deep-scanning file and calculating threat score...", color = Color(0xFF00FFE0), fontSize = 13.sp)
                 }
             }
         }
@@ -302,9 +310,9 @@ fun FileScanScreen() {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
@@ -312,16 +320,16 @@ fun FileScanScreen() {
                     ) {
                         Text(
                             text = "FILE SECURITY RESULT",
-                            color = VexPalette.primary,
+                            color = Color(0xFF00FFE0),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
 
-                        HorizontalDivider(color = VexPalette.cardBorder)
+                        HorizontalDivider(color = Color(0xFF005566))
 
                         Text("File: $fileName", color = Color(0xFFFFFFFF), fontWeight = FontWeight.Bold)
-                        Text("SHA-256 Hash:\n$fileHash", color = Color(0xFFA998C4), fontSize = 11.sp)
+                        Text("SHA-256 Hash:\n$fileHash", color = Color(0xFF80A0B0), fontSize = 11.sp)
 
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -331,11 +339,11 @@ fun FileScanScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text("$riskScore / 100", color = VexPalette.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("$riskScore / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 Text(riskLevel, color = when(riskLevel) {
                                     "SAFE" -> Color(0xFF35E08A)
                                     "WARN" -> Color(0xFFFFD166)

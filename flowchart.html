@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VEX CamPhish Reverse-Honeytrap Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&family=Fira+Code:wght@400;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #060911;
+    color: #e2e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    padding: 40px;
+    width: 1400px;
+    height: 2200px;
+    position: relative;
+    background-image: 
+      radial-gradient(circle at 50% 10%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+      radial-gradient(circle at 50% 90%, rgba(255, 0, 85, 0.08) 0%, transparent 60%),
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 35px;
+    border-bottom: 2px solid #1e293b;
+    padding-bottom: 25px;
+  }
+  .badge-tag {
+    display: inline-block;
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    border: 1px solid #00f0ff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #ffffff 0%, #00f0ff 50%, #00ff9d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: #94a3b8;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .flow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+  }
+
+  .flow-card {
+    width: 1000px;
+    background: #0d121f;
+    border-radius: 12px;
+    padding: 22px 28px;
+    position: relative;
+    border: 1.5px solid #1e293b;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .card-crimson { border-color: #ff0055; box-shadow: 0 0 25px rgba(255,0,85,0.25); }
+  .card-cyan { border-color: #00f0ff; box-shadow: 0 0 25px rgba(0,240,255,0.25); }
+  .card-green { border-color: #00ff9d; box-shadow: 0 0 25px rgba(0,255,157,0.25); }
+  .card-amber { border-color: #ffb703; box-shadow: 0 0 25px rgba(255,183,3,0.25); }
+  .card-purple { border-color: #a855f7; box-shadow: 0 0 25px rgba(168,85,247,0.25); }
+  .card-hero {
+    width: 1100px;
+    background: linear-gradient(180deg, #0f172a 0%, #070a12 100%);
+    border: 2px solid #00f0ff;
+    box-shadow: 0 0 45px rgba(0,240,255,0.35);
+    padding: 30px 35px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .step-icon-box {
+    width: 75px;
+    height: 75px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+  .icon-crimson { background: rgba(255,0,85,0.15); border: 1.5px solid #ff0055; }
+  .icon-cyan { background: rgba(0,240,255,0.15); border: 1.5px solid #00f0ff; }
+  .icon-green { background: rgba(0,255,157,0.15); border: 1.5px solid #00ff9d; }
+  .icon-amber { background: rgba(255,183,3,0.15); border: 1.5px solid #ffb703; }
+  .icon-purple { background: rgba(168,85,247,0.15); border: 1.5px solid #a855f7; }
+
+  .step-content { flex-grow: 1; }
+  .step-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .step-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .step-desc {
+    font-size: 15.5px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .step-badge {
+    background: #1e293b;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #00f0ff;
+    font-size: 22px;
+    font-weight: bold;
+    height: 38px;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(180deg, #00f0ff, #00ff9d);
+  }
+
+  /* HERO DASHBOARD GRID */
+  .hero-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #1e293b;
+    padding-bottom: 15px;
+  }
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 23px;
+    font-weight: 900;
+    color: #00f0ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 25px;
+    align-items: center;
+  }
+  .telemetry-box {
+    background: #090e1a;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 16px;
+  }
+  .telem-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 8px;
+  }
+  .telem-label { color: #94a3b8; font-weight: 600; }
+  .telem-val { font-family: 'Fira Code', monospace; font-weight: 700; }
+
+  .radar-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #070b14;
+    border: 1.5px solid #00ff9d;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 0 30px rgba(0,255,157,0.2);
+  }
+
+  .footer-bar {
+    text-align: center;
+    margin-top: 35px;
+    padding-top: 20px;
+    border-top: 1px solid #1e293b;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    color: #64748b;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge-tag">VEX CYBER GUARD • ACTIVE DECEPTION ARCHITECTURE</div>
+    <h1>THE CAMPHISH REVERSE-HONEYTRAP PROTOCOL</h1>
+    <div class="subtitle">Autonomous Camera Hijack Neutralization &amp; Canary Token Attacker Unmasking</div>
+  </div>
+
+  <div class="flow-container">
+
+    <!-- STEP 1: HACKER CREATES LINK -->
+    <div class="flow-card card-crimson">
+      <div class="step-icon-box icon-crimson">💀</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#ff0055;">STEP 1 • ATTACK CREATION</div>
+        <div class="step-title" style="color:#ff0055;">HACKER LAUNCHES PHISHING LURE LINK</div>
+        <div class="step-desc">
+          Attacker deploys an automated CamPhish / SayCheese camera-snatching website.<br>
+          <strong>The Social Engineering Bait:</strong> <em>"Claim your FREE iPhone 16 Pro — Smile into camera to verify identity!"</em>
+        </div>
+        <div class="step-badge">PAYLOAD: https://win-free-iphone.gift/claim?promo=16pro</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 2: VICTIM BROWSES -->
+    <div class="flow-card card-cyan">
+      <div class="step-icon-box icon-cyan">📱</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#00f0ff;">STEP 2 • VICTIM BROWSING</div>
+        <div class="step-title" style="color:#00f0ff;">VICTIM OPENS LINK IN VEX BROWSER</div>
+        <div class="step-desc">
+          Victim taps the phishing link. The scam webpage prompts: <strong>"Allow Camera Permission to Claim Free iPhone"</strong>.<br>
+          Victim accepts the camera prompt believing it is legitimate.
+        </div>
+        <div class="step-badge">BROWSER ACTION: WebChromeClient.onPermissionRequest(VIDEO_CAPTURE)</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 3: VEX NOTICE -->
+    <div class="flow-card card-green">
+      <div class="step-icon-box icon-green">🛡️</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#00ff9d;">STEP 3 • AUTONOMOUS DETECTION</div>
+        <div class="step-title" style="color:#00ff9d;">VEX LinkXRay &amp; CameraSentry INTERCEPT</div>
+        <div class="step-desc">
+          VEX inspects the domain heuristics and page WebRTC script. Exposes fraudulent camera harvest pattern:<br>
+          <strong style="color:#00ff9d;">"CAMPHISH TRAP DETECTED! Suppressing physical camera sensor!"</strong>
+        </div>
+        <div class="step-badge">DETECTION ENGINE: Camera2 HAL Virtual Surface Disconnect</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 4: HONEYTRAP DECOY -->
+    <div class="flow-card card-amber">
+      <div class="step-icon-box icon-amber">🍯</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#ffb703;">STEP 4 • ACTIVE HONEYTRAP INJECTION</div>
+        <div class="step-title" style="color:#ffb703;">SYNTHETIC DECOY IMAGE BACKFIRED</div>
+        <div class="step-desc">
+          VEX completely blocks the user's real face. Instead, VEX backfires a custom synthetic decoy image (<strong>"anything.jpg"</strong>) designed by us into the attacker's web stream!
+        </div>
+        <div class="step-badge">INJECTED ASSET: anything.jpg / decoy_selfie.png (Target Watermarked)</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 5: HACKER RECEIVES DECOY -->
+    <div class="flow-card card-cyan">
+      <div class="step-icon-box icon-cyan">💻</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#38bdf8;">STEP 5 • ATTACKER DECEPTION</div>
+        <div class="step-title" style="color:#38bdf8;">HACKER DOWNLOADS THE DECOY PHOTO</div>
+        <div class="step-desc">
+          The scam server saves the frame. The hacker sees: <em>"Victim photo captured!"</em><br>
+          Believing the hack succeeded, the hacker downloads and clicks to open <strong>anything.jpg</strong>.
+        </div>
+        <div class="step-badge">HACKER TERMINAL: saved_frame.jpg downloaded (54 KB)</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 6: CANARY TOKEN TRIGGERS -->
+    <div class="flow-card card-purple">
+      <div class="step-icon-box icon-purple">🚨</div>
+      <div class="step-content">
+        <div class="step-num" style="color:#a855f7;">STEP 6 • CANARY URL TRAP TRIGGER</div>
+        <div class="step-title" style="color:#a855f7;">EMBEDDED CANARY TOKEN WEB-BUG FIRES!</div>
+        <div class="step-desc">
+          The decoy image was encoded with an active <strong>Canary URL Web-Bug</strong>.<br>
+          The instant the hacker views the image, an automatic background HTTP callback is sent to VEX SOC!
+        </div>
+        <div class="step-badge">CALLBACK: GET /api/canary/track/hacker_session_8842</div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="arrow-line"></div>▼</div>
+
+    <!-- STEP 7: HERO VEX ADMIN DASHBOARD -->
+    <div class="flow-card card-hero">
+      <div class="hero-header">
+        <div class="hero-title">
+          <span>🎯</span>
+          <span>STEP 7 • VEX ADMIN DASHBOARD: ATTACKER UNMASKED &amp; TRACED!</span>
+        </div>
+        <div style="background:rgba(0,255,157,0.15); border:1px solid #00ff9d; color:#00ff9d; padding:6px 14px; border-radius:6px; font-weight:800; font-family:'Fira Code'; font-size:12px;">
+          REVERSE COUNTER-INTEL COMPLETE
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <div class="telemetry-box">
+          <div class="telem-row">
+            <span class="telem-label">1. TYPE OF ATTACK:</span>
+            <span class="telem-val" style="color:#ff0055;">CamPhish Phishing Lure ("Free iPhone" Scam)</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">2. HACKER ID / TOKEN:</span>
+            <span class="telem-val" style="color:#ffb703;">TRAP-SESSION-8842</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">3. HACKER SYSTEM / OS:</span>
+            <span class="telem-val" style="color:#00f0ff;">Kali Linux x86_64 • Metasploit v6.4.1</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">4. GEO-IP &amp; COORDINATES:</span>
+            <span class="telem-val" style="color:#00ff9d;">20.4636° N, 85.8783° E (Cuttack / Bhubaneswar)</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">5. ATTACKER ISP / NET:</span>
+            <span class="telem-val" style="color:#cbd5e1;">Reliance Jio Infocomm Ltd (Subnet 172.19.123.2)</span>
+          </div>
+          <div style="margin-top:4px; font-size:13px; color:#94a3b8; font-style:italic;">
+            Evidence packet cryptographically signed with HMAC-SHA256 &amp; saved to Forensic Vault.
+          </div>
+        </div>
+
+        <div class="radar-frame">
+          <div style="font-family:'Orbitron'; font-size:12px; color:#00ff9d; font-weight:800; margin-bottom:8px; letter-spacing:1px;">
+            TARGET ACQUISITION RADAR
+          </div>
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="100" fill="#040711" stroke="#00f0ff" stroke-width="1.5" />
+            <circle cx="110" cy="110" r="75" fill="none" stroke="rgba(0,240,255,0.3)" stroke-width="1" />
+            <circle cx="110" cy="110" r="45" fill="none" stroke="rgba(0,240,255,0.3)" stroke-width="1" />
+            <circle cx="110" cy="110" r="20" fill="none" stroke="rgba(0,240,255,0.3)" stroke-width="1" />
+            <line x1="110" y1="10" x2="110" y2="210" stroke="rgba(0,240,255,0.3)" stroke-width="1" />
+            <line x1="10" y1="110" x2="210" y2="110" stroke="rgba(0,240,255,0.3)" stroke-width="1" />
+            <!-- Radar sweep wedge -->
+            <path d="M110,110 L180,40 A100,100 0 0,0 110,10 Z" fill="rgba(0,255,157,0.25)" />
+            <!-- Locked Target Blip -->
+            <circle cx="145" cy="70" r="6" fill="#ff0055" />
+            <circle cx="145" cy="70" r="14" fill="none" stroke="#ff0055" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="156" y="65" fill="#ff0055" font-family="Orbitron" font-size="9" font-weight="bold">TARGET LOCKED</text>
+            <text x="156" y="78" fill="#00f0ff" font-family="Fira Code" font-size="8">20.46°N 85.87°E</text>
+          </svg>
+          <div style="font-family:'Fira Code'; font-size:11px; color:#ff0055; font-weight:700; margin-top:8px;">
+            HACKER PINNED ON MAP
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bar">
+    VEX CYBER GUARD • BPUT GRAND FINALE 36-HR SPECIFICATION • RESEARCH LABS • CONFIDENTIAL &amp; PROPRIETARY
+  </div>
+
+</body>
+</html>

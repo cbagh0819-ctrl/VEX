@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VEX — Autonomous Offline RF Signal Jammer Detection & Escape Vector Estimator</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 14mm 16mm 14mm 16mm;
+            @bottom-right {
+                content: counter(page);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background-color: #080d14;
+            color: #d1dced;
+            font-size: 11pt;
+            line-height: 1.5;
+            padding: 0;
+        }
+
+        .header-container {
+            border-bottom: 2px solid #00f0ff;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand-title {
+            font-size: 26pt;
+            font-weight: 900;
+            color: #00f0ff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .brand-subtitle {
+            font-size: 11pt;
+            color: #7993af;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .badge-confidential {
+            background: rgba(255, 77, 109, 0.15);
+            border: 1px solid #ff4d6d;
+            color: #ff4d6d;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 8.5pt;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .doc-title-box {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(9, 21, 38, 0.9));
+            border-left: 4px solid #00f0ff;
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 22px;
+        }
+
+        .doc-title {
+            font-size: 17pt;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .doc-meta {
+            font-size: 9.5pt;
+            color: #8da2be;
+        }
+
+        h2 {
+            font-size: 13pt;
+            color: #00f0ff;
+            border-bottom: 1px solid #1c2b42;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 11pt;
+            color: #ffd166;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        p {
+            margin-bottom: 9px;
+            text-align: justify;
+            color: #c4d3e5;
+            font-size: 10pt;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 12px 0;
+        }
+
+        .card {
+            background: #0d1726;
+            border: 1px solid #1c2d44;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .card-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #00f0ff;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 9pt;
+            background: #0d1726;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #1c2d44;
+        }
+
+        th {
+            background: #112035;
+            color: #00f0ff;
+            font-weight: 700;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #1c2d44;
+            text-transform: uppercase;
+            font-size: 8pt;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #162438;
+            color: #c4d3e5;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .highlight-red {
+            color: #ff4d6d;
+            font-weight: bold;
+        }
+
+        .highlight-green {
+            color: #35e08a;
+            font-weight: bold;
+        }
+
+        .highlight-cyan {
+            color: #00f0ff;
+            font-weight: bold;
+        }
+
+        .formula-box {
+            background: #091321;
+            border: 1px solid #00f0ff;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9pt;
+            color: #00f0ff;
+            margin: 10px 0;
+        }
+
+        .hud-display {
+            background: #050a12;
+            border: 1.5px solid #00f0ff;
+            border-radius: 8px;
+            padding: 14px;
+            margin: 14px 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        .hud-header {
+            color: #ff4d6d;
+            font-weight: bold;
+            font-size: 11pt;
+            border-bottom: 1px dashed #ff4d6d;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        .hud-content {
+            font-size: 9pt;
+            color: #a4c2e0;
+            line-height: 1.6;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .footer {
+            margin-top: 25px;
+            border-top: 1px solid #1c2b42;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 8pt;
+            color: #627791;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: EXECUTIVE BRIEF & DETECTION SCIENCE -->
+    <div class="header-container">
+        <div>
+            <div class="brand-title">VEX CYBER GUARD</div>
+            <div class="brand-subtitle">MILITARY & ENTERPRISE ENDPOINT DEFENSE PLATFORM</div>
+        </div>
+        <div>
+            <span class="badge-confidential">BPUT HACKATHON 2026 — GRAND FINALE</span>
+        </div>
+    </div>
+
+    <div class="doc-title-box">
+        <div class="doc-title">Autonomous Offline RF Signal Jammer Detection & Perimeter Escape Vector Estimator</div>
+        <div class="doc-meta">Document Reference: VEX-WP-2026-RF01 | Classification: Tactical Defense Architecture | Author: VEX Security Core Team</div>
+    </div>
+
+    <h2>1. Executive Summary & Problem Space</h2>
+    <p>
+        Modern commercial mobile security software relies almost exclusively on cloud connectivity (REST APIs, signature downloads, and centralized cloud heuristics). However, in high-profile criminal operations—including <strong>VIP vehicle ambushes, cash transit vehicle heists, ATM tampering, and digital kidnapping</strong>—hostile actors deploy Radio Frequency (RF) Jammers to deliberately eradicate cellular, Wi-Fi, and GPS communications, effectively blinding traditional cloud security platforms.
+    </p>
+    <p>
+        <strong>VEX introduces an autonomous, 100% offline detection engine</strong> that operates directly on standard consumer Android hardware without requiring software-defined radio (SDR) accessories. By synthesizing multi-band baseband telemetry, GNSS Carrier-to-Noise density ($C/N_0$), and physical Pedestrian Dead Reckoning (PDR), VEX not only detects intentional RF interference in under 500ms but also estimates the <strong>effective blast radius of the jammer</strong> and navigates the victim along the optimal physical escape vector to restore connectivity.
+    </p>
+
+    <h2>2. Offline Detection Physics: Natural Dead Zone vs. Malicious Jammer</h2>
+    <p>
+        A central engineering hurdle is distinguishing benign signal attenuation (e.g., entering an elevator shaft, underground basement, or mountain tunnel) from malicious wideband RF flooding. VEX executes a tripartite differential evaluation algorithm:
+    </p>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">📉 Natural Signal Attenuation</div>
+            <p style="font-size: 8.5pt;"><strong>Gradual RF Drop:</strong> Signal fades progressively over 10 to 30 seconds as physical obstacles attenuate the carrier wave.</p>
+            <p style="font-size: 8.5pt;"><strong>Asynchronous Loss:</strong> 4G/5G drops first, while Wi-Fi or satellite GPS often retains intermittent connectivity.</p>
+            <p style="font-size: 8.5pt;"><strong>Correlated Motion:</strong> Accelerometers verify physical displacement (e.g., walking into a parking garage).</p>
+        </div>
+        <div class="card" style="border-color: #ff4d6d;">
+            <div class="card-title" style="color: #ff4d6d;">🚨 Malicious RF Jammer Flooding</div>
+            <p style="font-size: 8.5pt;"><strong>Instantaneous Multi-Band Collapse:</strong> Cellular (LTE/5G), Wi-Fi (2.4/5GHz), and GPS plunge simultaneously within &lt;500ms.</p>
+            <p style="font-size: 8.5pt;"><strong>High RSSI with Collapsed SINR:</strong> Antenna detects extreme RF raw energy (jamming carrier), but Signal-to-Interference Ratio drops below -12 dB.</p>
+            <p style="font-size: 8.5pt;"><strong>Stationary Anomaly:</strong> Complete communications collapse occurs while the device IMU registers zero physical movement.</p>
+        </div>
+    </div>
+
+    <h2>3. The 3 Offline Technical Detection Vectors</h2>
+    <p>
+        <strong>Vector 1: Multi-Interface Baseband Collapse (TelephonyManager):</strong> VEX registers low-level telephony listeners (`TelephonyCallback.CellInfoListener`). If all serving and neighboring cell towers transition from active LTE/5G state to `NO_SERVICE` concurrently with Wi-Fi disconnect, a high-priority RF anomaly flag is raised.
+    </p>
+    <p>
+        <strong>Vector 2: GNSS Satellite $C/N_0$ Drown (GnssStatus):</strong> Under clear atmospheric conditions, standard smartphones track 15–30 satellites with Carrier-to-Noise density ($C/N_0$) values between 28 and 45 dB-Hz. A GPS jammer saturates the 1575.42 MHz band with high-power Gaussian noise. When VEX detects &gt;80% of active satellites plunging below 12 dB-Hz simultaneously, RF jamming is verified.
+    </p>
+    <p>
+        <strong>Vector 3: Baseband Power Ramping Metric:</strong> Under jamming conditions, the cellular modem initiates aggressive "power ramping" (transmitting at maximum +23 dBm attempting to pierce the noise floor), inducing rapid battery voltage drops and thermal baseband spikes without active application traffic.
+    </p>
+
+    <div class="footer">
+        <span>VEX Cyber Guard — Technical Concept Brief</span>
+        <span>Confidential — For BPUT Hackathon Grand Finale Evaluation</span>
+    </div>
+
+    <!-- PAGE 2: RADIUS ESTIMATION & TACTICAL ESCAPE VECTOR -->
+    <div class="page-break"></div>
+
+    <div class="header-container">
+        <div>
+            <div class="brand-title">VEX CYBER GUARD</div>
+            <div class="brand-subtitle">SECTION II: TACTICAL ESCAPE RADAR & PHYSICAL RADIUS ESTIMATION</div>
+        </div>
+        <div>
+            <span class="badge-confidential">MATHEMATICAL MODEL</span>
+        </div>
+    </div>
+
+    <h2>4. Mathematical Modeling: Jammer Radius ($R$) Estimation</h2>
+    <p>
+        RF transmission adheres to the Friis transmission formula and the Log-Distance Path Loss Model. The received jamming power $P_{j,r}$ at distance $d$ is expressed as:
+    </p>
+    
+    <div class="formula-box">
+        P_j(d) = P_t - 10 \cdot n \cdot \log_{10}\left(\frac{d}{d_0}\right) - X_\sigma \quad \text{where } n \approx 3.2 \text{ (Urban Environment)}
+    </div>
+
+    <p>
+        A mobile device experiences total jamming when the Jammer-to-Signal Ratio exceeds the receiver's threshold ($J/S \ge \gamma_{th}$). By categorizing the spectrum absorption profile across frequency bands, VEX profiles the hardware class of the attacking transmitter:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Jammer Classification</th>
+                <th>Targeted RF Spectrum</th>
+                <th>Estimated TX Power</th>
+                <th>Estimated Blast Radius ($R$)</th>
+                <th>Primary Threat Scenario</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Class A: Micro / 12V Lighter</strong></td>
+                <td>GPS L1 (1575.42 MHz) only</td>
+                <td>0.1W – 0.5W</td>
+                <td><span class="highlight-green">10 – 20 Meters</span></td>
+                <td>Commercial vehicle theft, GPS tracking evasion</td>
+            </tr>
+            <tr>
+                <td><strong>Class B: Handheld Multi-Band</strong></td>
+                <td>4G LTE + 2.4GHz Wi-Fi</td>
+                <td>1W – 3W</td>
+                <td><span class="highlight-cyan">35 – 80 Meters</span></td>
+                <td>Burglaries, retail financial terminal sabotage</td>
+            </tr>
+            <tr>
+                <td><strong>Class C: Tactical Backpack</strong></td>
+                <td>Full 2G/3G/4G/5G + Wi-Fi + GPS</td>
+                <td>10W – 25W</td>
+                <td><span class="highlight-red">100 – 250 Meters</span></td>
+                <td>Kidnapping, armored cash vehicle ambushes</td>
+            </tr>
+            <tr>
+                <td><strong>Class D: Military Vehicle Array</strong></td>
+                <td>Omni-band + ISM + Ultra-wideband</td>
+                <td>50W – 100W+</td>
+                <td><span class="highlight-red">500+ Meters</span></td>
+                <td>Electronic warfare, high-level tactical operations</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>5. Pedestrian Dead Reckoning (PDR): Navigating Without GPS</h2>
+    <p>
+        Because satellite signals are neutralized, VEX activates the internal hardware <strong>Inertial Measurement Unit (IMU)</strong>:
+    </p>
+    <ul style="margin-left: 20px; font-size: 9.5pt; color: #c4d3e5; margin-bottom: 10px;">
+        <li><strong>Step Counter (`TYPE_STEP_DETECTOR`):</strong> Computes cumulative distance traversed ($D = \text{Steps} \times 0.75\text{m}$).</li>
+        <li><strong>Magnetometer & Gyroscope (`TYPE_ROTATION_VECTOR`):</strong> Tracks azimuth heading ($0^\circ - 360^\circ$) relative to magnetic North.</li>
+        <li><strong>Last Known Base Station Vector:</strong> Evaluates the physical direction of the primary cell tower recorded prior to blackout.</li>
+    </ul>
+
+    <div class="hud-display">
+        <div class="hud-header">⚠️ VEX TACTICAL ESCAPE RADAR — ACTIVE RF JAMMING ZONE DETECTED</div>
+        <div class="hud-content">
+            THREAT SIGNATURE: [CLASS B MULTI-BAND JAMMER] &nbsp;|&nbsp; ESTIMATED BLAST RADIUS: 75.0 METERS<br>
+            DISTANCE TRAVERSED: 38.25 METERS (51 STEPS) &nbsp;|&nbsp; REMAINING DISTANCE TO PERIMETER: 36.75 METERS<br>
+            OPTIMAL ESCAPE VECTOR: 042° NORTH-EAST [ALIGNING TOWARD LAST KNOWN CELL TOWER]<br>
+            STATUS: AUTONOMOUS BLACKBOX ACTIVE | AUTOMATIC SOS DIAL (112) ARMED UPON ZONE EXIT
+        </div>
+    </div>
+
+    <h2>6. Autonomous Offline Protocol & Enterprise Value</h2>
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">🛡️ Autonomous On-Device Actions</div>
+            <p style="font-size: 8.5pt;">• <strong>Physical Siren & Haptics:</strong> High-decibel audio siren alerts nearby personnel.</p>
+            <p style="font-size: 8.5pt;">• <strong>Anti-Ambush Port Freeze:</strong> Disables USB data signaling to prevent hardware tampering.</p>
+            <p style="font-size: 8.5pt;">• <strong>Encrypted Blackbox:</strong> Stores incident telemetry, timestamps, and cell logs in SQLite.</p>
+        </div>
+        <div class="card">
+            <div class="card-title">🏢 Central SOC Recovery & Sync</div>
+            <p style="font-size: 8.5pt;">• <strong>Burst Telemetry Sync:</strong> Immediately flushes the attack log upon perimeter exit.</p>
+            <p style="font-size: 8.5pt;">• <strong>Geographic Jammer Triangulation:</strong> Correlates multiple fleet endpoints on the Web SOC map to locate the jammer.</p>
+            <p style="font-size: 8.5pt;">• <strong>Evidence Readiness:</strong> Provides cryptographic proof for law enforcement investigation.</p>
+        </div>
+    </div>
+
+    <h2>7. Conclusion & Hackathon Competitive Edge</h2>
+    <p>
+        VEX bridges mobile security software and electronic warfare defense. By solving the "dead network" paradox through on-device physics and inertial dead reckoning, VEX transforms an Android smartphone into a tactical survival terminal, delivering a feature set previously accessible only to defense-grade hardware.
+    </p>
+
+    <div class="footer">
+        <span>VEX Cyber Guard — Technical Concept Brief</span>
+        <span>Page 2 of 2 | BPUT Hackathon Grand Finale Presentation Asset</span>
+    </div>
+
+</body>
+</html>

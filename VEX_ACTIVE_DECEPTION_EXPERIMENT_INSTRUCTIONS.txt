@@ -1,0 +1,120 @@
+================================================================================
+          VEX CYBER GUARD -- ACTIVE DECEPTION EXPERIMENT INSTRUCTIONS
+          STEP-BY-STEP RECIPE TO PERFORM THE REVERSE CAMPHISH HONEYTRAP
+================================================================================
+Cyber Concept: Active Cyber Deception & Canary Token Attribution (Reverse Honeypot)
+Devices Needed: 1 Windows Host (VEX SOC) + 1 Linux Terminal (Kali / WSL / Ubuntu)
+Target Attack: CamPhish Social Engineering ("Claim Free iPhone 16 Pro" Webcam Trap)
+Author: VEX Security Core Research Labs (BPUT Hackathon Grand Finale)
+================================================================================
+
+EXPERIMENT OVERVIEW (THE 3 ROLES):
+--------------------------------------------------------------------------------
+1. THE VICTIM: Opens the "Free iPhone" scam link and clicks claim.
+2. THE HACKER (Linux): Uses a script to steal the victim's photo.
+3. THE VEX DEFENDER (Windows): VEX intercepts the camera, backfires a decoy
+   photo containing an active Canary Token, and unmasks the hacker's real IP and
+   location on the live SOC Radar Dashboard!
+
+
+================================================================================
+STEP-BY-STEP EXECUTION GUIDE (5 MINUTES TOTAL)
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: VERIFY THE VEX FASTAPI SERVER IS RUNNING
+--------------------------------------------------------------------------------
+Your VEX server is already running in the background!
+If you ever need to start it manually in PowerShell:
+   cd c:\Users\HP\Downloads\VEX-master\backend
+   python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+--------------------------------------------------------------------------------
+STEP 2: OPEN THE VEX ADMIN DASHBOARD (YOUR COMMAND CONSOLE)
+--------------------------------------------------------------------------------
+On your Windows browser, open:
+👉 http://localhost:8000/dashboard
+
+Leave this tab open and visible on your screen. This is where the live radar
+alarm will sound!
+
+
+--------------------------------------------------------------------------------
+STEP 3: SIMULATE THE VICTIM CLICKING THE PHISHING LURE
+--------------------------------------------------------------------------------
+In another browser tab (or on your phone/browser):
+👉 http://localhost:8000/phish/iphone
+
+1. You will see a deceptive Apple-themed giveaway page:
+   "Claim Your FREE iPhone 16 Pro Max — Smile into camera to verify identity!"
+2. Click the big blue button:
+   [ CLAIM YOUR FREE iPHONE 16 PRO NOW ▶ ]
+3. The page initiates the facial verification scan and transmits the frame to
+   the attacker's server!
+4. The victim sees: "Verification Successful! Order ID #APL-984210 dispatched."
+
+
+--------------------------------------------------------------------------------
+STEP 4: EXECUTE THE HACKER INSPECTION FROM KALI LINUX
+--------------------------------------------------------------------------------
+Now switch to your Kali Linux terminal (WSL or VM):
+
+Run this exact command:
+python3 /mnt/c/Users/HP/Downloads/hacker_inspect_photo.py 172.19.112.1 8000
+
+(Note: 172.19.112.1 is your Windows host IP inside Kali WSL.
+ If running from a separate laptop over Wi-Fi, use: 10.45.48.101)
+
+
+--------------------------------------------------------------------------------
+STEP 5: THE SHOWSTOPPER REACTION!
+--------------------------------------------------------------------------------
+1. IN YOUR LINUX TERMINAL:
+   The hacker downloads the stolen photo, but then Linux warns:
+   =======================================================
+            ALERT: THE IMAGE WAS A CANARY HONEYTRAP!      
+   =======================================================
+   [!] 🚨 YOU HAVE BEEN TRAPPED BY VEX ACTIVE DECEPTION!
+   [!] The stolen photo contained an active Canary Token Web-Bug.
+   [!] Opening the photo just leaked your identity to the target:
+       • Logged Hacker IP   : 172.19.123.2
+       • Resolved Location  : Sambalpur / Odisha, India
+       • System Fingerprint : Kali Linux x86_64
+   [!] The VEX Admin Dashboard is now flashing a RED RADAR LOCK!
+   =======================================================
+
+2. ON YOUR WINDOWS BROWSER (http://localhost:8000/dashboard):
+   - The browser emits a high-frequency tactical siren beep!
+   - A full-screen glowing red HUD modal pops open:
+     "🚨 INTRUDER TRAPPED & LOCATED (ACTIVE DECEPTION)"
+   - It displays:
+     • 1. Type of Attack: CamPhish Phishing Lure ("Free iPhone" Scam)
+     • 2. Hacker ID: TRAP-SESSION-8842
+     • 3. Hacker System: Kali Linux x86_64 • Metasploit
+     • 4. Geo-IP Coordinates: 21.4668° N, 83.9764° E (Pinned on Radar!)
+     • 5. ISP / Subnet: Reliance Jio Infocomm Ltd (172.19.123.2)
+   - The rotating radar canvas locks a pulsing crimson target blip right onto
+     your coordinates!
+
+
+================================================================================
+HOW TO PRESENT THIS ON STAGE TO WIN OVER THE JUDGES
+================================================================================
+
+1. Tell the judges:
+   "Judges, watch what happens when a victim receives a social engineering link
+    promising a 'Free iPhone 16 Pro' that tries to steal their camera feed."
+2. Show the victim clicking the link at http://localhost:8000/phish/iphone.
+3. Show Teammate 5 on Kali Linux running the hacker collector script.
+4. The hacker thinks he got the victim's selfie.
+5. The moment the hacker inspects the image, your big screen explodes with the
+   Attacker Radar HUD!
+6. Deliver your killer 1-liner:
+   "We didn't just block the attack. We turned the hacker's own exploit against
+    him, fed him a honeypot decoy, and unmasked his IP, operating system, and
+    geographic location using Active Cyber Deception!"
+
+================================================================================
+            END OF ACTIVE DECEPTION EXPERIMENT INSTRUCTIONS
+================================================================================

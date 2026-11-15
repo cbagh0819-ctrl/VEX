@@ -77,6 +77,7 @@ class FileScanWorker(
                 runBlocking {
 
                     ThreatRepository.sendThreatEvent(
+                        context = applicationContext,
                         deviceId = deviceId,
                         threatType = "FILE",
                         riskScore = analysis.riskScore,

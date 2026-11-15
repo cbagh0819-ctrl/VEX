@@ -6,11 +6,8 @@ class Device(Base):
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, unique=True, index=True)
     device_name = Column(String)
-    platform = Column(String, default="ANDROID")
-    os_version = Column(String, nullable=True)
-    android_version = Column(String, nullable=True)
-    model = Column(String, nullable=True)
-    client_version = Column(String, nullable=True)
+    android_version = Column(String)
+    model = Column(String)
     registered_at = Column(BigInteger)
 
 class ThreatEvent(Base):
@@ -18,8 +15,6 @@ class ThreatEvent(Base):
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(String, unique=True, index=True)
     device_id = Column(String, index=True)
-    platform = Column(String, default="ANDROID")
-    target_entity = Column(String, nullable=True)
     threat_type = Column(String)
     risk_score = Column(Integer)
     risk_level = Column(String)

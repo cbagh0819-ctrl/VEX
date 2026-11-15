@@ -1,0 +1,69 @@
+{
+  "folders": [
+    {
+      "name": "Vex (Active Workspace)",
+      "path": "C:/vex"
+    },
+    {
+      "name": "PROJECT FREE",
+      "path": "C:/PROJECT FREE"
+    },
+    {
+      "name": "JARVIS-AI",
+      "path": "C:/JARVIS-AI"
+    },
+    {
+      "name": "FLY BRAIN GAME",
+      "path": "C:/FLY BRAIN GAME"
+    },
+    {
+      "name": "FLY BRAIN GAME (Latest Download)",
+      "path": "C:/Users/HP/Downloads/FLY_BRAIN_GAME"
+    },
+    {
+      "name": "VEX-master",
+      "path": "C:/Users/HP/Downloads/VEX-master"
+    },
+    {
+      "name": "Charlo Personal",
+      "path": "C:/charlo personal"
+    },
+    {
+      "name": "Charlo Beats",
+      "path": "C:/charlo beats"
+    },
+    {
+      "name": "Bomer",
+      "path": "C:/BOMER"
+    },
+    {
+      "name": "Presentation Assets",
+      "path": "C:/vex/presentation_assets"
+    },
+    {
+      "name": "Don't Look Back",
+      "path": "C:/dont look back"
+    },
+    {
+      "name": "Gemini Web2API",
+      "path": "C:/gemini"
+    },
+    {
+      "name": "Godot Project",
+      "path": "C:/godot project"
+    },
+    {
+      "name": "Blender Projects",
+      "path": "C:/BLENDER PROJECTS"
+    },
+    {
+      "name": "Advanced Chat Bot",
+      "path": "C:/Advanced-Chat-Bot-in-Python-main"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": false
+    }
+  }
+}

@@ -24,9 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.notification.AlarmPlayer
 import com.vex.security.notification.SecurityNotification
-import com.vex.security.ui.theme.AppThemeMode
-import com.vex.security.ui.theme.ThemeState
-import com.vex.security.ui.theme.VexPalette
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,13 +45,18 @@ fun SettingsScreen(
     var notificationsEnabled by remember { mutableStateOf(prefs.getBoolean("notifications_enabled", true)) }
     var highRiskAlarm by remember { mutableStateOf(prefs.getBoolean("high_risk_alarm", true)) }
     var vibrationEnabled by remember { mutableStateOf(prefs.getBoolean("vibration_enabled", true)) }
-    var isDarkTheme by remember { mutableStateOf(prefs.getBoolean("dark_theme", true)) }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF03141C),
+                        Color(0xFF01080C),
+                        Color(0xFF000305)
+                    )
+                )
             )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -73,15 +75,15 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
-                            .background(VexPalette.pillBackground, RoundedCornerShape(50))
+                            .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
+                            .background(Color(0xFF0A1F28), RoundedCornerShape(50))
                             .clickable { onBackPressed() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = VexPalette.primary,
+                            tint = Color(0xFF00FFE0),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -89,63 +91,16 @@ fun SettingsScreen(
                     Column {
                         Text(
                             text = "VEX SECURITY SETTINGS",
-                            color = VexPalette.headerText,
+                            color = Color(0xFFFFFFFF),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
                             text = "Manage protection, alarms, and permissions",
-                            color = Color(0xFFA998C4),
+                            color = Color(0xFF80A0B0),
                             fontSize = 10.sp
                         )
-                    }
-                }
-            }
-        }
-
-        // Section: Display & Theme
-        item {
-            SettingsSectionCard(title = "Display & Security Themes") {
-                AppThemeMode.values().forEach { mode ->
-                    val isSelected = ThemeState.currentTheme == mode
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                ThemeState.applyTheme(context, mode)
-                            }
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .background(Color(mode.badgeColor), shape = RoundedCornerShape(50))
-                            )
-                            Text(
-                                text = mode.title,
-                                color = if (isSelected) Color(mode.badgeColor) else VexPalette.textPrimary,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                fontSize = 13.sp
-                            )
-                        }
-                        if (isSelected) {
-                            Text(
-                                text = "ACTIVE",
-                                color = Color(mode.badgeColor),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                    }
-                    if (mode != AppThemeMode.values().last()) {
-                        HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 4.dp))
                     }
                 }
             }
@@ -163,11 +118,11 @@ fun SettingsScreen(
                         prefs.edit().putBoolean("auto_scan", it).apply()
                     }
                 )
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Scan Interval", subtitle = scanInterval) {
                     Toast.makeText(context, "Scan Interval: $scanInterval", Toast.LENGTH_SHORT).show()
                 }
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsSwitchRow(
                     title = "APK Deep Scanning",
                     subtitle = "Analyze app permissions and manifest on install",
@@ -192,11 +147,11 @@ fun SettingsScreen(
                         prefs.edit().putBoolean("usb_auto_check", it).apply()
                     }
                 )
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Scan Status", subtitle = "Active & Monitoring", onClick = {
                     Toast.makeText(context, "USB Scanner is Active", Toast.LENGTH_SHORT).show()
                 })
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsSwitchRow(
                     title = "External Storage Access",
                     subtitle = "Allow inspection of connected OTG drives",
@@ -221,7 +176,7 @@ fun SettingsScreen(
                         prefs.edit().putBoolean("notifications_enabled", it).apply()
                     }
                 )
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsSwitchRow(
                     title = "High-Risk Alarm Sound",
                     subtitle = "Play emergency siren on quarantine threats",
@@ -231,7 +186,7 @@ fun SettingsScreen(
                         prefs.edit().putBoolean("high_risk_alarm", it).apply()
                     }
                 )
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsSwitchRow(
                     title = "Vibration Alert",
                     subtitle = "Vibrate device on high-risk detections",
@@ -241,7 +196,7 @@ fun SettingsScreen(
                         prefs.edit().putBoolean("vibration_enabled", it).apply()
                     }
                 )
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Test Emergency Alarm", subtitle = "Tap to test siren sound & stop", onClick = {
                     AlarmPlayer.playAlarm(context)
                     SecurityNotification.showWarning(context, "VEX Test Alarm ringing!")
@@ -256,11 +211,11 @@ fun SettingsScreen(
                 SettingsRow(title = "Storage Access Permission", subtitle = "Granted (All Files Access)", onClick = {
                     Toast.makeText(context, "Storage Access Granted", Toast.LENGTH_SHORT).show()
                 })
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Notification Permission", subtitle = "Allowed", onClick = {
                     Toast.makeText(context, "Notifications Allowed", Toast.LENGTH_SHORT).show()
                 })
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Privacy Policy", subtitle = "Zero-knowledge local telemetry", onClick = {
                     Toast.makeText(context, "VEX operates entirely locally with offline zero-knowledge security.", Toast.LENGTH_LONG).show()
                 })
@@ -281,7 +236,7 @@ fun SettingsScreen(
         item {
             SettingsSectionCard(title = "About VEX") {
                 SettingsRow(title = "Version", subtitle = "VEX Cyber Guard v1.0.0 (Production)", onClick = {})
-                HorizontalDivider(color = VexPalette.cardBorder, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
                 SettingsRow(title = "Help & Support", subtitle = "Documentation & SOC FAQ", onClick = {
                     Toast.makeText(context, "Contact SOC Support at support@vexsecurity.local", Toast.LENGTH_LONG).show()
                 })
@@ -302,9 +257,9 @@ fun SettingsSectionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0xFF005566), RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -312,7 +267,7 @@ fun SettingsSectionCard(
         ) {
             Text(
                 text = title,
-                color = VexPalette.primary,
+                color = Color(0xFF00FFE0),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
@@ -337,16 +292,16 @@ fun SettingsSwitchRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, color = Color(0xFFA998C4), fontSize = 11.sp)
+            Text(text = subtitle, color = Color(0xFF80A0B0), fontSize = 11.sp)
         }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = VexPalette.primary,
-                checkedTrackColor = VexPalette.cardBorder,
-                uncheckedThumbColor = Color(0xFFA998C4),
-                uncheckedTrackColor = Color(0xFF241239)
+                checkedThumbColor = Color(0xFF00FFE0),
+                checkedTrackColor = Color(0xFF005566),
+                uncheckedThumbColor = Color(0xFF80A0B0),
+                uncheckedTrackColor = Color(0xFF0A141A)
             )
         )
     }
@@ -365,12 +320,12 @@ fun SettingsRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, color = Color(0xFFA998C4), fontSize = 11.sp)
+            Text(text = subtitle, color = Color(0xFF80A0B0), fontSize = 11.sp)
         }
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = VexPalette.primary,
+            tint = Color(0xFF00FFE0),
             modifier = Modifier.size(18.dp)
         )
     }

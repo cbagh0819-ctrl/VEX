@@ -1,0 +1,294 @@
+# Python script to generate VEX CamPhish Reverse-Honeytrap Draw.io XML
+import os
+
+xml_content = '''<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-26T00:30:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="vex_camphish_flowchart" name="VEX CamPhish Reverse-Honeytrap Flowchart">
+    <mxGraphModel dx="1422" dy="880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE BAR (Top Left - Exactly like ViWrap style) -->
+        <mxCell id="title_bar" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="8" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="title_text" value="&lt;b style=&quot;font-size: 22px; font-family: Helvetica;&quot;&gt;&lt;span style=&quot;color: #1ba1e2;&quot;&gt;VEX&lt;/span&gt;&lt;span style=&quot;color: #333333;&quot;&gt;Guard flowchart&lt;/span&gt;&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 13px; color: #666666;&quot;&gt;Active Cyber Deception: CamPhish Social Engineering &amp; Reverse-Honeytrap Protocol&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="25" width="580" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- LEFT SIDE STAGE ANNOTATIONS (Exactly like ViWrap Left Sidebar) -->
+        <mxCell id="stage1_label" value="&lt;b style=&quot;font-size: 15px; color: #111111;&quot;&gt;Attack creation&lt;br&gt;and lure delivery&lt;/b&gt;" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="130" width="160" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stage2_label" value="&lt;b style=&quot;font-size: 15px; color: #111111;&quot;&gt;Autonomous&lt;br&gt;detection and&lt;br&gt;interception&lt;/b&gt;" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="270" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stage3_label" value="&lt;b style=&quot;font-size: 15px; color: #111111;&quot;&gt;Active deception&lt;br&gt;and decoy injection&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size: 11px; color: #666666;&quot;&gt;[ autonomous ]&lt;/i&gt;" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stage4_label" value="&lt;b style=&quot;font-size: 15px; color: #111111;&quot;&gt;Attacker trace&lt;br&gt;&amp;amp; attribution&lt;/b&gt;" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="650" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- RIGHT SIDE SECTION HEADERS (Exactly like ViWrap Right Columns) -->
+        <mxCell id="right_header_1" value="&lt;b style=&quot;font-size: 16px; color: #111111;&quot;&gt;Decoy payload characterization&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="780" y="100" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="right_header_2" value="&lt;b style=&quot;font-size: 16px; color: #111111;&quot;&gt;Attacker intelligence &amp;amp; Geo-location&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="780" y="440" width="300" height="30" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== MAIN FLOW NODES ==================== -->
+
+        <!-- STEP 1: HACKER CREATES LINK -->
+        <mxCell id="node_step1" value="Hacker deploys phishing lure link&lt;br&gt;&lt;i&gt;(&amp;quot;Claim your FREE iPhone 16 Pro!&amp;quot;)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="280" y="110" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 2: VICTIM BROWSES IN VEX BROWSER -->
+        <mxCell id="node_step2" value="Victim opens link in VEX Browser&lt;br&gt;&lt;i&gt;(Scam webpage requests camera permission)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="280" y="200" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- TOOL OVALS (BLUE BORDER OVALS LIKE IN VIWRAP) -->
+        <mxCell id="tool_urlxray" value="UrlXRay" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="250" y="290" width="90" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tool_camerasentry" value="CameraSentry" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="360" y="290" width="110" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tool_domscan" value="DOMInspector" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="490" y="290" width="105" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- PARALLELOGRAM / DETECTION EVALUATION (LIKE IN VIWRAP) -->
+        <mxCell id="node_eval" value="Camera harvesting signature evaluation&lt;br&gt;&lt;b style=&quot;color:#b85450;&quot;&gt;[ CamPhish WebRTC Trap Confirmed ]&lt;/b&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="365" width="300" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 3: VEX SUPPRESSES PHYSICAL CAMERA & INJECTS HONEYPOT -->
+        <mxCell id="node_step3" value="VEX suppresses physical CMOS camera&lt;br&gt;&amp;amp; engages Active Honeytrap Chamber" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="270" y="450" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- OVAL: HONEYTRAP ENGINE -->
+        <mxCell id="tool_honeytrap" value="vHoneyTrap" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="350" y="530" width="120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 4: DECOY IMAGE TRANSMITTED -->
+        <mxCell id="node_step4" value="Synthetic decoy image (&amp;quot;anything.jpg&amp;quot;)&lt;br&gt;backfired into scam video stream" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="270" y="600" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- OVAL: CANARY ENCODER -->
+        <mxCell id="tool_canary" value="CanaryEncoder" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="350" y="680" width="120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 5: HACKER DOWNLOADS IMAGE -->
+        <mxCell id="node_step5" value="Hacker downloads &amp;amp; opens stolen photo&lt;br&gt;&lt;i&gt;(Hacker thinks: &amp;quot;Got the victim&#39;s selfie!&amp;quot;)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="270" y="750" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- OVAL: OOB CANARY TRIGGER -->
+        <mxCell id="tool_oob" value="OOB-Beacon" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="350" y="830" width="120" height="40" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== RIGHT SIDE NODES (VIWRAP STYLE) ==================== -->
+
+        <!-- OPTIONAL METADATA CONTAINER (LIKE VIWRAP TOP RIGHT) -->
+        <mxCell id="node_canary_metadata" value="Canary URL Web-Bug&lt;br&gt;encoded in EXIF / XMP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="840" y="160" width="180" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tool_checkv" value="StegoVerify" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="880" y="235" width="100" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_watermark" value="Cryptographic tamper watermark&lt;br&gt;&amp;amp; session token tracking tag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="825" y="300" width="210" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- OVAL: SOC ROUTER -->
+        <mxCell id="tool_soc_router" value="vAttribution" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#4a90e2;strokeWidth=2;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#1b365d;" vertex="1" parent="1">
+          <mxGeometry x="870" y="490" width="120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- HERO ADMIN DASHBOARD CARD (CENTER-RIGHT) -->
+        <mxCell id="node_dashboard" value="&lt;b style=&quot;font-size:14px; color:#1ba1e2;&quot;&gt;VEX Admin Dashboard (SOC Live Radar)&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;div style=&quot;text-align:left; padding-left:10px; font-size:11.5px; line-height:1.6;&quot;&gt;&lt;b&gt;1. Type of Attack:&lt;/b&gt; CamPhish Lure (&amp;quot;Free iPhone&amp;quot;)&lt;br&gt;&lt;b&gt;2. Hacker ID:&lt;/b&gt; TRAP-SESSION-8842&lt;br&gt;&lt;b&gt;3. Hacker System:&lt;/b&gt; Kali Linux x86_64 • Metasploit&lt;br&gt;&lt;b&gt;4. Geo-IP Coordinates:&lt;/b&gt; 20.4636° N, 85.8783° E&lt;br&gt;&lt;b&gt;5. Subnet / ISP:&lt;/b&gt; Reliance Jio • 172.19.123.2&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#1ba1e2;strokeWidth=2;fontFamily=Helvetica;fontSize=12;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="560" width="300" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 3D DATABASE CYLINDERS (EXACTLY LIKE VIWRAP BOTTOM) ==================== -->
+        <mxCell id="db_incidents" value="Forensic Incident&lt;br&gt;Vault (Room/WAL)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="770" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db_geoip" value="GeoIP / ASN&lt;br&gt;Intelligence Cache" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="770" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db_evidence" value="HMAC-SHA256&lt;br&gt;Evidence Ledger" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="770" width="120" height="70" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== ORTHOGONAL CONNECTORS (EDGES) ==================== -->
+
+        <!-- Step 1 to Step 2 -->
+        <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step1" target="node_step2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2 to Tool Ovals -->
+        <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step2" target="tool_camerasentry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Split to UrlXRay and DOMInspector -->
+        <mxCell id="edge2_left" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step2" target="tool_urlxray">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge2_right" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step2" target="tool_domscan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Tools to Parallelogram -->
+        <mxCell id="edge3_mid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="tool_camerasentry" target="node_eval">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Parallelogram to Step 3 -->
+        <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_eval" target="node_step3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3 to vHoneyTrap -->
+        <mxCell id="edge5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step3" target="tool_honeytrap">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- vHoneyTrap to Step 4 -->
+        <mxCell id="edge6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="tool_honeytrap" target="node_step4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 4 to CanaryEncoder -->
+        <mxCell id="edge7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step4" target="tool_canary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- CanaryEncoder to Step 5 (Hacker downloads) -->
+        <mxCell id="edge8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="tool_canary" target="node_step5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Step 5 to OOB-Beacon -->
+        <mxCell id="edge9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_step5" target="tool_oob">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- OOB-Beacon to Dashboard (Across to Right Side) -->
+        <mxCell id="edge10_callback" value="Automatic HTTP Canary Callback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#b85450;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#b85450;" edge="1" parent="1" source="tool_oob" target="node_dashboard">
+          <mxGeometry x="-0.2" y="10" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Right side connections -->
+        <mxCell id="edge_r1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_canary_metadata" target="tool_checkv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_r2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="tool_checkv" target="node_watermark">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_r3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_watermark" target="tool_soc_router">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_r4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="tool_soc_router" target="node_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Dashboard to Databases -->
+        <mxCell id="edge_db1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_dashboard" target="db_incidents">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_db2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_dashboard" target="db_geoip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_db3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="node_dashboard" target="db_evidence">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+'''
+
+output_paths = [
+    r'C:\vex\vex_camphish_flowchart.drawio',
+    r'C:\Users\HP\Downloads\vex_camphish_flowchart.drawio',
+    r'c:\Users\HP\Downloads\VEX-master\vex_camphish_flowchart.drawio',
+    r'C:\Users\HP\.gemini\antigravity\brain\0f8331c2-646d-4be7-b98e-684723ad55ea\vex_camphish_flowchart.drawio'
+]
+
+for p in output_paths:
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, 'w', encoding='utf-8') as f:
+        f.write(xml_content.strip())
+    print(f"[+] Successfully generated: {p}")
+
+# Also create a text instruction file with the raw XML
+txt_instructions = f"""================================================================================
+             VEX CAMPHISH REVERSE-HONEYTRAP DRAW.IO FILE & XML CODE
+================================================================================
+Style: Scientific / Academic Flowchart (Exact match to ViWrap flowchart styling)
+Components: Rounded gray process boxes, blue-bordered tool ovals, 3D database cylinders
+Compatible With: app.diagrams.net (Draw.io) • Desktop Draw.io • VS Code Draw.io
+================================================================================
+
+HOW TO OPEN AND EDIT THIS DIAGRAM IN DRAW.IO (3 EASY STEPS):
+--------------------------------------------------------------------------------
+METHOD 1 (FASTEST - DIRECT FILE OPEN):
+1. Go to: https://app.diagrams.net
+2. Click "Open Existing Diagram" (or File -> Open From -> Device)
+3. Select the file from your Downloads folder:
+   C:\\Users\\HP\\Downloads\\vex_camphish_flowchart.drawio
+4. BOOM! The complete diagram appears immediately on your screen!
+
+METHOD 2 (PASTE RAW XML CODE):
+1. Go to: https://app.diagrams.net
+2. Create a Blank Diagram.
+3. Click: Arrange -> Insert -> Advanced -> XML (or Extras -> Edit Diagram)
+4. Copy and paste the XML code below into the box and click "OK"!
+================================================================================
+
+RAW DRAW.IO XML CODE:
+--------------------------------------------------------------------------------
+{xml_content.strip()}
+================================================================================
+"""
+
+txt_path = r'C:\Users\HP\Downloads\VEX_DRAWIO_INSTRUCTIONS_AND_XML.txt'
+with open(txt_path, 'w', encoding='utf-8') as f:
+    f.write(txt_instructions)
+
+print(f"[+] Successfully generated instructions file: {txt_path}")

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VEX CamPhish Reverse-Honeytrap Flowchart</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #ffffff;
+    color: #111111;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 30px;
+    width: 1300px;
+    height: 1150px;
+    position: relative;
+  }
+
+  /* TOP TITLE */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+  .blue-bar {
+    width: 8px;
+    height: 38px;
+    background: #1ba1e2;
+  }
+  .title-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #222222;
+  }
+  .title-sub {
+    font-size: 13px;
+    color: #666666;
+    margin-top: 3px;
+    font-weight: normal;
+  }
+
+  /* LAYOUT GRID: LEFT STAGE LABELS (col 1), MAIN FLOW (col 2), RIGHT SECTIONS (col 3) */
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 200px 580px 450px;
+    gap: 20px;
+    position: relative;
+  }
+
+  /* STAGE LABELS (LEFT) */
+  .stage-col {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    padding-right: 15px;
+  }
+  .stage-item {
+    font-size: 15px;
+    font-weight: bold;
+    color: #111111;
+    line-height: 1.3;
+  }
+  .stage-sub {
+    font-size: 12px;
+    color: #666666;
+    font-style: italic;
+    font-weight: normal;
+    margin-top: 2px;
+  }
+
+  /* BOXES */
+  .box {
+    background: #f5f5f5;
+    border: 1.5px solid #333333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.35;
+    width: 320px;
+    margin: 0 auto;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+  }
+  .box-sub {
+    font-size: 11px;
+    color: #555555;
+    font-weight: normal;
+    margin-top: 2px;
+  }
+
+  /* BLUE OVAL PILLS (LIKE VIWRAP) */
+  .pill-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .pill {
+    background: #ffffff;
+    border: 2px solid #4a90e2;
+    border-radius: 25px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #1b365d;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* PARALLELOGRAM */
+  .para {
+    background: #ffffff;
+    border: 1.5px solid #4a90e2;
+    transform: skew(-15deg);
+    padding: 8px 18px;
+    text-align: center;
+    width: 340px;
+    margin: 0 auto;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .para-inner {
+    transform: skew(15deg);
+  }
+
+  /* CONNECTING ARROWS */
+  .arr-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 24px;
+    justify-content: center;
+    color: #333333;
+    font-size: 12px;
+  }
+  .arr-line {
+    width: 1.5px;
+    height: 16px;
+    background: #333333;
+  }
+  .arr-head {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid #333333;
+  }
+
+  /* RIGHT SIDE COLUMN */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  .section-title-right {
+    font-size: 16px;
+    font-weight: bold;
+    color: #111111;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  /* HERO DASHBOARD BOX */
+  .dash-box {
+    background: #f8fafc;
+    border: 2px solid #1ba1e2;
+    border-radius: 8px;
+    padding: 14px 18px;
+    width: 380px;
+    box-shadow: 2px 2px 8px rgba(27, 161, 226, 0.15);
+  }
+  .dash-header {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1ba1e2;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
+  .dash-row {
+    font-size: 12px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .dash-label {
+    font-weight: bold;
+    color: #334155;
+  }
+
+  /* CYLINDER DATABASE (EXACT VIWRAP STYLE) */
+  .db-container {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 15px;
+  }
+  .cylinder {
+    position: relative;
+    width: 105px;
+    height: 70px;
+    background: linear-gradient(to right, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
+    border: 1.5px solid #475569;
+    border-radius: 50% / 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: bold;
+    color: #0f172a;
+    padding: 4px 6px;
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.15);
+  }
+  .cylinder::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: #e2e8f0;
+    border: 1.5px solid #475569;
+    border-radius: 50%;
+  }
+  .cylinder-inner {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="title-bar">
+    <div class="blue-bar"></div>
+    <div>
+      <div class="title-text"><span style="color:#1ba1e2;">VEX</span>Guard flowchart</div>
+      <div class="title-sub">Active Cyber Deception: CamPhish Social Engineering &amp; Reverse-Honeytrap Protocol</div>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+
+    <!-- COLUMN 1: STAGE LABELS (LEFT) -->
+    <div class="stage-col">
+      <div style="height: 40px;"></div>
+      <div class="stage-item" style="margin-top: 10px;">
+        Attack creation<br>&amp; lure delivery
+      </div>
+
+      <div style="height: 145px;"></div>
+      <div class="stage-item">
+        Autonomous<br>detection &amp; interception
+      </div>
+
+      <div style="height: 195px;"></div>
+      <div class="stage-item">
+        Active deception<br>&amp; decoy injection
+        <div class="stage-sub">[ autonomous ]</div>
+      </div>
+
+      <div style="height: 175px;"></div>
+      <div class="stage-item">
+        Attacker trace<br>&amp; attribution
+      </div>
+    </div>
+
+    <!-- COLUMN 2: MAIN WORKFLOW -->
+    <div style="display:flex; flex-direction:column; align-items:center;">
+
+      <!-- STEP 1 -->
+      <div class="box">
+        Hacker deploys phishing lure link
+        <div class="box-sub">("Claim your FREE iPhone 16 Pro!")</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- STEP 2 -->
+      <div class="box">
+        Victim opens link in VEX Browser
+        <div class="box-sub">(Webpage prompts: "Allow Camera Permission to Claim Prize")</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- TOOL OVALS -->
+      <div class="pill-row">
+        <div class="pill">UrlXRay</div>
+        <div class="pill">CameraSentry</div>
+        <div class="pill">DOMInspector</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- PARALLELOGRAM -->
+      <div class="para">
+        <div class="para-inner">
+          Camera harvesting signature evaluation<br>
+          <span style="color:#b85450;">[ CamPhish WebRTC Trap Confirmed ]</span>
+        </div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- STEP 3 -->
+      <div class="box">
+        VEX suppresses physical CMOS camera<br>&amp; engages Active Honeytrap Chamber
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- PILL: HONEYTRAP -->
+      <div class="pill-row">
+        <div class="pill" style="font-size:13px; padding:7px 22px;">vHoneyTrap</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- STEP 4 -->
+      <div class="box">
+        Synthetic decoy image ("anything.jpg")<br>backfired into scam video stream
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- PILL: CANARY -->
+      <div class="pill-row">
+        <div class="pill">CanaryEncoder</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- STEP 5 -->
+      <div class="box">
+        Hacker downloads &amp; opens stolen photo
+        <div class="box-sub">(Hacker thinks: "Got the victim's selfie!")</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- PILL: OOB BEACON -->
+      <div class="pill-row">
+        <div class="pill" style="border-color:#b85450; color:#b85450;">OOB-CanaryTrigger</div>
+      </div>
+
+    </div>
+
+    <!-- COLUMN 3: RIGHT SIDE SECTIONS & DATABASES (VIWRAP STYLE) -->
+    <div class="right-col">
+
+      <!-- TOP RIGHT: DECOY CHARACTERIZATION -->
+      <div class="section-title-right">Decoy payload characterization</div>
+      <div class="box" style="width:260px;">
+        Canary URL Web-Bug<br>encoded in EXIF / XMP
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <div class="pill-row">
+        <div class="pill">StegoVerify</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <div class="box" style="width:260px;">
+        Cryptographic tamper watermark<br>&amp; session token tracking tag
+      </div>
+
+      <div style="height: 35px;"></div>
+
+      <!-- BOTTOM RIGHT: ATTRIBUTION & SOC DASHBOARD -->
+      <div class="section-title-right">Attacker intelligence &amp; Geo-location</div>
+
+      <div class="pill-row">
+        <div class="pill" style="padding:7px 22px;">vAttribution</div>
+      </div>
+
+      <div class="arr-down"><div class="arr-line"></div><div class="arr-head"></div></div>
+
+      <!-- HERO DASHBOARD -->
+      <div class="dash-box">
+        <div class="dash-header">VEX Admin Dashboard (SOC Live Radar)</div>
+        <div class="dash-row"><span class="dash-label">1. Type of Attack:</span> CamPhish Lure ("Free iPhone")</div>
+        <div class="dash-row"><span class="dash-label">2. Hacker ID:</span> TRAP-SESSION-8842</div>
+        <div class="dash-row"><span class="dash-label">3. Hacker System:</span> Kali Linux x86_64 • Metasploit</div>
+        <div class="dash-row"><span class="dash-label">4. Geo-IP Coordinates:</span> 20.4636° N, 85.8783° E</div>
+        <div class="dash-row"><span class="dash-label">5. Subnet / ISP:</span> Reliance Jio (172.19.123.2)</div>
+        <div style="margin-top:8px; font-size:11px; color:#1ba1e2; font-weight:bold;">
+          [ Active Reverse Counter-Intel Complete ]
+        </div>
+      </div>
+
+      <!-- 3D CYLINDER DATABASES (EXACT VIWRAP BOTTOM) -->
+      <div class="db-container">
+        <div class="cylinder">
+          <div class="cylinder-inner">Forensic Vault<br>(Room/WAL)</div>
+        </div>
+        <div class="cylinder">
+          <div class="cylinder-inner">GeoIP Cache<br>(MaxMind)</div>
+        </div>
+        <div class="cylinder">
+          <div class="cylinder-inner">Evidence Ledger<br>(HMAC-SHA256)</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

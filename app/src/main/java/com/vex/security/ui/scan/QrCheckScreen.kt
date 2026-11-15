@@ -1,6 +1,5 @@
 package com.vex.security.ui.scan
 
-import com.vex.security.ui.theme.VexPalette
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -90,6 +89,7 @@ fun QrCheckScreen(
 
                 try {
                     ThreatRepository.sendThreatEvent(
+                            context = context,
                         deviceId = DeviceIdentity.getDeviceId(context),
                         threatType = "QR",
                         riskScore = analysis.riskScore,
@@ -158,7 +158,13 @@ fun QrCheckScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(colors = listOf(VexPalette.backgroundTop, VexPalette.backgroundMid, VexPalette.backgroundBottom))
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF03141C),
+                            Color(0xFF01080C),
+                            Color(0xFF000305)
+                        )
+                    )
                 )
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -177,15 +183,15 @@ fun QrCheckScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(50))
-                                .background(VexPalette.pillBackground, RoundedCornerShape(50))
+                                .border(1.dp, Color(0xFF005566), RoundedCornerShape(50))
+                                .background(Color(0xFF0A1F28), RoundedCornerShape(50))
                                 .clickable { onBackPressed() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = VexPalette.primary,
+                                tint = Color(0xFF00FFE0),
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -193,14 +199,14 @@ fun QrCheckScreen(
                         Column {
                             Text(
                                 text = "QR CODE SCANNER",
-                                color = VexPalette.headerText,
+                                color = Color(0xFFFFFFFF),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
                             )
                             Text(
                                 text = "Real-time camera & photo QR threat detection",
-                                color = Color(0xFFA998C4),
+                                color = Color(0xFF80A0B0),
                                 fontSize = 10.sp
                             )
                         }
@@ -213,9 +219,9 @@ fun QrCheckScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                        .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -233,14 +239,14 @@ fun QrCheckScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(54.dp)
-                                        .border(1.dp, VexPalette.primary, RoundedCornerShape(14.dp))
-                                        .background(VexPalette.pillBackground, RoundedCornerShape(14.dp)),
+                                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
+                                        .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.QrCodeScanner,
                                         contentDescription = "QR Code",
-                                        tint = VexPalette.primary,
+                                        tint = Color(0xFF00FFE0),
                                         modifier = Modifier.size(30.dp)
                                     )
                                 }
@@ -248,14 +254,14 @@ fun QrCheckScreen(
                                 Column {
                                     Text(
                                         text = "Scan or Upload Any QR Code",
-                                        color = Color.White,
+                                        color = Color(0xFFFFFFFF),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Scan live with camera, pick from gallery, or paste a link.",
-                                        color = Color(0xFFA998C4),
+                                        color = Color(0xFF80A0B0),
                                         fontSize = 11.sp,
                                         lineHeight = 15.sp
                                     )
@@ -272,9 +278,9 @@ fun QrCheckScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(46.dp)
-                                    .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(12.dp))
+                                    .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
                                     .clip(RoundedCornerShape(12.dp)),
-                                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF241239))
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF0A141A))
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -283,12 +289,12 @@ fun QrCheckScreen(
                                     Icon(
                                         imageVector = Icons.Default.CameraAlt,
                                         contentDescription = "Camera",
-                                        tint = VexPalette.primary,
+                                        tint = Color(0xFF00FFE0),
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
                                         text = "SCAN QR",
-                                        color = VexPalette.primary,
+                                        color = Color(0xFF00FFE0),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
                                         letterSpacing = 0.5.sp
@@ -310,7 +316,7 @@ fun QrCheckScreen(
                                         .fillMaxSize()
                                         .background(
                                             Brush.horizontalGradient(
-                                                listOf(Color(0xFFFF3358), VexPalette.primary)
+                                                listOf(Color(0xFF007788), Color(0xFF00FFE0))
                                             )
                                         ),
                                     contentAlignment = Alignment.Center
@@ -322,12 +328,12 @@ fun QrCheckScreen(
                                         Icon(
                                             imageVector = Icons.Default.Image,
                                             contentDescription = "Gallery",
-                                            tint = Color.White,
+                                            tint = Color(0xFF000810),
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Text(
                                             text = "UPLOAD QR",
-                                            color = Color.White,
+                                            color = Color(0xFF000810),
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 10.sp,
                                             letterSpacing = 0.5.sp
@@ -345,8 +351,8 @@ fun QrCheckScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = VexPalette.primary,
-                                unfocusedBorderColor = VexPalette.cardBorder,
+                                focusedBorderColor = Color(0xFF00FFE0),
+                                unfocusedBorderColor = Color(0xFF005566),
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White
                             ),
@@ -354,7 +360,7 @@ fun QrCheckScreen(
                             trailingIcon = {
                                 if (manualInput.isNotBlank()) {
                                     IconButton(onClick = { handleQrCodeData(manualInput, "ANDROID_QR_MANUAL") }) {
-                                        Icon(Icons.Default.Send, contentDescription = "Scan", tint = VexPalette.primary)
+                                        Icon(Icons.Default.Send, contentDescription = "Scan", tint = Color(0xFF00FFE0))
                                     }
                                 }
                             }
@@ -388,9 +394,9 @@ fun QrCheckScreen(
                         modifier = Modifier.fillMaxWidth().padding(30.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CircularProgressIndicator(color = VexPalette.primary)
+                        CircularProgressIndicator(color = Color(0xFF00FFE0))
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Decoding QR code and analyzing threat telemetry...", color = VexPalette.primary, fontSize = 13.sp)
+                        Text("Decoding QR code and analyzing threat telemetry...", color = Color(0xFF00FFE0), fontSize = 13.sp)
                     }
                 }
             }
@@ -400,9 +406,9 @@ fun QrCheckScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, VexPalette.primary.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                            .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .clip(RoundedCornerShape(16.dp)),
-                        colors = CardDefaults.cardColors(containerColor = VexPalette.cardBackground)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
                     ) {
                         Column(
                             modifier = Modifier.padding(18.dp),
@@ -410,13 +416,13 @@ fun QrCheckScreen(
                         ) {
                             Text(
                                 text = "QR SECURITY ANALYSIS",
-                                color = VexPalette.primary,
+                                color = Color(0xFF00FFE0),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             )
 
-                            HorizontalDivider(color = VexPalette.cardBorder)
+                            HorizontalDivider(color = Color(0xFF005566))
 
                             Text("Scanned Content: $scannedUrl", color = Color(0xFFFFFFFF), fontSize = 12.sp)
 
@@ -428,11 +434,11 @@ fun QrCheckScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text("RISK SCORE", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    Text("$riskScore / 100", color = VexPalette.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                    Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("$riskScore / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
-                                    Text("RISK LEVEL", color = Color(0xFFA998C4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("RISK LEVEL", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     Text(riskLevel, color = when(riskLevel) {
                                         "SAFE" -> Color(0xFF35E08A)
                                         "WARN" -> Color(0xFFFFD166)

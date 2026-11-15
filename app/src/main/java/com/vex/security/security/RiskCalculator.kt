@@ -68,16 +68,9 @@ object RiskCalculator {
             ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO -> 50
             ThreatIndicators.ACCESSIBILITY_ABUSE -> 45
             ThreatIndicators.OVERLAY_PERMISSION -> 30
-            ThreatIndicators.ACCESSIBILITY_OVERLAY_TROJAN -> 85
-            ThreatIndicators.ACCESSIBILITY_SMS_BYPASS -> 80
-            ThreatIndicators.DREBIN_ML_MALWARE_PREDICTION -> 65
             ThreatIndicators.HIGH_RISK_PERMISSION -> 25
             ThreatIndicators.SUSPICIOUS_APK -> 30
-            ThreatIndicators.DEBUG_SIGNATURE -> 35
-            ThreatIndicators.DEBUG_CERTIFICATE_DETECTED -> 40
-            ThreatIndicators.EXPIRED_CERTIFICATE -> 30
-            ThreatIndicators.WEAK_SIGNATURE_ALGORITHM -> 25
-            ThreatIndicators.SELF_SIGNED_CERTIFICATE -> 15
+            ThreatIndicators.DEBUG_SIGNATURE -> 25
             ThreatIndicators.OUTDATED_TARGET_SDK -> 20
 
             // Call & SMS Bombing indicators
@@ -111,8 +104,6 @@ object RiskCalculator {
         if (indicators.contains(ThreatIndicators.AI_SYNTHETIC_GENERATOR) || 
             indicators.contains(ThreatIndicators.AI_GENERATED_VIDEO) ||
             indicators.contains(ThreatIndicators.DEEPFAKE_FACE_SYNTHESIS) ||
-            indicators.contains(ThreatIndicators.ACCESSIBILITY_OVERLAY_TROJAN) ||
-            indicators.contains(ThreatIndicators.ACCESSIBILITY_SMS_BYPASS) ||
             indicators.contains(ThreatIndicators.DANGEROUS_PERMISSIONS_COMBO) ||
             indicators.contains(ThreatIndicators.ACCESSIBILITY_ABUSE)) {
             return 85
@@ -127,22 +118,10 @@ object RiskCalculator {
 
     fun getRiskLevel(score: Int): String {
         return when (score) {
-            in 0..19 -> "SAFE"
-            in 20..39 -> "LOW"
-            in 40..59 -> "MEDIUM"
-            in 60..79 -> "HIGH"
-            else -> "CRITICAL"
-        }
-    }
-
-    fun normalizeRiskLevel(level: String?): String {
-        return when (level?.uppercase()?.trim()) {
-            "CRITICAL", "QUARANTINE" -> "CRITICAL"
-            "HIGH", "BLOCK" -> "HIGH"
-            "MEDIUM", "WARN" -> "MEDIUM"
-            "LOW" -> "LOW"
-            "SAFE" -> "SAFE"
-            else -> "SAFE"
+            in 0..24 -> "SAFE"
+            in 25..49 -> "WARN"
+            in 50..74 -> "BLOCK"
+            else -> "QUARANTINE"
         }
     }
 }

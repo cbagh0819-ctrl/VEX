@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VEX Secure Anti-Exploit Deception Browser</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0f19;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Chrome / Address Bar */
+    header {
+      background: #111827;
+      border-bottom: 2px solid #00f0ff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid #00f0ff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #00f0ff;
+      letter-spacing: 1px;
+    }
+
+    .shield-dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff9d;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff9d;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .url-bar-container {
+      flex: 1;
+      display: flex;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .url-bar-container:focus-within {
+      border-color: #00f0ff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    }
+
+    .lock-icon {
+      padding: 10px 14px;
+      color: #00ff9d;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      background: rgba(0, 255, 157, 0.05);
+      border-right: 1px solid #334155;
+    }
+
+    #urlInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f8fafc;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 10px 14px;
+    }
+
+    .go-btn {
+      background: #00f0ff;
+      color: #0b0f19;
+      border: none;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .go-btn:hover {
+      background: #00d0e0;
+      box-shadow: 0 0 12px #00f0ff;
+    }
+
+    /* Status Sub-Banner */
+    .telemetry-banner {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 6px 16px;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .telemetry-status {
+      display: flex;
+      gap: 16px;
+    }
+
+    .tag-active {
+      color: #00ff9d;
+      font-weight: 600;
+    }
+
+    /* Sandbox Webview Frame */
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: #000;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Intercept Floating HUD */
+    .intercept-hud {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #00f0ff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      max-width: 380px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      font-size: 12px;
+      display: none;
+      animation: slideUp 0.3s ease;
+      backdrop-filter: blur(8px);
+      z-index: 999;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .intercept-title {
+      color: #ff0055;
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .intercept-desc {
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .intercept-badge {
+      display: inline-block;
+      background: rgba(0, 255, 157, 0.15);
+      color: #00ff9d;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid #00ff9d;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Browser Navigation Bar -->
+  <header>
+    <div class="brand-badge">
+      <span class="shield-dot"></span>
+      VEX SECURE BROWSER
+    </div>
+
+    <div class="url-bar-container">
+      <div class="lock-icon">🔒 VIRTUAL-HAL ENFORCED</div>
+      <input type="text" id="urlInput" value="/phish/iphone" placeholder="Paste target URL here e.g. /phish/iphone or http://...">
+    </div>
+
+    <button class="go-btn" onclick="navigateToUrl()">NAVIGATE</button>
+  </header>
+
+  <!-- Realtime Protection Bar -->
+  <div class="telemetry-banner">
+    <div class="telemetry-status">
+      <span>Active Driver: <span class="tag-active">Virtual Camera2 HAL Hook</span></span>
+      <span>Payload Guard: <span class="tag-active">Decoy Canary Meme (Active)</span></span>
+      <span>SOC Link: <span class="tag-active">Connected to Radar</span></span>
+    </div>
+    <div>Target: <span id="currentHostDisplay">Self-Hosted SOC Chamber</span></div>
+  </div>
+
+  <!-- Browser Webview Area -->
+  <div class="viewport">
+    <iframe id="browserFrame" src="/phish/iphone"></iframe>
+
+    <!-- Floating Security HUD -->
+    <div id="interceptHud" class="intercept-hud">
+      <div class="intercept-title">🚨 CAMERA HAL CALL INTERCEPTED!</div>
+      <div class="intercept-desc">
+        A webpage attempted to snatch your raw webcam frame. VEX Virtual-HAL blocked physical hardware access and swapped it with the <b>Canary Meme Decoy</b>.
+      </div>
+      <div>
+        <span class="intercept-badge">CANARY TOKEN EMBEDDED</span>
+        <span class="intercept-badge" style="border-color:#00f0ff; color:#00f0ff; background:rgba(0,240,255,0.1);">RADAR LOCK READY</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function navigateToUrl() {
+      let inputVal = document.getElementById('urlInput').value.trim();
+      if (!inputVal) return;
+
+      if (!inputVal.startsWith('http://') && !inputVal.startsWith('https://') && !inputVal.startsWith('/')) {
+        inputVal = 'http://' + inputVal;
+      }
+
+      document.getElementById('browserFrame').src = inputVal;
+      triggerHudNotice();
+    }
+
+    document.getElementById('urlInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') navigateToUrl();
+    });
+
+    function triggerHudNotice() {
+      const hud = document.getElementById('interceptHud');
+      hud.style.display = 'block';
+      setTimeout(() => {
+        hud.style.display = 'none';
+      }, 7000);
+    }
+
+    // Auto show notice when honeypot iframe loads
+    window.addEventListener('load', () => {
+      setTimeout(triggerHudNotice, 1200);
+    });
+  </script>
+
+</body>
+</html>

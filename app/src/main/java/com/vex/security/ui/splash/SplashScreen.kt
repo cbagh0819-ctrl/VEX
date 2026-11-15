@@ -1,5 +1,4 @@
 package com.vex.security.ui.splash
-import com.vex.security.ui.theme.VexPalette
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,9 +43,9 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        VexPalette.backgroundTop,
-                        VexPalette.backgroundMid,
-                        VexPalette.backgroundBottom
+                        Color(0xFF03141C),
+                        Color(0xFF01080C),
+                        Color(0xFF000305)
                     )
                 )
             )
@@ -76,9 +75,9 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                                 width = 1.5.dp,
                                 brush = Brush.sweepGradient(
                                     listOf(
-                                        VexPalette.primary,
-                                        VexPalette.cardBorder,
-                                        VexPalette.primary
+                                        Color(0xFF00FFE0),
+                                        Color(0xFF005566),
+                                        Color(0xFF00FFE0)
                                     )
                                 ),
                                 shape = RoundedCornerShape(50)
@@ -89,7 +88,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                         imageVector = Icons.Default.Security,
                         contentDescription = "Shield Logo",
                         modifier = Modifier.size(90.dp),
-                        tint = VexPalette.primary
+                        tint = Color(0xFF00FFE0)
                     )
 
                     Text(
@@ -104,7 +103,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
                 Text(
                     text = "VEX",
-                    color = VexPalette.primary,
+                    color = Color(0xFF00FFE0),
                     fontSize = 54.sp,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 6.sp
@@ -126,7 +125,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     HorizontalDivider(
-                        color = VexPalette.cardBorder,
+                        color = Color(0xFF005566),
                         thickness = 1.dp,
                         modifier = Modifier.width(60.dp)
                     )
@@ -134,11 +133,11 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .size(6.dp)
-                            .background(VexPalette.primary, shape = RoundedCornerShape(50))
+                            .background(Color(0xFF00FFE0), shape = RoundedCornerShape(50))
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     HorizontalDivider(
-                        color = VexPalette.cardBorder,
+                        color = Color(0xFF005566),
                         thickness = 1.dp,
                         modifier = Modifier.width(60.dp)
                     )
@@ -164,7 +163,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                         .fillMaxWidth(0.85f)
                         .height(8.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(VexPalette.pillBackground),
+                        .background(Color(0xFF0A1F28)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Box(
@@ -174,7 +173,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                             .clip(RoundedCornerShape(50))
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(Color(0xFF008888), VexPalette.primary)
+                                    listOf(Color(0xFF008888), Color(0xFF00FFE0))
                                 )
                             )
                     )
@@ -184,7 +183,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
                 Text(
                     text = "${(progress * 100).toInt()}%",
-                    color = VexPalette.primary,
+                    color = Color(0xFF00FFE0),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -215,21 +214,21 @@ fun ActionBottomItem(icon: ImageVector, label: String) {
         Box(
             modifier = Modifier
                 .size(50.dp)
-                .border(1.dp, VexPalette.cardBorder, RoundedCornerShape(12.dp))
-                .background(Color(0xFF241239), RoundedCornerShape(12.dp)),
+                .border(1.dp, Color(0xFF005566), RoundedCornerShape(12.dp))
+                .background(Color(0xFF0A141A), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = VexPalette.primary,
+                tint = Color(0xFF00FFE0),
                 modifier = Modifier.size(24.dp)
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = label,
-            color = Color(0xFFA998C4),
+            color = Color(0xFF80A0B0),
             fontSize = 10.sp,
             letterSpacing = 1.sp
         )

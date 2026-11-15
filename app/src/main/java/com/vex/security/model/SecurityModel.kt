@@ -1,3 +1,8 @@
 package com.vex.security.model
 
-// TODO: Define core security models, threats, and incident data classes.
+data class SecurityModel(
+    val deviceId: String,
+    val securityLevel: String,
+    val activeThreatCount: Int,
+    val lastScanTimestamp: Long
+)

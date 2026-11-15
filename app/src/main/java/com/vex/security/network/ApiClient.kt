@@ -1,9 +1,9 @@
 package com.vex.security.network
 
-import android.content.Context
 import android.util.Log
+import com.vex.security.BuildConfig
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -11,94 +11,102 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val TAG = "ApiClient"
-    const val PUBLIC_CLOUD_HOST = "rid-compressed-ministries-menu.trycloudflare.com"
-    const val PUBLIC_CLOUD_URL = "https://$PUBLIC_CLOUD_HOST/"
-
-    private const val DEFAULT_HOST = "127.0.0.1"
-    private const val BASE_URL = "http://$DEFAULT_HOST:8000/"
-
-    @Volatile
-    var activeHost: String = DEFAULT_HOST
-
-    @Volatile
-    var customCloudEndpoint: String? = null
-
-    fun getCandidateEndpoints(): List<String> {
-        val list = mutableListOf<String>()
-        customCloudEndpoint?.let { if (it.isNotBlank()) list.add(it.trim()) }
-        list.add(PUBLIC_CLOUD_HOST)
-        list.add("127.0.0.1")
-        list.add("192.168.64.235")
-        list.add("10.0.2.2")
-        return list.distinct()
+    private val configuredUrl: String = BuildConfig.BACKEND_URL.let {
+        if (it.endsWith("/")) it else "$it/"
     }
+
+    @Volatile
+    var customBaseUrl: String? = null
+
+    fun getServerUrl(): String {
+        return customBaseUrl?.let { if (it.endsWith("/")) it else "$it/" } ?: configuredUrl
+    }
+
+    fun setServerUrl(url: String) {
+        val trimmed = url.trim()
+        val formatted = if (trimmed.endsWith("/")) trimmed else "$trimmed/"
+        if (formatted.startsWith("http://") || formatted.startsWith("https://")) {
+            customBaseUrl = formatted
+            Log.i("ApiClient", "Custom backend URL set to: $formatted")
+        }
+    }
+
+    private val candidateUrls: List<HttpUrl> by lazy {
+        val list = mutableListOf<String>()
+        list.add(configuredUrl)
+        list.add("https://vex-security-soc.onrender.com/")
+        list.add("http://10.0.2.2:8000/")
+        list.add("http://192.168.31.2:8000/")
+        list.add("http://192.168.1.100:8000/")
+        list.add("http://127.0.0.1:8000/")
+
+        list.mapNotNull { HttpUrl.parse(it) }.distinct()
+    }
+
+    @Volatile
+    var activeHost: String = (HttpUrl.parse(configuredUrl)?.host() ?: "10.0.2.2")
+
+    @Volatile
+    private var activeEndpoint: HttpUrl = (HttpUrl.parse(configuredUrl)
+        ?: HttpUrl.parse("http://10.0.2.2:8000/")!!)
 
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(3, TimeUnit.SECONDS)
-            .readTimeout(6, TimeUnit.SECONDS)
-            .writeTimeout(6, TimeUnit.SECONDS)
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .addInterceptor { chain ->
                 val request = chain.request()
-                val originalUrl = request.url
+                val originalUrl = request.url()
 
-                val endpoints = mutableListOf<String>()
-                // Prioritize active host if valid
-                if (activeHost.isNotBlank()) endpoints.add(activeHost)
-                getCandidateEndpoints().forEach { ep ->
-                    if (!endpoints.contains(ep)) endpoints.add(ep)
+                val targetCandidates = mutableListOf<HttpUrl>()
+                customBaseUrl?.let { HttpUrl.parse(it) }?.let { targetCandidates.add(it) }
+                targetCandidates.add(activeEndpoint)
+
+                candidateUrls.forEach { cand ->
+                    if (!targetCandidates.any { it.host() == cand.host() && it.port() == cand.port() && it.scheme() == cand.scheme() }) {
+                        targetCandidates.add(cand)
+                    }
                 }
 
                 var lastException: IOException? = null
-                for (target in endpoints) {
-                    val isHttps = target.contains("trycloudflare.com") || target.startsWith("https://")
-                    val cleanHost = target.removePrefix("https://").removePrefix("http://").substringBefore("/").substringBefore(":")
-                    val targetPort = if (isHttps) 443 else 8000
-                    val targetScheme = if (isHttps) "https" else "http"
-
+                for (candidate in targetCandidates) {
                     val newUrl = originalUrl.newBuilder()
-                        .scheme(targetScheme)
-                        .host(cleanHost)
-                        .port(targetPort)
+                        .scheme(candidate.scheme())
+                        .host(candidate.host())
+                        .port(candidate.port())
                         .build()
-
-                    val newRequest = request.newBuilder()
-                        .url(newUrl)
-                        .header("User-Agent", "VEX-Mobile-RASP/2.4")
-                        .build()
+                    val newRequest = request.newBuilder().url(newUrl).build()
 
                     try {
                         val response = chain.proceed(newRequest)
-                        if (response.isSuccessful || response.code < 500) {
-                            if (activeHost != target) {
-                                activeHost = target
-                                Log.i(TAG, "Switched active backend target to: $targetScheme://$cleanHost:$targetPort")
+                        if (response.isSuccessful || response.code() < 500) {
+                            if (activeEndpoint.host() != candidate.host() || activeEndpoint.port() != candidate.port()) {
+                                activeEndpoint = candidate
+                                activeHost = candidate.host()
+                                Log.i("ApiClient", "Backend connected: ${candidate.scheme()}://${candidate.host()}:${candidate.port()}")
                             }
                             return@addInterceptor response
                         }
                         return@addInterceptor response
                     } catch (e: IOException) {
                         lastException = e
-                        Log.w(TAG, "Connection to $targetScheme://$cleanHost:$targetPort failed: ${e.message}")
+                        Log.w("ApiClient", "Connection to ${candidate.host()}:${candidate.port()} failed: ${e.message}")
                     }
                 }
 
-                throw lastException ?: IOException("Failed to connect to backend on any endpoint: $endpoints")
+                throw lastException ?: IOException("Failed to connect to VEX backend on any candidate endpoint")
             }
             .build()
     }
 
-    private val retrofit: Retrofit by lazy {
+    val apiService: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(configuredUrl)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-    }
-
-    val apiService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
+            .create(ApiService::class.java)
     }
 }

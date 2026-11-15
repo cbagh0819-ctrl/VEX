@@ -2,27 +2,32 @@ package com.vex.security.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// VEX Cyber Guard Tactical Colors
+// Primary Cyber Palette
 val VexCyan = Color(0xFF00FFE0)
-val VexCyanDark = Color(0xFF005566)
-val VexCobalt = Color(0xFF38BDF8)
-val VexCobaltDark = Color(0xFF1E3A5F)
+val VexCyanDim = Color(0xFF00D1B8)
+val VexTealGlow = Color(0xFF005566)
+val VexEmerald = Color(0xFF35E08A)
+val VexGreenGlow = Color(0xFF00FF9D)
 val VexCrimson = Color(0xFFFF4D6D)
-val VexCrimsonDark = Color(0xFF661525)
+val VexAmber = Color(0xFFFFD166)
+val VexOrange = Color(0xFFFF9F43)
 
-val VexGreenSafe = Color(0xFF35E08A)
-val VexYellowMedium = Color(0xFFFFD166)
-val VexOrangeHigh = Color(0xFFFF9F43)
-val VexRedCritical = Color(0xFFFF4D6D)
+// Dark Surfaces & Backgrounds
+val VexVoid = Color(0xFF000305)
+val VexBackgroundTop = Color(0xFF03141C)
+val VexBackgroundMid = Color(0xFF01080C)
+val VexCardDark = Color(0xFF0B161F)
+val VexCardElevated = Color(0xFF0F1E2A)
+val VexCardBorder = Color(0xFF005566)
+val VexCardBorderSubtle = Color(0x3300FFE0)
 
-// Dark Surfaces
-val VexDarkBgTop = Color(0xFF03141C)
-val VexDarkBgMid = Color(0xFF01080C)
-val VexDarkBgBottom = Color(0xFF000305)
-val VexDarkCard = Color(0xFF0B161F)
+// Text Hierarchy
+val VexTextPrimary = Color(0xFFFFFFFF)
+val VexTextSecondary = Color(0xFFB0C4DE)
+val VexTextMuted = Color(0xFF80A0B0)
+val VexTextDim = Color(0xFF506878)
 
-// Light Surfaces
-val VexLightBgTop = Color(0xFFF8FAFC)
-val VexLightBgMid = Color(0xFFF1F5F9)
-val VexLightBgBottom = Color(0xFFE2E8F0)
-val VexLightCard = Color(0xFFFFFFFF)
+// Component Accents
+val VexNavContainer = Color(0xFF071118)
+val VexNavIndicator = Color(0xFF0A2530)
+val VexNavUnselected = Color(0xFF7090A0)

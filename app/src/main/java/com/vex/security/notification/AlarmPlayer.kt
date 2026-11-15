@@ -1,51 +1,44 @@
 package com.vex.security.notification
 
 import android.content.Context
-import android.media.MediaPlayer
+import android.media.AudioAttributes
+import android.media.Ringtone
 import android.media.RingtoneManager
-import android.os.Vibrator
-import com.vex.security.R
 
 object AlarmPlayer {
-    private var mediaPlayer: MediaPlayer? = null
+    private var ringtone: Ringtone? = null
 
+    @Synchronized
     fun playAlarm(context: Context) {
         try {
             stopAlarm(context)
-            mediaPlayer = MediaPlayer.create(context, R.raw.emergency_alarm)?.apply {
-                isLooping = true
-                start()
+            val alertUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+
+            ringtone = RingtoneManager.getRingtone(context.applicationContext, alertUri)?.apply {
+                audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+                play()
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            try {
-                val alertUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                mediaPlayer = MediaPlayer.create(context, alertUri)?.apply {
-                    isLooping = true
-                    start()
-                }
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
         }
     }
 
-    fun stopAlarm(context: Context? = null) {
+    @Synchronized
+    fun stopAlarm(context: Context) {
         try {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
+            ringtone?.let {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+            }
+            ringtone = null
         } catch (e: Exception) {
             e.printStackTrace()
-        }
-
-        if (context != null) {
-            try {
-                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                vibrator.cancel()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 }

@@ -1,0 +1,469 @@
+================================================================================
+          VEX CYBER GUARD -- UNIVERSAL MASTER IMPLEMENTATION PROMPTS
+================================================================================
+Compatibility: Universal (Windows / Linux / macOS)
+Target Stack: Android 14+ (API 34-37), Kotlin 2.0, Jetpack Compose, Material 3
+Backend: Python 3.10+, FastAPI, Uvicorn (ASGI), WebSockets
+Project Structure: Relative to Current Workspace Root (./)
+Author: VEX Security Core Research Labs (BPUT Hackathon Grand Finale)
+================================================================================
+
+HOW TO USE THESE PROMPTS:
+-------------------------
+These master prompts are completely UNIVERSAL. They contain NO hardcoded user
+paths or machine-specific directories. You can copy and paste them into
+Antigravity, Cursor, Claude, or any AI coding assistant on ANY machine
+(Windows, Linux, or macOS).
+
+DIRECTORY CONVENTION (Relative to Workspace Root):
+- Workspace Root:        ./
+- Android App Module:    ./app
+- Python Backend Module: ./backend
+- Presentation Assets:   ./presentation_assets
+
+================================================================================
+PHASE 0: UNIVERSAL ENVIRONMENT PRE-FLIGHT & TOOLCHAIN INITIALIZATION
+================================================================================
+
+[MASTER PROMPT 0: ENVIRONMENT PROBING & SETUP]
+--------------------------------------------------------------------------------
+"Act as the Lead Mobile Security Architect. Let's initialize and verify the
+entire development environment in the current workspace directory:
+
+1. Auto-detect the host operating system (Windows, Linux, or macOS).
+2. Locate the Android SDK:
+   - Check the 'ANDROID_HOME' or 'ANDROID_SDK_ROOT' environment variable.
+   - If unset, locate the standard platform path:
+     * Windows: %LOCALAPPDATA%\Android\Sdk
+     * macOS:   $HOME/Library/Android/sdk
+     * Linux:   $HOME/Android/Sdk
+   - Ensure 'local.properties' exists in the root directory with:
+     sdk.dir=<detected_sdk_path> (using escaped backslashes on Windows).
+   - Verify Android platform 'android-34' (or 'android-35' / 'android-37')
+     and build-tools '34.0.0' or higher.
+3. Locate JDK 17 or JDK 21:
+   - Check 'JAVA_HOME'. If unset, detect Android Studio bundled JBR or system JDK.
+4. Locate Python 3:
+   - Check 'python3' or 'python' (minimum version 3.10+).
+   - Ensure virtual environment or dependencies installed:
+     fastapi, uvicorn, websockets, scapy, psutil, pillow, requests.
+5. Check connected Android device or emulator via 'adb devices':
+   - Confirm at least one active device/emulator is listed.
+6. Setup universal ADB reverse tunnel for local backend communication:
+   'adb reverse tcp:8000 tcp:8000'
+   (This allows the phone to access the host backend at 127.0.0.1:8000).
+
+Output a clean verification table showing detected tools, versions, and paths."
+--------------------------------------------------------------------------------
+
+[PHASE 0 VERIFICATION CHECKLIST]:
+[ ] local.properties exists with valid sdk.dir for current machine
+[ ] JDK 17/21 detected and executable
+[ ] Python 3.10+ verified with FastAPI & Uvicorn
+[ ] adb reverse tcp:8000 tcp:8000 successfully executed
+
+
+================================================================================
+PHASE 1: PROJECT SCAFFOLDING & DEPENDENCIES (GRADLE KTS)
+================================================================================
+
+[MASTER PROMPT 1: GRADLE ARCHITECTURE & PERMISSIONS MANIFEST]
+--------------------------------------------------------------------------------
+"Configure the complete project structure and build dependencies for VEX Cyber
+Guard using Gradle Kotlin DSL (KTS) with relative directory paths:
+
+1. Create/Update './settings.gradle.kts':
+   - rootProject.name = 'VEX'
+   - include(':app')
+   - pluginManagement & dependencyResolutionManagement repositories:
+     google(), mavenCentral()
+
+2. Create/Update './build.gradle.kts' (Root):
+   - plugins {
+       id('com.android.application') version '8.9.0' apply false
+       id('org.jetbrains.kotlin.android') version '2.0.21' apply false
+       id('org.jetbrains.kotlin.plugin.compose') version '2.0.21' apply false
+     }
+
+3. Create/Update './app/build.gradle.kts':
+   - compileSdk = 35 (or 37 preview)
+   - defaultConfig {
+       applicationId = 'com.vex.security'
+       minSdk = 26
+       targetSdk = 35
+       versionCode = 1
+       versionName = '2.4.0'
+     }
+   - buildFeatures { compose = true, buildConfig = true }
+   - Dependencies:
+     * Compose BOM: 'androidx.compose:compose-bom:2024.10.00'
+     * Compose UI: ui, ui-graphics, ui-tooling-preview, material3, material-icons-extended
+     * Navigation: 'androidx.navigation:navigation-compose:2.8.3'
+     * Coroutines: 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+     * Lifecycle: lifecycle-runtime-ktx, lifecycle-viewmodel-compose:2.8.6
+     * Networking: 'com.squareup.okhttp3:okhttp:4.12.0', 'com.squareup.retrofit2:retrofit:2.11.0'
+     * Serialization: 'com.google.code.gson:gson:2.11.0'
+     * CameraX: camera-core, camera-camera2, camera-lifecycle, camera-view:1.4.0
+     * Biometrics: 'androidx.biometric:biometric:1.2.0-alpha05'
+     * AndroidX Core & Activity: core-ktx:1.13.1, activity-compose:1.9.3
+
+4. Create/Update './app/src/main/AndroidManifest.xml':
+   - Essential Hardware & Network Permissions:
+     * INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE, CHANGE_WIFI_STATE
+     * ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+     * CAMERA, RECORD_AUDIO, VIBRATE, POST_NOTIFICATIONS
+     * BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_SCAN, BLUETOOTH_CONNECT
+     * NFC, READ_PHONE_STATE, SYSTEM_ALERT_WINDOW
+   - Declare MainActivity with '@style/Theme.VEX' and hardware acceleration.
+   - Register CallScreeningService, SmsReceiver, and UsbReceiver daemons."
+--------------------------------------------------------------------------------
+
+[PHASE 1 VERIFICATION CHECKLIST]:
+[ ] Gradle sync succeeds without dependency errors
+[ ] Theme.VEX defined in app/src/main/res/values/themes.xml
+[ ] AndroidManifest.xml contains all hardware permissions
+
+
+================================================================================
+PHASE 2: CORE ARCHITECTURE & FASTAPI SOC TELEMETRY
+================================================================================
+
+[MASTER PROMPT 2: CORE TELEMETRY ENGINE & FASTAPI IPC]
+--------------------------------------------------------------------------------
+"Implement the foundational client-server communication and hardware daemon
+modules connecting the Android client to the local FastAPI SOC backend:
+
+1. Kotlin Engine: './app/src/main/java/com/vex/security/network/ApiClient.kt':
+   - Prioritize candidate hosts: 'http://127.0.0.1:8000' and 'http://10.0.2.2:8000'
+     (auto-fallback for emulator vs physical device reverse tunnel).
+   - OkHttpClient with 3-second timeout and WebSocket duplex listener.
+   - Methods: pingServer(), sendTelemetry(metricJson), triggerTestlabAttack(type).
+
+2. Kotlin Audio Siren Daemon: './app/src/main/java/com/vex/security/notification/AlarmPlayer.kt':
+   - Hardware alert audio generator using Android AudioTrack / MediaPlayer.
+   - Method playSiren(durationMs): Generates an ear-piercing 2.4kHz square-wave
+     warble at maximum STREAM_ALARM volume for BadUSB and Jammer breach alarms.
+   - Method stopSiren().
+
+3. Kotlin State Engine: './app/src/main/java/com/vex/security/security/PolicyManager.kt':
+   - EncryptedSharedPreferences backed zero-trust state store.
+   - Properties: isHardwareBusLocked, isRadioZeroActive, isCamMirrorDeceptionEnabled,
+     seedPhraseScrubTimeoutSeconds (default: 15), isDoHCanaryEnabled.
+
+4. Python FastAPI Backend: Located in relative directory './backend':
+   - './backend/main.py': FastAPI app, CORS middleware (*), static dashboard files.
+   - './backend/api/policies.py': GET/POST endpoints for device security policy sync.
+   - './backend/api/testlab.py': POST triggers for stage testing:
+     * '/testlab/trigger-badusb'
+     * '/testlab/trigger-cam-snoop'
+     * '/testlab/trigger-arp-mitm'
+     * '/testlab/trigger-sms-bomb'
+     * '/testlab/trigger-jammer-bubble'
+   - '/ws/telemetry': WebSocket endpoint broadcasting 2-second duplex device metrics
+     (CPU, RAM, RF power, active socket count, incident counters).
+   - '/dashboard': HTML5/Canvas live Web SOC operations console with neon dark UI.
+Launch backend via: uvicorn main:app --host 0.0.0.0 --port 8000."
+--------------------------------------------------------------------------------
+
+[PHASE 2 VERIFICATION CHECKLIST]:
+[ ] FastAPI server running on port 8000
+[ ] Web SOC dashboard accessible at http://127.0.0.1:8000/dashboard
+[ ] Android ApiClient successfully connects and streams telemetry
+
+
+================================================================================
+PHASE 3: THE 7 CORE SCREENS (JETPACK COMPOSE & MVVM)
+================================================================================
+
+[MASTER PROMPT 3: SCREEN-BY-SCREEN JETPACK COMPOSE IMPLEMENTATION]
+--------------------------------------------------------------------------------
+"Build the 7 core screens of VEX Cyber Guard in Jetpack Compose and Material 3
+with a unified Cyberpunk / Dark Enterprise HUD aesthetic:
+
+Theme Palette:
+- Background: #07090E, Surface: #0D121D, Border: #1A2333
+- Neon Cyan: #00F0FF, Neon Green: #00FF9D, Neon Amber: #FFB703, Neon Red: #FF0055
+
+Files to implement in './app/src/main/java/com/vex/security/ui/':
+
+1. Screen 1: 'HomeScreen.kt' (Tab 1)
+   - Top banner 'CHECK YOUR PHONE' with animated gradient pulse.
+   - 2x5 feature grid: APK Check, QR Check, AI Photos, AI Video, Metadata,
+     USB/OTG, URL Check, RadioZero, BombShield, AI Song.
+   - Circular animated Threat Level Dial (GREEN: 0 Threats / RED: Active Threat).
+   - Persistent 5-icon bottom bar: [Home] [VB] [Reports] [SOC] [Settings].
+
+2. Screen 2: 'VexBrowserScreen.kt' (Tab 2: VEX Browser - VB)
+   - Zero-trace isolated WebView with strict in-memory lifecycle.
+   - 5 Architectural Diagram Pillars:
+     * 1. No Login / Sign-up / No Payment: Zero account tracking, purely anonymous.
+     * 2. Auto-Wipe Data & History: On exit/dispose, wipes RAM, WebStorage, CookieManager, IndexedDB.
+     * 3. Private DNS: Integrated AdGuard DoH (dns.adguard.com) bypassing local ISP tracking.
+     * 4. In-Flight Media Sniffer: Automatically intercepts video (MP4/HLS .m3u8/DASH .mpd) and audio streams.
+     * 5. Auto VPN Connected State / Zero-Trace in-memory sessions.
+   - Cyberpunk Top Bar: SSL Padlock URL bar with TLS status, '🛡️ DNS:ADGUARD' badge, and 'AUTO-VPN' pill.
+   - Quick Action: 'Wipe Data Now' button executing instant zero-trace RAM flush.
+   - Dynamic Floating Drawer: Surfaces detected media items with title, size, and 1-tap 'GRAB' download button.
+
+3. Screen 3: 'SignalJammerScreen.kt' (VEX RadioZero Modal)
+   - Circular radar HUD showing pulse waves and rotating scan line.
+   - Active Threat Card: 'CLASS B RF JAMMER DETECTED (~60M RADIUS)'.
+   - Inverted Compass Needle pointing toward 90° East (Escape Vector).
+   - Dynamic Countdown: '38 METERS REMAINING TO SAFE ZONE' (steps * 0.75m).
+
+4. Screen 4: 'DiagnosticScanScreen.kt' (Full Snap Scan)
+   - Large central percentage gauge (0% to 100% animated scan).
+   - 5-bar subsystem telemetry: DEX Bytecode Taint, Hardware USB Bus,
+     RF Spectrum Floor, Cam/Mic Hooks, and Clipboard Shadow Vault.
+
+5. Screen 5: 'ReportsScreen.kt' (Tab 3)
+   - Reverse-chronological incident timeline.
+   - Color-coded severity cards: MitM ARP Intercept (Red), SMS Bomber Clamp (Amber),
+     Cam Decoy Injected (Cyan).
+   - Export forensic report button (generates signed SHA-256 evidence log).
+
+6. Screen 6: 'SocDashboardScreen.kt' (Tab 4)
+   - Real-time WebSocket oscilloscope plotting simulated network traffic and RF power.
+   - Live hardware stats: CPU load, RAM usage, active sockets, baseband dBm.
+
+7. Screen 7: 'PolicyManagerScreen.kt' (Tab 5)
+   - Zero-trust toggles: Hardware Bus Lock, RadioZero Radar, Cam Mirror Deception,
+     DoH Canary Sentry.
+   - Seed phrase scrub slider (10s - 60s).
+   - Honey-token repository selector with 14 pre-loaded dummy BIP-39 wallets."
+--------------------------------------------------------------------------------
+
+[PHASE 3 VERIFICATION CHECKLIST]:
+[ ] Navigation graph connects all 5 tabs and modals cleanly
+[ ] 60fps smooth Compose rendering on device/emulator without ANRs
+[ ] Haptic feedback and alert colors trigger on simulated threats
+
+
+================================================================================
+PHASE 4: IMPLEMENTING FEATURES 1 TO 9 (CURRENT MODULES)
+================================================================================
+
+[MASTER PROMPT 4A: BINARY, IMAGE & METADATA FORENSICS]
+--------------------------------------------------------------------------------
+"Implement the forensic analysis engines for APKs, AI Images, and Metadata
+inside './app/src/main/java/com/vex/security/scan/':
+
+1. 'ApkScannerEngine.kt':
+   - Extract ZIP entries of target APK.
+   - Calculate Shannon Entropy H(X) = -sum(P(x) * log2(P(x))) on all files.
+   - If H(X) >= 7.2 in non-media assets, flag as PACKED/ENCRYPTED DEX DROPPER.
+   - Parse AndroidManifest.xml for dangerous permission combinations:
+     RECEIVE_SMS + SEND_SMS + INTERNET + BIND_ACCESSIBILITY_SERVICE.
+
+2. 'AiPhotoForensics.kt':
+   - Downscale bitmap to 256x256 grayscale.
+   - Compute 2D Fast Fourier Transform (2D FFT) power spectrum.
+   - Detect checkerboard upsampling spikes characteristic of Midjourney / DALL-E.
+
+3. 'MetadataChronosEngine.kt':
+   - Parse JPEG byte stream for JUMBF C2PA provenance containers.
+   - Extract Luminance DQT (Define Quantization Table) 64-element matrix.
+   - Hash DQT against camera database (Apple iOS vs Photoshop Save-For-Web).
+   - Compute astronomical solar elevation equation: theta = f(lat, lon, time).
+   - Compare expected shadow angle against image contours to expose spoofed GPS."
+--------------------------------------------------------------------------------
+
+[MASTER PROMPT 4B: OPTICAL, TELECOM & HARDWARE INTERFACES]
+--------------------------------------------------------------------------------
+"Implement the network, telecom, and hardware interface security engines:
+
+1. 'OpticalQEngine.kt' (QR & Quishing):
+   - Sobel edge filter over camera preview frames detecting 0.15mm - 0.3mm
+     step-height micro-shadows along the QR perimeter (sticker overlay detection).
+   - Reed-Solomon parity consumption ratio: flag if parity usage > 25%.
+   - Parse raw URI payloads for UPI mandates:
+     Extract 'pa', 'pn', 'mode', 'am'. Flag 'upi://mandate' auto-debit scams.
+
+2. 'UrlXRayEngine.kt':
+   - De-mask Punycode / IDN domains (e.g. Cyrillic 'a' а in 'paypal.com').
+   - Calculate DGA Shannon character entropy on Second-Level Domain (H > 3.9).
+   - Inspect X.509 TLS certificate SAN and ASN to catch Evilginx 2FA proxies.
+
+3. 'BombShieldManager.kt' (SMS/Call Bomber):
+   - Sliding-window Token Bucket rate limiter (max 3 burst, 0.2 refill/sec).
+   - Temporal sender entropy: H_sender across 15-second arrival window.
+   - On-device semantic sieve: silences e-commerce OTPs while triggering VIP
+     emergency alarm for messages matching: 'debited', 'transferred', 'INR', 'Rs.'.
+
+4. 'PortShieldManager.kt' (BadUSB Hardware Lock):
+   - Intercept Android InputManager KeyEvent dispatches.
+   - Calculate Inter-Key Interval (IKI) velocity:
+     If keystroke rate > 80 chars/sec with std_dev(IKI) < 3ms:
+     1. Discard all incoming KeyEvents from that input device id.
+     2. Call AlarmPlayer.playSiren(5000).
+     3. Cut USB-C OTG power rail via Sysfs command."
+--------------------------------------------------------------------------------
+
+[MASTER PROMPT 4C: MEDIA ACOUSTICS (DEEPFAKE VIDEO & AI SONG)]
+--------------------------------------------------------------------------------
+"Implement the biometric and acoustic forensic detection modules:
+
+1. 'BioSpectralDeepfakeEngine.kt':
+   - Track facial landmarks across video frames.
+   - Crop green-channel skin pixels on forehead and cheekbones across time.
+   - Run Fast Fourier Transform on temporal Delta-G to extract rPPG pulse.
+   - Output real-time BPM waveform: authentic (60-100 BPM) vs deepfake (0 BPM).
+   - Ray-trace corneal specular light reflections across both eyes. Flag if
+     vector divergence > 12 degrees.
+
+2. 'SonicSentryEngine.kt':
+   - Compute Higher-Order Bispectrum B(w1, w2) on raw audio samples.
+   - Detect phase decorrelation across harmonic multiples (neural vocoder flaw).
+   - Respiratory mechanics analyzer: flag uninterrupted vocal phrases > 25 seconds
+     with zero physiological inhalation pauses.
+   - Inspect spectrum for hard 16.4 kHz Nyquist brick-wall cutoff."
+--------------------------------------------------------------------------------
+
+
+[MASTER PROMPT 4D: ZERO-TRACE SANDBOX BROWSER & IN-FLIGHT MEDIA SNIFFER (VEX BROWSER - VB)]
+--------------------------------------------------------------------------------
+"Implement the privacy browser engine and media sniffer in './app/src/main/java/com/vex/security/browser/':
+
+1. 'VexBrowserEngine.kt':
+   - Data class 'DetectedMedia(id, url, title, mimeType, detectedAt, estimatedSize)'.
+   - Expose 'StateFlow<List<DetectedMedia>>' tracking real-time intercepted media streams.
+   - Sniffer Engine 'sniffMedia(url: String)':
+     * Regex matching: '(\.mp4|\.m3u8|\.mpd|\.webm|\.mov|\.m4v|\.mp3|\.aac|\.flac|\.ogg|\.wav|\.jpg|\.jpeg|\.png|\.webp)'.
+     * Parses filename from URL path, generates human-readable title and estimated size.
+     * Deduplicates URLs to prevent UI flood.
+   - AdGuard Private DNS Wire-Format:
+     * Configures DoH upstream 'https://dns.adguard.com/dns-query' over TLS 1.3 (RFC 8484).
+     * Zero plaintext UDP 53 DNS leakage to local ISP.
+   - WebView Configuration:
+     * Disable DOM storage: 'domStorageEnabled = false'.
+     * Disable database storage: 'databaseEnabled = false'.
+     * Force zero cache: 'cacheMode = WebSettings.LOAD_NO_CACHE'.
+     * Disable geolocation and file access: 'setGeolocationEnabled(false)', 'allowFileAccess = false'.
+   - Media Download Interceptor:
+     * Attach 'DownloadListener' to capture direct file downloads into app-private isolated vault.
+   - Panic Memory Purge 'clearAllBrowserData()':
+     * CookieManager.getInstance().removeAllCookies(null).
+     * WebStorage.getInstance().deleteAllData().
+     * WebViewDatabase clearHttpAuthUsernamePassword, clearFormData.
+     * Clear all detected media state: '_detectedMediaList.value = emptyList()'.
+
+2. 'VexBrowserScreen.kt' (in './app/src/main/java/com/vex/security/ui/browser/'):
+   - Top Bar: Cyberpunk address bar with SSL lock indicator, '🛡️ DNS:ADGUARD' badge, and 'AUTO-VPN' pill.
+   - 'Wipe Data' action button triggering 'clearAllBrowserData()' with haptic feedback.
+   - AndroidView embedding WebView with full lifecycle handling.
+   - In-Flight Media Sniffer Sheet:
+     * When detectedMediaList is non-empty, render a floating cyberpunk drawer at bottom.
+     * List each captured video/image with media badge, duration/size estimate, and 'GRAB' button.
+   - Auto-Purge on Exit:
+     * 'DisposableEffect' that invokes 'clearAllBrowserData()' on disposal to guarantee zero forensic traces left on disk."
+--------------------------------------------------------------------------------
+
+[PHASE 4 VERIFICATION CHECKLIST]:
+[ ] ApkScannerEngine flags high-entropy test DEX
+[ ] OpticalQEngine flags upi://mandate strings and displays sticker overlay warning
+[ ] BombShieldManager silences simulated OTP bursts while piercing real bank SMS
+[ ] PortShieldManager sounds siren and clamps keystrokes > 80 chars/sec
+[ ] VexBrowserEngine blocks ad trackers via DoH, sniffs streaming video, and purges RAM on exit
+
+
+================================================================================
+PHASE 5: IMPLEMENTING FEATURES 10 TO 18 (ADVANCED MODULES & BROWSER PILLAR)
+================================================================================
+
+[MASTER PROMPT 5A: ADVANCED ESPIONAGE & CRYPTO DEFENSE]
+--------------------------------------------------------------------------------
+"Implement the advanced anti-espionage and crypto-theft engines:
+
+1. 'VoiceSentryEngine.kt':
+   - Calculate glottal pitch jitter J across speech frames:
+     J = sum(|T_i - T_{i+1}|) / ((N-1) * T_avg) * 100%.
+   - Flag AI cloned speech when jitter J < 0.1% or shows robotic step flatness.
+
+2. 'MirrorShieldManager.kt' (Cam/Mic Snooper Backfire):
+   - Monitor hardware camera state via CameraManager.AvailabilityCallback.
+   - Sensor-fusion context check: if Camera/Mic opens while Display=OFF,
+     Proximity=NEAR, and AmbientLight=0 lux, confirm ACTIVE HOSTILE SNOOPING.
+   - Hook Camera2 HAL or inotify file observer:
+     When an unauthorized process requests frame capture, swap the output with
+     pre-rendered decoy frame ('TARGET PROTECTED BY VEX').
+
+3. 'ClipSentryManager.kt':
+   - Listen to ClipboardManager.OnPrimaryClipChangedListener.
+   - Cryptographically sign copied strings: HMAC-SHA256(K, text).
+   - Vanity Clipper check: if clipboard mutates in < 400ms without touch,
+     and new text matches first 4 and last 4 characters of original crypto address
+     with Levenshtein distance > 15, REJECT MUTATION & RESTORE ORIGINAL.
+   - BIP-39 mnemonic detector: bloom filter matching 12/24 words, auto-wipe in 15s."
+--------------------------------------------------------------------------------
+
+[MASTER PROMPT 5B: BANKING ATS, ROGUE WI-FI, NFC & AIRTAG DEFENSE]
+--------------------------------------------------------------------------------
+"Implement the banking fraud, wireless network, and physical tracking shields:
+
+1. 'BankVaultAtsShield.kt':
+   - AccessibilityService event monitor: track action dispatch velocity.
+   - If velocity > 3.0 actions/sec inside registered banking packages,
+     confirm AUTOMATED TRANSFER SYSTEM (ATS) ATTACK.
+   - Freeze accessibility dispatch, tear down top-level transparent overlays
+     (alpha <= 0.08), and revoke trojan privileges via DevicePolicyManager.
+
+2. 'AirSentryManager.kt':
+   - Differential DNS Canary: query local UDP 53 DNS and Cloudflare DoH 1.1.1.1.
+     If IP_UDP53 != IP_DoH, flag active DNS poisoning.
+   - Poll '/proc/net/arp': track Gateway MAC churn. If Gateway MAC changes
+     without Wi-Fi reconnect (delta_MAC/delta_t > 0.2), trigger instant disconnect.
+
+3. 'NfcSentryManager.kt':
+   - High-priority foreground dispatch (NfcAdapter.enableForegroundDispatch).
+   - Trap raw Tag before Android dispatches intents.
+   - Verify NXP silicon 32-byte ECC signature via tag.transceive(0x3C, 0x00).
+   - Sanitize 'tel:' URI records, blocking carrier USSD codes (*21*, *#06#).
+
+4. 'ShadowSweepManager.kt':
+   - BluetoothLeScanner active scan filtering for Apple Find My (0x004C),
+     Tile (0xFEED), SmartTag (0x0075).
+   - Rolling MAC de-anonymizer: fingerprint 29-byte manufacturer payload.
+   - Spatial Persistence Score: if same payload persists across >= 3 GPS waypoints
+     over > 15 minutes, trigger STALKING ALERT with UWB directional compass."
+--------------------------------------------------------------------------------
+
+[PHASE 5 VERIFICATION CHECKLIST]:
+[ ] MirrorShieldManager replaces stealth camera capture with honeypot frame
+[ ] ClipSentryManager thwarts vanity lookalike address swaps
+[ ] AirSentryManager detects ARP gateway MAC churn and disconnects Wi-Fi
+[ ] BankVaultAtsShield clamps simulated high-speed accessibility taps
+
+
+================================================================================
+PHASE 6: LIVE STAGE SHOWSTOPPERS & FINAL APK COMPILATION
+================================================================================
+
+[MASTER PROMPT 6: SHOWSTOPPER DEMO WIREUP, TESTING LAB & RELEASE BUILD]
+--------------------------------------------------------------------------------
+"Wire up the 3 live stage showstoppers into the FastAPI TestLab and compile the
+production-ready Android APK:
+
+1. Wire up './backend/api/testlab.py' triggers:
+   - POST '/testlab/trigger-badusb': Sends ADB broadcast to simulate 150 char/sec
+     keystroke burst & triggers AlarmPlayer siren.
+   - POST '/testlab/trigger-cam-snoop': Simulates stealth webcam capture command,
+     verifies honeypot frame is saved to attacker directory.
+   - POST '/testlab/trigger-arp-mitm': Sends gratuitous ARP reply via Scapy to
+     demonstrate live Wi-Fi auto-disconnect.
+
+2. Build and assemble release APK:
+   - Run (Linux/macOS): './gradlew assembleDebug'
+   - Run (Windows):     '.\gradlew.bat assembleDebug'
+   - Verify output APK exists: './app/build/outputs/apk/debug/app-debug.apk'.
+   - Install to target: 'adb install -r ./app/build/outputs/apk/debug/app-debug.apk'.
+   - Launch app:        'adb shell am start -n com.vex.security/.MainActivity'.
+
+3. Validate end-to-end integration:
+   - Verify all 5 bottom navigation tabs switch smoothly.
+   - Confirm WebSocket telemetry streams live to http://127.0.0.1:8000/dashboard.
+   - Run simulated attack from TestLab and confirm screen turns crimson."
+--------------------------------------------------------------------------------
+
+================================================================================
+                        END OF UNIVERSAL MASTER PROMPTS
+================================================================================
