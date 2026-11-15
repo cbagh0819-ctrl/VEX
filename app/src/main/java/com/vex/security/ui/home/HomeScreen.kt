@@ -47,7 +47,7 @@ fun HomeScreen(
     onNavigateToQrCheck: () -> Unit = {},
     onNavigateToFileScan: () -> Unit = {},
     onNavigateToUrlScan: () -> Unit = {},
-    onNavigateToDashboard: () -> Unit = {},
+    onNavigateToPhoneCheck: () -> Unit = {},
     onNavigateToBrowser: () -> Unit = {},
     onNavigateToBombShield: () -> Unit = {},
     onNavigateToWifiCheck: () -> Unit = {}
@@ -248,7 +248,9 @@ fun HomeScreen(
 
         // Risk Status Card
         item {
-            CyberCard {
+            CyberCard(
+                modifier = Modifier.clickable { onNavigateToPhoneCheck() }
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -376,7 +378,7 @@ fun HomeScreen(
         item {
             CyberCard(
                 modifier = Modifier.clickable {
-                    startQuickScan()
+                    onNavigateToPhoneCheck()
                 }
             ) {
                 Row(
@@ -407,33 +409,25 @@ fun HomeScreen(
                             Text("QUICK SCAN", color = Color(0xFF80A0B0), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text("CHECK YOUR PHONE", color = Color(0xFFFFFFFF), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Text(
-                                text = if (scanning) "Scanning everything automatically..." else "Tap to quick scan everything automatically",
-                                color = if (scanning) Color(0xFF00FFE0) else Color(0xFFA0B0C0),
+                                text = "Tap for full 100% on-device phone audit",
+                                color = Color(0xFF00FFE0),
                                 fontSize = 11.sp
                             )
                         }
                     }
 
-                    if (scanning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(28.dp),
-                            color = Color(0xFF00FFE0),
-                            strokeWidth = 3.dp
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color(0xFF00FFE0), RoundedCornerShape(50)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "Go",
+                            tint = Color(0xFF000810),
+                            modifier = Modifier.size(20.dp)
                         )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(Color(0xFF00FFE0), RoundedCornerShape(50)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = "Go",
-                                tint = Color(0xFF000810),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
                     }
                 }
             }
@@ -548,10 +542,10 @@ fun HomeScreen(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
-                            icon = Icons.Default.BarChart,
-                            title = "SOC RADAR",
-                            subtitle = "Real-time threat monitoring & telemetry",
-                            onClick = onNavigateToDashboard
+                            icon = Icons.Default.Security,
+                            title = "PHONE AUDIT",
+                            subtitle = "Audit root, OS integrity & permissions",
+                            onClick = onNavigateToPhoneCheck
                         )
                     }
                 }
@@ -561,7 +555,7 @@ fun HomeScreen(
         // Recent Activity Card
         item {
             CyberCard(
-                modifier = Modifier.clickable { onNavigateToDashboard() }
+                modifier = Modifier.clickable { onNavigateToPhoneCheck() }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

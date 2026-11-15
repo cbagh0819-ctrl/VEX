@@ -49,13 +49,6 @@ fun SettingsScreen(
     var highRiskAlarm by remember { mutableStateOf(prefs.getBoolean("high_risk_alarm", true)) }
     var vibrationEnabled by remember { mutableStateOf(prefs.getBoolean("vibration_enabled", true)) }
 
-    val scope = rememberCoroutineScope()
-    var backendUrlInput by remember {
-        mutableStateOf(prefs.getString("backend_url", ApiClient.getServerUrl()) ?: ApiClient.getServerUrl())
-    }
-    var backendStatus by remember { mutableStateOf("Ready (${ApiClient.activeHost})") }
-    var isTestingBackend by remember { mutableStateOf(false) }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -145,82 +138,36 @@ fun SettingsScreen(
             }
         }
 
-        // Section: Cloud SOC Backend & 4G/5G Live Telemetry
+        // Section: Zero-Knowledge & 100% Privacy
         item {
-            SettingsSectionCard(title = "Cloud SOC Backend & Live Sync") {
-                Text(
-                    text = "Active Server: ${ApiClient.activeHost}",
-                    color = Color(0xFF00FFE0),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+            SettingsSectionCard(title = "Privacy & Standalone Mode") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VerifiedUser,
+                        contentDescription = "Zero Knowledge",
+                        tint = Color(0xFF00FFE0),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "100% On-Device & Zero-Knowledge",
+                        color = Color(0xFF00FFE0),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Configure your Render, Railway, or Cloudflare URL for real-time mobile sync over 4G/5G.",
+                    text = "No accounts, no logins, and zero data leaves your phone. All security evaluations, malware scanning, and Wi-Fi analysis run locally on your device CPU in under 10ms.",
                     color = Color(0xFF80A0B0),
                     fontSize = 11.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = backendUrlInput,
-                    onValueChange = { backendUrlInput = it },
-                    label = { Text("Cloud Backend URL", color = Color(0xFF80A0B0), fontSize = 12.sp) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF00FFE0),
-                        unfocusedBorderColor = Color(0xFF005566),
-                        focusedContainerColor = Color(0xFF06151D),
-                        unfocusedContainerColor = Color(0xFF06151D)
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = {
-                            scope.launch(Dispatchers.IO) {
-                                isTestingBackend = true
-                                backendStatus = "Testing connection..."
-                                ApiClient.setServerUrl(backendUrlInput)
-                                prefs.edit().putString("backend_url", ApiClient.getServerUrl()).apply()
-                                try {
-                                    val resp = ApiClient.apiService.healthCheck()
-                                    if (resp.isSuccessful) {
-                                        backendStatus = "Online (HTTP 200 OK)"
-                                    } else {
-                                        backendStatus = "Returned HTTP ${resp.code()}"
-                                    }
-                                } catch (e: Exception) {
-                                    backendStatus = "Failed: ${e.message ?: "Unreachable"}"
-                                } finally {
-                                    isTestingBackend = false
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FFE0)),
-                        shape = RoundedCornerShape(8.dp),
-                        enabled = !isTestingBackend
-                    ) {
-                        Text(
-                            text = if (isTestingBackend) "Pinging..." else "Test & Save URL",
-                            color = Color(0xFF00111A),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
-                    }
-                    Text(
-                        text = backendStatus,
-                        color = if (backendStatus.contains("Online") || backendStatus.contains("200")) Color(0xFF35E08A) else Color(0xFFFF9F43),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                HorizontalDivider(color = Color(0xFF005566), modifier = Modifier.padding(vertical = 8.dp))
+                SettingsRow(title = "Cloud Telemetry", subtitle = "Disabled (100% Standalone Offline)", onClick = {
+                    Toast.makeText(context, "VEX is configured for 100% on-device standalone privacy.", Toast.LENGTH_SHORT).show()
+                })
             }
         }
 

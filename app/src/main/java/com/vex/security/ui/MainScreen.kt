@@ -23,6 +23,7 @@ import com.vex.security.ui.scan.AiVideoCheckScreen
 import com.vex.security.ui.scan.UsbOtgCheckScreen
 import com.vex.security.ui.scan.FileScanScreen
 import com.vex.security.ui.scan.WifiCheckScreen
+import com.vex.security.ui.scan.PhoneCheckScreen
 import com.vex.security.ui.settings.SettingsScreen
 import com.vex.security.ui.telecom.BombShieldScreen
 import com.vex.security.ui.threats.ThreatListScreen
@@ -44,6 +45,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object UsbCheck : Screen("usb_check", "USB Check", Icons.Default.Security)
     object UrlCheck : Screen("url_check", "URL Check", Icons.Default.Security)
     object WifiCheck : Screen("wifi_check", "Wi-Fi Check", Icons.Default.Wifi)
+    object PhoneCheck : Screen("phone_check", "Phone Check", Icons.Default.Security)
 }
 
 @Composable
@@ -52,7 +54,6 @@ fun MainScreen() {
         Screen.Home,
         Screen.Browser,
         Screen.Reports,
-        Screen.Dashboard,
         Screen.Settings
     )
     var selectedRoute by remember { mutableStateOf(Screen.Home.route) }
@@ -102,10 +103,13 @@ fun MainScreen() {
                     onNavigateToQrCheck = { selectedRoute = Screen.QrCheck.route },
                     onNavigateToUrlScan = { selectedRoute = Screen.UrlCheck.route },
                     onNavigateToFileScan = { selectedRoute = Screen.FileScan.route },
-                    onNavigateToDashboard = { selectedRoute = Screen.Dashboard.route },
+                    onNavigateToPhoneCheck = { selectedRoute = Screen.PhoneCheck.route },
                     onNavigateToBrowser = { selectedRoute = Screen.Browser.route },
                     onNavigateToBombShield = { selectedRoute = Screen.BombShield.route },
                     onNavigateToWifiCheck = { selectedRoute = Screen.WifiCheck.route }
+                )
+                Screen.PhoneCheck.route -> PhoneCheckScreen(
+                    onBackPressed = { selectedRoute = Screen.Home.route }
                 )
                 Screen.BombShield.route -> BombShieldScreen(
                     onBackPressed = { selectedRoute = Screen.Home.route }

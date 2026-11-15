@@ -58,49 +58,6 @@ class MainActivity : ComponentActivity() {
             PolicyManager.refresh(this@MainActivity)
         }
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            for (attempt in 1..5) {
-                try {
-                    val response = ApiClient.apiService.healthCheck()
-                    if (response.isSuccessful) {
-                        Log.d("VEX_BACKEND", "Backend connected successfully: ${response.body()}")
-                        break
-                    } else {
-                        Log.e("VEX_BACKEND", "Backend returned error: ${response.code()}")
-                    }
-                } catch (e: Exception) {
-                    Log.w("VEX_BACKEND", "Backend connection attempt $attempt failed: ${e.message}")
-                }
-                delay(5000)
-            }
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val deviceId = DeviceIdentity.getDeviceId(this@MainActivity)
-            val device = DeviceRequest(
-                device_id = deviceId,
-                device_name = "VEX Android",
-                android_version = Build.VERSION.RELEASE,
-                model = Build.MODEL,
-                registered_at = System.currentTimeMillis()
-            )
-
-            for (attempt in 1..5) {
-                try {
-                    val response = ApiClient.apiService.registerDevice(device)
-                    if (response.isSuccessful) {
-                        Log.d("VEX_DEVICE", "Device registered successfully: ${response.body()}")
-                        break
-                    } else {
-                        Log.e("VEX_DEVICE", "Registration returned error: ${response.code()}")
-                    }
-                } catch (e: Exception) {
-                    Log.w("VEX_DEVICE", "Device registration attempt $attempt failed: ${e.message}")
-                }
-                delay(5000)
-            }
-        }
-
         setContent {
             VEXTheme {
                 var showSplash by remember { mutableStateOf(true) }

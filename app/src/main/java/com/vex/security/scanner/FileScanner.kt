@@ -22,33 +22,54 @@ object FileScanner {
         var fileSize = 0L
         var modifiedTime: Long? = null
 
-        resolver.query(
-            uri,
-            arrayOf(
-                OpenableColumns.DISPLAY_NAME,
-                OpenableColumns.SIZE
-            ),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-
-            if (cursor.moveToFirst()) {
-
-                val nameIndex =
-                    cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-
-                val sizeIndex =
-                    cursor.getColumnIndex(OpenableColumns.SIZE)
-
-                if (nameIndex >= 0) {
-                    fileName = cursor.getString(nameIndex)
+        if (uri.scheme == "file") {
+            try {
+                val filePath = uri.path
+                if (!filePath.isNullOrBlank()) {
+                    val file = java.io.File(filePath)
+                    if (file.exists()) {
+                        fileName = file.name
+                        fileSize = file.length()
+                        modifiedTime = file.lastModified()
+                    }
                 }
-
-                if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) {
-                    fileSize = cursor.getLong(sizeIndex)
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
+        } else {
+            try {
+                resolver.query(
+                    uri,
+                    arrayOf(
+                        OpenableColumns.DISPLAY_NAME,
+                        OpenableColumns.SIZE
+                    ),
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIndex =
+                            cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val sizeIndex =
+                            cursor.getColumnIndex(OpenableColumns.SIZE)
+
+                        if (nameIndex >= 0) {
+                            fileName = cursor.getString(nameIndex)
+                        }
+
+                        if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) {
+                            fileSize = cursor.getLong(sizeIndex)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                uri.lastPathSegment?.let { fileName = it }
+            }
+        }
+
+        if (fileName == "Unknown" && !uri.lastPathSegment.isNullOrBlank()) {
+            fileName = uri.lastPathSegment!!
         }
 
         val extFromName = if (fileName.contains(".")) {
