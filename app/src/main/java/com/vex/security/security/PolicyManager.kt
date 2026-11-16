@@ -20,7 +20,8 @@ object PolicyManager {
             editor.apply()
             Log.d("VEX_POLICY", "Policies refreshed: $policies")
         } catch (e: Exception) {
-            Log.w("VEX_POLICY", "Could not refresh policies from backend: ${e.message}")
+            // Load local fallback — silently use hardcoded defaults already defined in SecurityPolicy.kt
+            Log.d("VEX_POLICY", "Using local offline policy defaults: ${e.message}")
         }
     }
 

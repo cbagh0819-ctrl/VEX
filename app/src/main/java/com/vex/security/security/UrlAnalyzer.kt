@@ -5,12 +5,6 @@ import java.util.Locale
 
 object UrlAnalyzer {
 
-    // Controlled test URLs for test engine backwards compatibility
-    private const val SAFE_URL = "https://example.com/?vex_test=SAFE_10"
-    private const val WARN_URL = "https://example.com/?vex_test=WARN_35"
-    private const val BLOCK_URL = "https://example.com/?vex_test=BLOCK_60"
-    private const val QUARANTINE_URL = "https://example.com/?vex_test=QUARANTINE_85"
-
     private val shorteners = setOf(
         "bit.ly", "goo.gl", "tinyurl.com", "t.co", "ow.ly", "is.gd", "buff.ly", "adf.ly", "cutt.ly", "rb.gy", "shorturl.at"
     )
@@ -53,29 +47,21 @@ object UrlAnalyzer {
             return listOf(ThreatIndicators.NORMAL_URL)
         }
 
-        // 1. Check controlled test fixtures
-        when (url) {
-            SAFE_URL -> return listOf("CONTROLLED_SAFE_URL")
-            WARN_URL -> return listOf("CONTROLLED_WARN_URL")
-            BLOCK_URL -> return listOf("CONTROLLED_BLOCK_URL")
-            QUARANTINE_URL -> return listOf("CONTROLLED_QUARANTINE_URL")
-        }
-
         val lowerUrl = url.lowercase(Locale.ROOT)
 
-        // 2. Protocol Check
+        // 1. Protocol Check
         if (lowerUrl.startsWith("http://")) {
             indicators.add(ThreatIndicators.INSECURE_HTTP)
         } else if (lowerUrl.startsWith("javascript:") || lowerUrl.startsWith("data:") || lowerUrl.startsWith("file:")) {
             indicators.add(ThreatIndicators.SUSPICIOUS_URL)
         }
 
-        // 3. Embedded Credentials Check (e.g. http://admin:password@evil.com)
+        // 2. Embedded Credentials Check (e.g. http://admin:password@evil.com)
         if (lowerUrl.contains("://") && lowerUrl.substringAfter("://").contains("@")) {
             indicators.add(ThreatIndicators.EMBEDDED_CREDENTIALS)
         }
 
-        // 4. Extract Host and Path safely
+        // 3. Extract Host and Path safely
         var host = ""
         var path = ""
         try {
@@ -126,12 +112,12 @@ object UrlAnalyzer {
             }
         }
 
-        // 5. Direct Executable / Malware Download Check
+        // 4. Direct Executable / Malware Download Check
         if (dangerousFileExtensions.any { lowerUrl.contains(it) }) {
             indicators.add(ThreatIndicators.MALICIOUS_DOWNLOAD)
         }
 
-        // 6. Suspicious path/query keywords
+        // 5. Suspicious path/query keywords
         if (suspiciousKeywords.any { path.contains(it) || lowerUrl.contains(it) }) {
             indicators.add(ThreatIndicators.SUSPICIOUS_URL)
         }

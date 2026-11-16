@@ -1,5 +1,7 @@
 package com.vex.security.model
 
+import com.vex.security.scanner.FileThreatReport
+
 data class FileMetadata(
     val fileName: String,
     val filePath: String,
@@ -9,5 +11,6 @@ data class FileMetadata(
     val createdTime: Long?,
     val modifiedTime: Long?,
     val sha256: String?,
-    val source: String
+    val source: String,
+    val threatReport: FileThreatReport? = null
 )

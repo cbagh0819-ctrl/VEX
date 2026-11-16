@@ -17,10 +17,83 @@ data class ApkAnalysisDetails(
     val isControlledTest: Boolean,
     val testScore: Int,
     val testLevel: String?,
-    val testAction: String?
+    val testAction: String?,
+    val riskScore: Int = 0,
+    val riskLevel: String = "SAFE",
+    val dangerousFindings: List<String> = emptyList()
 )
 
 object ApkAnalyzer {
+
+    private val dangerousPermissions = setOf(
+        "android.permission.READ_SMS",
+        "android.permission.SEND_SMS",
+        "android.permission.RECEIVE_SMS",
+        "android.permission.READ_CALL_LOG",
+        "android.permission.PROCESS_OUTGOING_CALLS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.REQUEST_INSTALL_PACKAGES",
+        "android.permission.BIND_ACCESSIBILITY_SERVICE",
+        "android.permission.BIND_DEVICE_ADMIN",
+        "android.permission.GET_ACCOUNTS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.CHANGE_NETWORK_STATE",
+        "android.permission.DISABLE_KEYGUARD"
+    )
+
+    private val criticalCombinations = listOf(
+        setOf(
+            "android.permission.BIND_ACCESSIBILITY_SERVICE",
+            "android.permission.SYSTEM_ALERT_WINDOW"
+        ),
+        setOf(
+            "android.permission.READ_SMS",
+            "android.permission.SEND_SMS",
+            "android.permission.RECEIVE_SMS"
+        ),
+        setOf(
+            "android.permission.RECORD_AUDIO",
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.READ_CONTACTS"
+        )
+    )
+
+    fun scorePermissions(permissions: List<String>): Triple<Int, String, List<String>> {
+        val dangerous = permissions.filter { it in dangerousPermissions }
+        val findings = mutableListOf<String>()
+        var score = 0
+
+        // Base score from dangerous permission count
+        score += (dangerous.size * 8).coerceAtMost(60)
+
+        // Critical combinations
+        for (combo in criticalCombinations) {
+            if (permissions.containsAll(combo)) {
+                score += 25
+                findings.add("🔴 Dangerous permission combination: ${combo.joinToString(" + ") { it.substringAfterLast('.') }}")
+            }
+        }
+
+        dangerous.forEach { perm ->
+            findings.add("⚠️ ${perm.substringAfterLast('.')}")
+        }
+
+        score = score.coerceAtMost(100)
+        val level = when {
+            score >= 70 -> "DANGEROUS"
+            score >= 40 -> "SUSPICIOUS"
+            score >= 15 -> "LOW_RISK"
+            else        -> "SAFE"
+        }
+        return Triple(score, level, findings)
+    }
 
     fun analyze(
         context: Context,
@@ -58,6 +131,7 @@ object ApkAnalyzer {
             }
 
             val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
+            val (scoredRisk, scoredLevel, findings) = scorePermissions(permissions)
 
             val appInfo = packageInfo.applicationInfo
             val metaData = appInfo?.metaData
@@ -69,10 +143,7 @@ object ApkAnalyzer {
 
             Log.d("VEX_APK", "Selected URI: $apkUri")
             Log.d("VEX_APK", "Package: $packageName")
-            Log.d("VEX_APK", "Controlled fixture: $isFixture")
-            Log.d("VEX_APK", "Metadata level: $testLevel")
-            Log.d("VEX_APK", "Metadata score: $testScore")
-            Log.d("VEX_APK", "Metadata action: $testAction")
+            Log.d("VEX_APK", "Scored risk: $scoredRisk ($scoredLevel)")
 
             return ApkAnalysisDetails(
                 packageName = packageName,
@@ -82,7 +153,10 @@ object ApkAnalyzer {
                 isControlledTest = isFixture,
                 testScore = testScore,
                 testLevel = testLevel,
-                testAction = testAction
+                testAction = testAction,
+                riskScore = scoredRisk,
+                riskLevel = scoredLevel,
+                dangerousFindings = findings
             )
         } catch (e: Exception) {
             Log.e("VEX_APK", "Error analyzing APK: ${e.message}", e)

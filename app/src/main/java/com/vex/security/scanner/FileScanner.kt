@@ -80,9 +80,22 @@ object FileScanner {
         val finalMimeType = mimeType
             ?: (finalExtension?.let { android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) })
 
-        val sha256 = resolver.openInputStream(uri)?.use { input ->
-            HashCalculator.sha256(input)
-        }
+        val sha256 = try {
+            if (uri.scheme == "file") {
+                val file = java.io.File(uri.path ?: "")
+                if (file.exists()) file.inputStream().use { HashCalculator.sha256(it) } else null
+            } else {
+                resolver.openInputStream(uri)?.use { input ->
+                    HashCalculator.sha256(input)
+                }
+            }
+        } catch (_: Exception) { null }
+
+        val threatReport = FileThreatAnalyzer.analyzeContent(
+            context = context,
+            uri = uri,
+            extension = finalExtension
+        )
 
         return FileMetadata(
             fileName = fileName,
@@ -93,7 +106,8 @@ object FileScanner {
             createdTime = null,
             modifiedTime = modifiedTime,
             sha256 = sha256,
-            source = source
+            source = source,
+            threatReport = threatReport
         )
     }
 }

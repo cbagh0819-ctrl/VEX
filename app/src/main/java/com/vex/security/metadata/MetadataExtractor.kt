@@ -5,6 +5,7 @@ import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
+import com.drew.imaging.ImageMetadataReader
 import java.io.File
 import java.io.FileOutputStream
 
@@ -45,35 +46,7 @@ object MetadataExtractor {
 
         val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
 
-        // 2. Handle controlled test fixtures for automated testing compatibility
-        val lowerName = name.lowercase()
-        if (lowerName == "without_metadata.jpg" || lowerName == "no_metadata.jpg") {
-            return ExtractedMetadata(
-                name = name,
-                size = size,
-                mimeType = mimeType,
-                uri = uri.toString(),
-                hasMetadata = false,
-                details = emptyMap()
-            )
-        }
-        if (lowerName == "with_metadata.jpg") {
-            details["Camera Make"] = "Google Pixel / Real Camera"
-            details["Camera Model"] = "Pixel 8 Pro"
-            details["Date Taken"] = "2026:10:08 15:00:00"
-            details["Color Space"] = "sRGB"
-            details["ISO"] = "100"
-            return ExtractedMetadata(
-                name = name,
-                size = size,
-                mimeType = mimeType,
-                uri = uri.toString(),
-                hasMetadata = true,
-                details = details
-            )
-        }
-
-        // 3. Extract real EXIF metadata from file
+        // 2. Extract real EXIF metadata from file (No hardcoded filename test fixtures)
         var tempFile: File? = null
         try {
             tempFile = File.createTempFile("vex_meta_", ".tmp", context.cacheDir)
@@ -82,7 +55,21 @@ object MetadataExtractor {
             }
 
             if (tempFile.exists() && tempFile.length() > 0) {
-                // Try Image EXIF
+                // Try com.drewnoakes ImageMetadataReader first for deep metadata (IPTC/XMP/EXIF)
+                try {
+                    val metadata = ImageMetadataReader.readMetadata(tempFile)
+                    for (directory in metadata.directories) {
+                        for (tag in directory.tags) {
+                            val tagName = tag.tagName
+                            val tagDesc = tag.description
+                            if (tagDesc != null && tagDesc.isNotBlank() && !details.containsKey(tagName)) {
+                                details[tagName] = tagDesc
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                // Try Android ExifInterface for standard tags if details still sparse
                 try {
                     val exif = ExifInterface(tempFile.absolutePath)
                     val make = exif.getAttribute(ExifInterface.TAG_MAKE)
@@ -97,18 +84,18 @@ object MetadataExtractor {
                     val height = exif.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)
                     val lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE)
 
-                    if (make != null) details["Camera Make"] = make
-                    if (model != null) details["Camera Model"] = model
-                    if (dateTime != null) details["Date / Time"] = dateTime
-                    if (software != null) details["Software"] = software
-                    if (iso != null) details["ISO Speed"] = iso
-                    if (focalLength != null) details["Focal Length"] = focalLength
-                    if (fNumber != null) details["Aperture (F-Stop)"] = fNumber
-                    if (exposure != null) details["Exposure Time"] = exposure
-                    if (width != null && height != null && width != "0" && height != "0") {
+                    if (make != null && !details.containsKey("Camera Make")) details["Camera Make"] = make
+                    if (model != null && !details.containsKey("Camera Model")) details["Camera Model"] = model
+                    if (dateTime != null && !details.containsKey("Date / Time")) details["Date / Time"] = dateTime
+                    if (software != null && !details.containsKey("Software")) details["Software"] = software
+                    if (iso != null && !details.containsKey("ISO Speed")) details["ISO Speed"] = iso
+                    if (focalLength != null && !details.containsKey("Focal Length")) details["Focal Length"] = focalLength
+                    if (fNumber != null && !details.containsKey("Aperture (F-Stop)")) details["Aperture (F-Stop)"] = fNumber
+                    if (exposure != null && !details.containsKey("Exposure Time")) details["Exposure Time"] = exposure
+                    if (width != null && height != null && width != "0" && height != "0" && !details.containsKey("Dimensions")) {
                         details["Dimensions"] = "${width}x${height} px"
                     }
-                    if (lat != null) details["GPS Coordinates"] = "Present in EXIF"
+                    if (lat != null && !details.containsKey("GPS Coordinates")) details["GPS Coordinates"] = "Present in EXIF"
                 } catch (_: Exception) {}
 
                 // Try Audio / Video Metadata

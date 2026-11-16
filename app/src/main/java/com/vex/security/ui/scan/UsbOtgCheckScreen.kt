@@ -111,6 +111,24 @@ fun UsbOtgCheckScreen(
             }
         }
 
+        if (!com.vex.security.data.AssetDbStatus.isUsbDbReady(context)) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF2A1C0A), RoundedCornerShape(10.dp))
+                        .border(1.dp, Color(0xFFFFB800).copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "⚠️ Heuristic mode — threat database not loaded. Accuracy may be reduced.",
+                        color = Color(0xFFFFD166),
+                        fontSize = 11.5.sp
+                    )
+                }
+            }
+        }
+
         if (alarmActive) {
             item {
                 Card(

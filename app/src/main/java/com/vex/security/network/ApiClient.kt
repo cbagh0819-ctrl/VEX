@@ -113,4 +113,13 @@ object ApiClient {
             .build()
             .create(ApiService::class.java)
     }
+
+    suspend fun isAvailable(): Boolean {
+        return try {
+            val response = apiService.healthCheck()
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
