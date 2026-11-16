@@ -13,8 +13,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.vex.security.monitor.FileMonitor
 import com.vex.security.monitor.SystemMonitor
-import com.vex.security.network.ApiClient
-import com.vex.security.network.DeviceRequest
 import com.vex.security.notification.SecurityNotificationManager
 import com.vex.security.security.PolicyManager
 import com.vex.security.telecom.BombShieldManager
@@ -22,9 +20,7 @@ import com.vex.security.ui.MainScreen
 import com.vex.security.ui.splash.SplashScreen
 import com.vex.security.ui.theme.VEXTheme
 import com.vex.security.usb.UsbSecurityManager
-import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -39,13 +35,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize core security managers and channels
-        val prefs = getSharedPreferences("vex_settings", MODE_PRIVATE)
-        val savedBackendUrl = prefs.getString("backend_url", null)
-        if (!savedBackendUrl.isNullOrBlank()) {
-            ApiClient.setServerUrl(savedBackendUrl)
-        }
-
+        // Offline-first startup: No remote server calls, instant initialization
         SecurityNotificationManager.init(this)
         UsbSecurityManager.init(this)
         SystemMonitor.start(this)
