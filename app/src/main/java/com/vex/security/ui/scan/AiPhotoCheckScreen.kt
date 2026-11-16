@@ -75,48 +75,6 @@ object RealAiPhotoAnalyzer {
             }
         }
 
-        // Backward compatibility for controlled test fixtures
-        val lowerName = fileName.lowercase(Locale.ROOT)
-        val uriStr = uri.toString().lowercase(Locale.ROOT)
-        if (lowerName.contains("pure_ai") || uriStr.contains("pure_ai")) {
-            return AiImageAnalysis(
-                fileName = fileName,
-                fileSize = fileSize,
-                score = 85,
-                level = "QUARANTINE",
-                action = "QUARANTINE",
-                indicators = listOf(ThreatIndicators.AI_SYNTHETIC_GENERATOR, ThreatIndicators.AI_IMAGE_INDICATOR),
-                reasons = listOf(
-                    "Pure synthetic generative model pattern detected",
-                    "No physical camera sensor noise profile",
-                    "Controlled AI test fixture verified"
-                ),
-                recommendation = "The image is classified as a pure AI-generated synthetic picture and has been quarantined.",
-                cameraMake = null,
-                cameraModel = null,
-                software = "Generative AI Model"
-            )
-        }
-        if (lowerName.contains("ai_enhanced") || uriStr.contains("ai_enhanced")) {
-            return AiImageAnalysis(
-                fileName = fileName,
-                fileSize = fileSize,
-                score = 40,
-                level = "WARN",
-                action = "WARN",
-                indicators = listOf(ThreatIndicators.AI_ENHANCED_IMAGE),
-                reasons = listOf(
-                    "AI filter & enhancement modification detected",
-                    "Original photograph altered with neural upscaling",
-                    "Artificial frequency artifacts present"
-                ),
-                recommendation = "The image shows evidence of AI enhancement applied to an original photograph. Proceed with caution.",
-                cameraMake = "Enhanced Camera",
-                cameraModel = null,
-                software = "AI Enhancer"
-            )
-        }
-
         // Real EXIF extraction
         var tempFile: File? = null
         var make: String? = null

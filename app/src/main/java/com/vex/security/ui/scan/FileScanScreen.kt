@@ -55,6 +55,7 @@ fun FileScanScreen(
     var action by remember { mutableStateOf("") }
     var indicators by remember { mutableStateOf<List<String>>(emptyList()) }
     var explanation by remember { mutableStateOf<ThreatExplanation?>(null) }
+    var threatReport by remember { mutableStateOf<com.vex.security.scanner.FileThreatReport?>(null) }
     var scanning by remember { mutableStateOf(false) }
 
     val filePicker =
@@ -84,7 +85,17 @@ fun FileScanScreen(
                         )
                     }
 
+                    threatReport = result.threatReport
+
                     val foundIndicators = AutomaticFileAnalyzer.analyze(result).toMutableList()
+                    result.threatReport?.let { tr ->
+                        if (tr.isMasquerading) foundIndicators.add(ThreatIndicators.HIDDEN_EXTENSION)
+                        tr.findings.forEach { finding ->
+                            if (!foundIndicators.contains(finding)) {
+                                foundIndicators.add(finding)
+                            }
+                        }
+                    }
 
                     val analysis = ThreatEngine.analyze(foundIndicators, context)
 
@@ -374,6 +385,16 @@ fun FileScanScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text("ACTION: $action", color = Color(0xFFFFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+                        threatReport?.let { tr ->
+                            if (tr.findings.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("Deep File Inspection Findings:", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                tr.findings.forEach { finding ->
+                                    Text("• $finding", color = Color(0xFFA0C0D0), fontSize = 11.sp)
+                                }
+                            }
+                        }
 
                         explanation?.let { expl ->
                             Spacer(modifier = Modifier.height(10.dp))

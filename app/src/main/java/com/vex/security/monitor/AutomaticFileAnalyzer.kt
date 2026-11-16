@@ -13,30 +13,7 @@ object AutomaticFileAnalyzer {
             ?: if (metadata.fileName.contains(".")) metadata.fileName.substringAfterLast('.').lowercase() else null)
             ?.removePrefix(".")
 
-        // 1. Controlled demo fixtures & pattern matching for test lab (safe6487.txt, warn6474.txt, harmful8964.txt)
-        when {
-            fileName.contains("safe6487") -> {
-                indicators.add("FILE_SAFE_DEMO")
-            }
-            fileName.contains("warn6474") -> {
-                indicators.add("FILE_WARN_DEMO")
-            }
-            fileName.contains("harmful8964") -> {
-                indicators.add("FILE_HARMFUL_DEMO")
-            }
-            fileName == "vex_safe_demo.txt" || fileName.contains("safe_demo") -> {
-                return listOf(ThreatIndicators.CLEAN_FILE)
-            }
-            fileName == "vex_warn_demo.txt" || fileName.contains("warn_demo") -> {
-                indicators.add(ThreatIndicators.SUSPICIOUS_FILENAME)
-            }
-            fileName == "vex_harmful_demo.txt" || fileName.contains("harmful_demo") -> {
-                indicators.add(ThreatIndicators.SUSPICIOUS_FILENAME)
-                indicators.add(ThreatIndicators.SUSPICIOUS_EXTENSION)
-            }
-        }
-
-        // 2. Suspicious keywords in filename (real-world malware terms)
+        // 1. Suspicious keywords in filename (real-world malware terms)
         val suspiciousNames = listOf(
             "virus",
             "malware",

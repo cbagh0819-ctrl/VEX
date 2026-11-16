@@ -1,10 +1,14 @@
 package com.vex.security.ui.scan
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.hardware.usb.UsbDevice
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,26 +21,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.notification.AlarmPlayer
 import com.vex.security.notification.SecurityNotification
 import com.vex.security.repository.ThreatRepository
-import com.vex.security.security.ThreatExplanation
-import com.vex.security.ui.components.ThreatExplanationCard
+import com.vex.security.usb.UsbAnalysisResult
+import com.vex.security.usb.UsbSecurityManager
 import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.launch
-
-data class DemoFolderResult(
-    val title: String,
-    val description: String,
-    val riskScore: Int,
-    val riskLevel: String,
-    val action: String,
-    val explanation: ThreatExplanation,
-    val indicators: List<String>
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,10 +41,80 @@ fun UsbOtgCheckScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var activeResult by remember { mutableStateOf<DemoFolderResult?>(null) }
+    var connectedDevices by remember { mutableStateOf<List<UsbDevice>>(emptyList()) }
+    var deviceReports by remember { mutableStateOf<Map<String, UsbAnalysisResult>>(emptyMap()) }
     var alarmActive by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showBlockDialog by remember { mutableStateOf(false) }
+    var lastScannedAt by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    fun refreshUsbDevices() {
+        val devices = UsbSecurityManager.getConnectedDevices(context)
+        val reports = mutableMapOf<String, UsbAnalysisResult>()
+        var foundDangerous = false
+
+        for (device in devices) {
+            val report = UsbSecurityManager.analyzeDevice(device)
+            reports[device.deviceName] = report
+
+            if (report.riskLevel == "DANGEROUS" || report.riskScore >= 70) {
+                foundDangerous = true
+                scope.launch {
+                    try {
+                        ThreatRepository.sendThreatEvent(
+                            context = context,
+                            deviceId = DeviceIdentity.getDeviceId(context),
+                            threatType = "USB_HARDWARE_ATTACK",
+                            riskScore = report.riskScore,
+                            riskLevel = report.riskLevel,
+                            action = "BLOCK",
+                            status = "OPEN",
+                            indicators = report.findings,
+                            source = "USB_OTG_SHIELD",
+                            explanation = "Malicious USB hardware signature detected (${report.deviceName})",
+                            recommendation = report.recommendation
+                        )
+                    } catch (_: Exception) {}
+                }
+            }
+        }
+
+        connectedDevices = devices
+        deviceReports = reports
+        lastScannedAt = System.currentTimeMillis()
+
+        if (foundDangerous) {
+            alarmActive = true
+            AlarmPlayer.playAlarm(context)
+            SecurityNotification.showHarmfulAlert(context, "Malicious USB Hardware Detected! Disconnect immediately.")
+        }
+    }
+
+    // Register live USB hardware insertion/removal broadcast listener
+    DisposableEffect(context) {
+        refreshUsbDevices()
+
+        val receiver: BroadcastReceiver = UsbSecurityManager.registerUsbReceiver(
+            context = context,
+            onDeviceAttached = {
+                refreshUsbDevices()
+            },
+            onDeviceDetached = {
+                refreshUsbDevices()
+                if (alarmActive) {
+                    AlarmPlayer.stopAlarm(context)
+                    alarmActive = false
+                }
+            }
+        )
+
+        onDispose {
+            try {
+                context.unregisterReceiver(receiver)
+            } catch (_: Exception) {}
+            if (alarmActive) {
+                AlarmPlayer.stopAlarm(context)
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -95,286 +160,172 @@ fun UsbOtgCheckScreen(
 
                     Column {
                         Text(
-                            text = "USB/OTG FILE INSPECTION",
+                            text = "USB / OTG HARDWARE SHIELD",
                             color = Color(0xFFFFFFFF),
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "Interactive USB & MTP Demo Test Lab",
+                            text = "BadUSB, Rubber Ducky & HID Defense",
                             color = Color(0xFF80A0B0),
                             fontSize = 10.sp
                         )
                     }
                 }
-            }
-        }
 
-        if (!com.vex.security.data.AssetDbStatus.isUsbDbReady(context)) {
-            item {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF2A1C0A), RoundedCornerShape(10.dp))
-                        .border(1.dp, Color(0xFFFFB800).copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(20.dp))
+                        .background(Color(0xFF0A1F28), RoundedCornerShape(20.dp))
+                        .clickable { refreshUsbDevices() }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "⚠️ Heuristic mode — threat database not loaded. Accuracy may be reduced.",
-                        color = Color(0xFFFFD166),
-                        fontSize = 11.5.sp
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Scan",
+                            tint = Color(0xFF00FFE0),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "SCAN",
+                            color = Color(0xFF00FFE0),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
 
+        // Alarm Warning Banner if active
         if (alarmActive) {
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFFF4D6D), RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0D14))
+                        .border(1.dp, Color(0xFFFF3358), RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2E0914))
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFFF4D6D))
-                            Text("VEX CRITICAL ALARM ACTIVE", color = Color(0xFFFF4D6D), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Alarm",
+                                tint = Color(0xFFFF3358),
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Column {
+                                Text("ATTACK HARDWARE ALERT", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                Text("Malicious USB device detected!", color = Color(0xFFFF88A0), fontSize = 11.sp)
+                            }
                         }
-                        Text(
-                            "Folder contains dangerous malware payload! Immediate action required.",
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 12.sp
-                        )
+
                         Button(
                             onClick = {
                                 AlarmPlayer.stopAlarm(context)
                                 alarmActive = false
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3358))
                         ) {
-                            Text("STOP ALARM", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("SILENCE", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        // 3 Testing Buttons Card
+        // Live USB Status Card
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
+                    .border(1.dp, Color(0xFF00FFE0).copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(54.dp)
-                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(14.dp))
-                                .background(Color(0xFF0A1F28), RoundedCornerShape(14.dp)),
+                                .size(48.dp)
+                                .border(1.dp, Color(0xFF00FFE0), RoundedCornerShape(12.dp))
+                                .background(Color(0xFF0A1F28), RoundedCornerShape(12.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Usb,
                                 contentDescription = "USB",
-                                tint = Color(0xFF00FFE0),
-                                modifier = Modifier.size(30.dp)
+                                tint = if (connectedDevices.isNotEmpty()) Color(0xFF00FFE0) else Color(0xFF80A0B0),
+                                modifier = Modifier.size(26.dp)
                             )
                         }
 
                         Column {
                             Text(
-                                text = "USB / MTP Test Simulation",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
+                                text = if (connectedDevices.isEmpty()) "NO USB DEVICES ATTACHED" else "${connectedDevices.size} USB DEVICE(S) CONNECTED",
+                                color = Color.White,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Click a test button below to simulate folder insertion",
+                                text = if (connectedDevices.isEmpty()) "Host controller ready. Plug in an OTG cable/drive." else "Live hardware inspection running",
                                 color = Color(0xFF80A0B0),
                                 fontSize = 11.sp
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    HorizontalDivider(color = Color(0xFF162A38), thickness = 1.dp)
 
-                    // 1. Insert Safe Button
-                    Button(
-                        onClick = {
-                            AlarmPlayer.stopAlarm(context)
-                            alarmActive = false
-                            activeResult = DemoFolderResult(
-                                title = "Safe Folder (/USB/Photos_2026/)",
-                                description = "Folder contains standard documents and vacation photos. It is a safe folder.",
-                                riskScore = 10,
-                                riskLevel = "SAFE",
-                                action = "ALLOW",
-                                indicators = listOf("FILE_SAFE_DEMO"),
-                                explanation = ThreatExplanation(
-                                    reasons = listOf("Original Safe Folder Detected", "No suspicious executable or script signatures found", "Standard media file structure verified"),
-                                    recommendation = "The folder is safe and allowed."
-                                )
-                            )
-                            scope.launch {
-                                try {
-                                    ThreatRepository.sendThreatEvent(
-                            context = context,
-                                        deviceId = DeviceIdentity.getDeviceId(context),
-                                        threatType = "FILE",
-                                        riskScore = 10,
-                                        riskLevel = "SAFE",
-                                        action = "ALLOW",
-                                        status = "RESOLVED",
-                                        indicators = listOf("FILE_SAFE_DEMO"),
-                                        source = "USB",
-                                        explanation = "Original Safe Folder Detected | No suspicious executable signatures | Standard media file structure verified",
-                                        recommendation = "The folder is safe and allowed."
-                                    )
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF35E08A))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF000810))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("INSERT SAFE", color = Color(0xFF000810), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
-
-                    // 2. Insert Warn Button
-                    Button(
-                        onClick = {
-                            AlarmPlayer.stopAlarm(context)
-                            alarmActive = false
-                            activeResult = DemoFolderResult(
-                                title = "Warning Folder (/USB/Downloads/)",
-                                description = "Folder contains unusual files or unrecognized structure. Warning detected.",
-                                riskScore = 35,
-                                riskLevel = "WARN",
-                                action = "WARN",
-                                indicators = listOf("FILE_WARN_DEMO", "SUSPICIOUS_FILENAME"),
-                                explanation = ThreatExplanation(
-                                    reasons = listOf("Unusual Folder Structure Detected", "Contains files with unrecognized or mixed extensions", "Requires user attention"),
-                                    recommendation = "Review folder contents before opening any files."
-                                )
-                            )
-                            SecurityNotification.showWarning(context, "Warning Folder detected unusual content (Score: 35)")
-                            scope.launch {
-                                try {
-                                    ThreatRepository.sendThreatEvent(
-                            context = context,
-                                        deviceId = DeviceIdentity.getDeviceId(context),
-                                        threatType = "FILE",
-                                        riskScore = 35,
-                                        riskLevel = "WARN",
-                                        action = "WARN",
-                                        status = "OPEN",
-                                        indicators = listOf("FILE_WARN_DEMO", "SUSPICIOUS_FILENAME"),
-                                        source = "USB",
-                                        explanation = "Unusual Folder Structure Detected | Contains files with unrecognized or mixed extensions",
-                                        recommendation = "Review folder contents before opening any files."
-                                    )
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD166))
-                    ) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFF000810))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("INSERT WARN", color = Color(0xFF000810), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
-
-                    // 3. Insert Harmful Button
-                    Button(
-                        onClick = {
-                            activeResult = DemoFolderResult(
-                                title = "Harmful Folder (/USB/Payloads/)",
-                                description = "Folder contains dangerous malware payload! Immediate action required.",
-                                riskScore = 85,
-                                riskLevel = "QUARANTINE",
-                                action = "QUARANTINE",
-                                indicators = listOf("FILE_HARMFUL_DEMO", "MALICIOUS_TEST_INDICATOR", "SUSPICIOUS_EXTENSION"),
-                                explanation = ThreatExplanation(
-                                    reasons = listOf("Dangerous Malware Payload Detected", "Matched known exploit signatures and hidden executable scripts", "High risk of device compromise"),
-                                    recommendation = "The folder has been quarantined. Block or delete immediately."
-                                )
-                            )
-                            alarmActive = true
-                            SecurityNotification.showHarmfulAlert(context, "Harmful Folder (/USB/Payloads/)")
-                            scope.launch {
-                                try {
-                                    ThreatRepository.sendThreatEvent(
-                            context = context,
-                                        deviceId = DeviceIdentity.getDeviceId(context),
-                                        threatType = "FILE",
-                                        riskScore = 85,
-                                        riskLevel = "QUARANTINE",
-                                        action = "QUARANTINE",
-                                        status = "OPEN",
-                                        indicators = listOf("FILE_HARMFUL_DEMO", "MALICIOUS_TEST_INDICATOR", "SUSPICIOUS_EXTENSION"),
-                                        source = "USB",
-                                        explanation = "Dangerous Malware Payload Detected | Matched known exploit signatures and hidden executable scripts",
-                                        recommendation = "The folder has been quarantined. Block or delete immediately."
-                                    )
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
-                    ) {
-                        Icon(Icons.Default.BugReport, contentDescription = null, tint = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("INSERT HARMFUL", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Active OTG Controller: READY", color = Color(0xFF00FFE0), fontSize = 11.sp)
+                        Text("Signature DB: 5 Attack Profiles", color = Color(0xFF80A0B0), fontSize = 11.sp)
                     }
                 }
             }
         }
 
-        // Result Display Card
-        activeResult?.let { res ->
-            item {
+        // Connected Device Details
+        if (connectedDevices.isNotEmpty()) {
+            items(connectedDevices) { device ->
+                val report = deviceReports[device.deviceName] ?: UsbSecurityManager.analyzeDevice(device)
+                val badgeColor = when (report.riskLevel) {
+                    "DANGEROUS" -> Color(0xFFFF3358)
+                    "SUSPICIOUS" -> Color(0xFFFFB800)
+                    else -> Color(0xFF35E08A)
+                }
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(
-                            1.dp,
-                            when (res.riskLevel) {
-                                "SAFE" -> Color(0xFF35E08A)
-                                "WARN" -> Color(0xFFFFD166)
-                                else -> Color(0xFFFF4D6D)
-                            }.copy(alpha = 0.6f),
-                            RoundedCornerShape(16.dp)
-                        ),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B161F))
+                        .border(1.dp, badgeColor.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0C1924))
                 ) {
                     Column(
-                        modifier = Modifier.padding(18.dp),
+                        modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
@@ -382,142 +333,105 @@ fun UsbOtgCheckScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = res.title,
-                                color = Color(0xFFFFFFFF),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = device.deviceName.ifBlank { "Generic USB Peripheral" },
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "VID: ${String.format("0x%04X", device.vendorId)}  |  PID: ${String.format("0x%04X", device.productId)}",
+                                    color = Color(0xFF00FFE0),
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+
                             Box(
                                 modifier = Modifier
-                                    .background(
-                                        when (res.riskLevel) {
-                                            "SAFE" -> Color(0xFF35E08A).copy(alpha = 0.2f)
-                                            "WARN" -> Color(0xFFFFD166).copy(alpha = 0.2f)
-                                            else -> Color(0xFFFF4D6D).copy(alpha = 0.2f)
-                                        },
-                                        RoundedCornerShape(6.dp)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .background(badgeColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                    .border(1.dp, badgeColor, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = res.riskLevel,
-                                    color = when (res.riskLevel) {
-                                        "SAFE" -> Color(0xFF35E08A)
-                                        "WARN" -> Color(0xFFFFD166)
-                                        else -> Color(0xFFFF4D6D)
-                                    },
+                                    text = report.riskLevel,
+                                    color = badgeColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                         }
 
-                        Text(res.description, color = Color(0xFF80A0B0), fontSize = 12.sp)
-
-                        Spacer(modifier = Modifier.height(2.dp))
+                        HorizontalDivider(color = Color(0xFF162A38))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column {
-                                Text("RISK SCORE", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text("${res.riskScore} / 100", color = Color(0xFF00FFE0), fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("ACTION", color = Color(0xFF80A0B0), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                Text(res.action, color = Color(0xFFFFFFFF), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text("Device Class: ${device.deviceClass}", color = Color(0xFF80A0B0), fontSize = 11.sp)
+                            Text("Interfaces: ${device.interfaceCount}", color = Color(0xFF80A0B0), fontSize = 11.sp)
+                            Text("Risk Score: ${report.riskScore}/100", color = badgeColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        if (report.findings.isNotEmpty()) {
+                            Text("Hardware Findings:", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                report.findings.forEach { finding ->
+                                    Text("• $finding", color = Color(0xFFA0C0D0), fontSize = 11.sp)
+                                }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        ThreatExplanationCard(
-                            explanation = res.explanation,
-                            indicators = res.indicators
-                        )
-
-                        if (res.riskLevel == "QUARANTINE") {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Button(
-                                    onClick = { showBlockDialog = true },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9F43))
-                                ) {
-                                    Icon(Icons.Default.Block, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("1. BLOCK", color = Color.Black, fontWeight = FontWeight.Bold)
-                                }
-
-                                Button(
-                                    onClick = { showDeleteDialog = true },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
-                                ) {
-                                    Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("2. DELETE", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF061018), RoundedCornerShape(8.dp))
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = "🛡️ Recommendation: ${report.recommendation}",
+                                color = Color(0xFFD0E0E8),
+                                fontSize = 11.sp
+                            )
                         }
                     }
                 }
             }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(30.dp))
-        }
-    }
-
-    // Block Dialog
-    if (showBlockDialog) {
-        AlertDialog(
-            onDismissRequest = { showBlockDialog = false },
-            title = { Text("Folder Blocked") },
-            text = { Text("The harmful folder has been successfully blocked from access and quarantined.") },
-            confirmButton = {
-                Button(onClick = {
-                    AlarmPlayer.stopAlarm(context)
-                    alarmActive = false
-                    showBlockDialog = false
-                }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-
-    // Delete Dialog
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Demo Deletion Confirmation") },
-            text = { Text("Demo testing: Are you sure you want to delete this harmful folder payload?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        AlarmPlayer.stopAlarm(context)
-                        alarmActive = false
-                        activeResult = null
-                        showDeleteDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4D6D))
+        } else {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFF005566).copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0A1822))
                 ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Help",
+                            tint = Color(0xFF00FFE0),
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = "How to test USB / OTG Security",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Attach any USB drive, mouse, keyboard, or OTG accessory. VEX will instantly read the hardware vendor/product IDs and analyze interface descriptors for BadUSB keyboard injection or malicious firmware.",
+                            color = Color(0xFF80A0B0),
+                            fontSize = 11.sp,
+                            lineHeight = 16.sp
+                        )
+                    }
                 }
             }
-        )
+        }
     }
 }

@@ -66,20 +66,34 @@ object WifiSecurityManager {
 
     fun detectEvilTwin(networks: List<WifiScanItem>): List<String> {
         val suspiciousPairs = mutableListOf<String>()
-        val grouped = networks.groupBy { it.ssid.trim() }
-        for ((ssid, group) in grouped) {
+
+        // 1. Same SSID seen from multiple distinct BSSIDs (Classic Rogue Clone)
+        val groupedBySsid = networks.groupBy { it.ssid.trim() }
+        for ((ssid, group) in groupedBySsid) {
             if (ssid.isNotBlank() && group.size >= 2) {
-                // Multiple networks with same SSID = potential evil twin
-                val bssids = group.map { it.bssid }.distinct()
+                val bssids = group.map { it.bssid.trim().uppercase() }.distinct()
                 if (bssids.size >= 2) {
-                    // Different BSSIDs with same name on same channel = evil twin
                     suspiciousPairs.add(
                         "⚠️ Possible Evil Twin: '$ssid' seen from ${bssids.size} different access points"
                     )
                 }
             }
         }
-        return suspiciousPairs
+
+        // 2. Same BSSID broadcasting multiple distinct SSIDs (BSSID Spoofing)
+        val groupedByBssid = networks.groupBy { it.bssid.trim().uppercase() }
+        for ((bssid, group) in groupedByBssid) {
+            if (bssid.isNotBlank() && bssid != "02:00:00:00:00:00") {
+                val ssids = group.map { it.ssid.trim() }.filter { it.isNotBlank() }.distinct()
+                if (ssids.size >= 2) {
+                    suspiciousPairs.add(
+                        "⚠️ Rogue AP / Evil Twin: BSSID ($bssid) broadcasting conflicting SSIDs (${ssids.joinToString(", ")})"
+                    )
+                }
+            }
+        }
+
+        return suspiciousPairs.distinct()
     }
 
     fun analyzeWifiNetwork(context: Context): WifiSecurityReport {

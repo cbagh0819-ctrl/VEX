@@ -4,21 +4,6 @@ object RiskCalculator {
 
     fun getIndicatorWeight(indicator: String): Int {
         return when (indicator) {
-            // Controlled fixtures for OTG demo & backward compatibility
-            "FILE_SAFE_DEMO" -> 10
-            "FILE_WARN_DEMO" -> 35
-            "FILE_HARMFUL_DEMO" -> 85
-
-            "CONTROLLED_SAFE_URL" -> 10
-            "CONTROLLED_WARN_URL" -> 35
-            "CONTROLLED_BLOCK_URL" -> 60
-            "CONTROLLED_QUARANTINE_URL" -> 85
-
-            "CONTROLLED_APK_SAFE" -> 10
-            "CONTROLLED_APK_WARN" -> 35
-            "CONTROLLED_APK_BLOCK" -> 60
-            "CONTROLLED_APK_QUARANTINE" -> 85
-
             // Clean / Safe indicators
             ThreatIndicators.NORMAL_URL -> 10
             ThreatIndicators.CAMERA_AUTHENTIC -> 10
@@ -93,10 +78,7 @@ object RiskCalculator {
             it == ThreatIndicators.CAMERA_AUTHENTIC || 
             it == ThreatIndicators.CAMERA_RECORDED_VIDEO ||
             it == ThreatIndicators.CLEAN_FILE || 
-            it == ThreatIndicators.CLEAN_APP || 
-            it == "FILE_SAFE_DEMO" || 
-            it == "CONTROLLED_SAFE_URL" || 
-            it == "CONTROLLED_APK_SAFE" 
+            it == ThreatIndicators.CLEAN_APP
         }
         if (safeOnly) return 10
 

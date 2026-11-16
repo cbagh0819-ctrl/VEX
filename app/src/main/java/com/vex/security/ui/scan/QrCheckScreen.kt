@@ -58,14 +58,7 @@ fun QrCheckScreen(
         val trimmed = rawData.trim()
         val lower = trimmed.lowercase()
 
-        // Handle controlled test tokens for automated test compatibility
-        val resolvedUrl = when {
-            lower == "safe" || lower == "safe_10" -> "https://example.com/?vex_test=SAFE_10"
-            lower == "warn" || lower == "warn_35" -> "https://example.com/?vex_test=WARN_35"
-            lower == "block" || lower == "block_60" -> "https://example.com/?vex_test=BLOCK_60"
-            lower == "quarantine" || lower == "quarantine_85" -> "https://example.com/?vex_test=QUARANTINE_85"
-            else -> trimmed
-        }
+        val resolvedUrl = trimmed
 
         if (resolvedUrl.isBlank()) {
             errorMessage = "❌ No QR code content detected."

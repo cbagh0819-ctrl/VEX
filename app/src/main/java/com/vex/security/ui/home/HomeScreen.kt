@@ -583,14 +583,14 @@ fun HomeScreen(
                     }
                 }
 
-                // Row 3: NO METADATA & USB / OTG CHECK
+                // Row 3: WI-FI CHECK & USB / OTG CHECK (Prominently visible)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
-                            icon = Icons.Default.Description,
-                            title = "NO METADATA",
-                            subtitle = "Find missing metadata photos",
-                            onClick = onNavigateToNoMetadataCheck
+                            icon = Icons.Default.Wifi,
+                            title = "WI-FI CHECK",
+                            subtitle = "Inspect network & rogue APs",
+                            onClick = onNavigateToWifiCheck
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
@@ -643,14 +643,14 @@ fun HomeScreen(
                     }
                 }
 
-                // Row 6: WI-FI CHECK & PHONE AUDIT (Newly added and prominent!)
+                // Row 6: NO METADATA & PHONE AUDIT
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(modifier = Modifier.weight(1f)) {
                         FeatureItem(
-                            icon = Icons.Default.Wifi,
-                            title = "WI-FI CHECK",
-                            subtitle = "Inspect network & rogue APs",
-                            onClick = onNavigateToWifiCheck
+                            icon = Icons.Default.Description,
+                            title = "NO METADATA",
+                            subtitle = "Find missing metadata photos",
+                            onClick = onNavigateToNoMetadataCheck
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {

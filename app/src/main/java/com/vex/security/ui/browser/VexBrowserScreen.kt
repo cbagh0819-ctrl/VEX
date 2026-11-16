@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.vex.security.browser.VexBrowserEngine
+import java.io.ByteArrayInputStream
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -233,14 +236,7 @@ fun VexBrowserScreen(
             AndroidView(
                 factory = { context ->
                     WebView(context).apply {
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        settings.databaseEnabled = true
-                        settings.loadWithOverviewMode = true
-                        settings.useWideViewPort = true
-                        settings.setSupportZoom(true)
-                        settings.builtInZoomControls = true
-                        settings.displayZoomControls = false
+                        VexBrowserEngine.configureSecureSettings(this)
 
                         webChromeClient = object : WebChromeClient() {
                             override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -249,7 +245,29 @@ fun VexBrowserScreen(
                             }
                         }
 
+                        val blockedAdHosts = setOf(
+                            "doubleclick.net", "googlesyndication.com", "googleadservices.com",
+                            "pagead2.googlesyndication.com", "adnxs.com", "scorecardresearch.com",
+                            "taboola.com", "outbrain.com", "adservice.google.com",
+                            "facebook.net/tr", "analytics.google.com"
+                        )
+
                         webViewClient = object : WebViewClient() {
+                            override fun shouldInterceptRequest(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): WebResourceResponse? {
+                                val host = request?.url?.host?.lowercase() ?: ""
+                                if (blockedAdHosts.any { host.contains(it) }) {
+                                    return WebResourceResponse(
+                                        "text/plain",
+                                        "UTF-8",
+                                        ByteArrayInputStream(ByteArray(0))
+                                    )
+                                }
+                                return super.shouldInterceptRequest(view, request)
+                            }
+
                             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                 isLoading = true
                                 url?.let {

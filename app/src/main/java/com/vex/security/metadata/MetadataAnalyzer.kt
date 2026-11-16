@@ -18,8 +18,7 @@ object MetadataAnalyzer {
 
     private const val TAG = "VEX_METADATA_ANALYZER"
 
-    fun analyze(context: Context, uri: Uri): MetadataRiskReport {
-        val extracted = MetadataExtractor.extract(context, uri)
+    fun analyze(extracted: ExtractedMetadata): MetadataRiskReport {
         val details = extracted.details
 
         val hasGps = details.containsKey("GPS_Latitude") || details.containsKey("GPS_Longitude")
@@ -28,15 +27,12 @@ object MetadataAnalyzer {
 
         var risk = 10
         if (hasGps) risk += 60
-        if (model != null) risk += 15
-        if (software != null) risk += 10
+        if (software != null) risk += 15
 
-        val rec = if (hasGps) {
-            "CRITICAL PRIVACY RISK: Image contains embedded GPS coordinates. Strip EXIF tags before sharing."
-        } else if (model != null) {
-            "MODERATE RISK: Hardware device fingerprint detected in metadata."
-        } else {
-            "LOW RISK: File metadata is sanitized."
+        val rec = when {
+            risk >= 70 -> "High privacy risk: GPS location or metadata embedded. Strip before sharing."
+            risk >= 25 -> "Medium risk: Camera model or software info embedded in image."
+            else -> "Low risk: Clean metadata."
         }
 
         Log.d(TAG, "Analyzed metadata for: ${extracted.name}, Risk score: $risk")
@@ -50,5 +46,10 @@ object MetadataAnalyzer {
             riskScore = risk,
             recommendation = rec
         )
+    }
+
+    fun analyze(context: Context, uri: Uri): MetadataRiskReport {
+        val extracted = MetadataExtractor.extract(context, uri)
+        return analyze(extracted)
     }
 }

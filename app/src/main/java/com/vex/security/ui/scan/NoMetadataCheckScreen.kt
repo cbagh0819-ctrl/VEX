@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vex.security.metadata.MetadataExtractor
 import com.vex.security.metadata.ExtractedMetadata
+import com.vex.security.metadata.MetadataAnalyzer
+import com.vex.security.metadata.MetadataRiskReport
 import com.vex.security.repository.ThreatRepository
 import com.vex.security.utils.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +42,7 @@ fun NoMetadataCheckScreen(
 
     var scanning by remember { mutableStateOf(false) }
     var extractedMetadata by remember { mutableStateOf<ExtractedMetadata?>(null) }
+    var riskReport by remember { mutableStateOf<MetadataRiskReport?>(null) }
 
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -47,30 +50,42 @@ fun NoMetadataCheckScreen(
         if (uri != null) {
             scanning = true
             extractedMetadata = null
+            riskReport = null
             scope.launch {
                 val metadata = withContext(Dispatchers.IO) {
                     MetadataExtractor.extract(context, uri)
                 }
-                extractedMetadata = metadata
+                val report = withContext(Dispatchers.Default) {
+                    MetadataAnalyzer.analyze(metadata)
+                }
 
-                val riskScore = if (metadata.hasMetadata) 10 else 50
-                val riskLevel = if (metadata.hasMetadata) "SAFE" else "BLOCK"
-                val action = if (metadata.hasMetadata) "ALLOW" else "BLOCK"
-                val indicators = if (metadata.hasMetadata) emptyList() else listOf("MISSING_METADATA")
+                extractedMetadata = metadata
+                riskReport = report
+
+                val riskScore = report.riskScore
+                val riskLevel = when {
+                    riskScore >= 70 -> "BLOCK"
+                    riskScore >= 35 -> "WARN"
+                    else -> "SAFE"
+                }
+                val action = if (riskScore >= 70) "BLOCK" else if (riskScore >= 35) "WARN" else "ALLOW"
+                val indicators = mutableListOf<String>()
+                if (!metadata.hasMetadata) indicators.add("MISSING_METADATA")
+                if (report.hasExifLocation) indicators.add("EXIF_GEO_EXPOSURE")
 
                 try {
                     ThreatRepository.sendThreatEvent(
-                            context = context,
+                        context = context,
                         deviceId = DeviceIdentity.getDeviceId(context),
                         threatType = "METADATA",
                         riskScore = riskScore,
                         riskLevel = riskLevel,
                         action = action,
-                        status = "OPEN",
+                        status = if (riskLevel == "SAFE") "RESOLVED" else "OPEN",
                         indicators = indicators,
                         source = "ANDROID_METADATA_CHECK",
-                        explanation = if (metadata.hasMetadata) "Metadata is present and valid." else "Critical EXIF metadata attributes are missing or stripped.",
-                        recommendation = if (metadata.hasMetadata) "No action needed." else "Inspect file origin and handle with caution."
+                        explanation = if (metadata.hasMetadata) "Metadata parsed: Camera=${report.deviceModel ?: "Unknown"}, Software=${report.software ?: "None"}." else "Critical EXIF metadata attributes are missing or stripped.",
+                        recommendation = report.recommendation
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -299,6 +314,20 @@ fun NoMetadataCheckScreen(
                             meta.details.forEach { (k, v) ->
                                 Text("• $k: $v", color = Color(0xFFFFFFFF), fontSize = 11.sp)
                             }
+                        }
+
+                        riskReport?.let { rep ->
+                            HorizontalDivider(color = Color(0xFF005566))
+                            Text("Security & Privacy Report:", color = Color(0xFF00FFE0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("• Risk Score: ${rep.riskScore} / 100", color = if (rep.riskScore >= 35) Color(0xFFFFB800) else Color(0xFF35E08A), fontSize = 11.sp)
+                            Text("• Camera Model: ${rep.deviceModel ?: "Unknown"}", color = Color(0xFFFFFFFF), fontSize = 11.sp)
+                            Text("• Software / Editor: ${rep.software ?: "None detected"}", color = Color(0xFFFFFFFF), fontSize = 11.sp)
+                            if (rep.hasExifLocation) {
+                                Text("• GPS Location: EXPOSED (${rep.latitude}, ${rep.longitude})", color = Color(0xFFFF3358), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            } else {
+                                Text("• GPS Location: Stripped / Private", color = Color(0xFF35E08A), fontSize = 11.sp)
+                            }
+                            Text("• Recommendation: ${rep.recommendation}", color = Color(0xFFA0C0D0), fontSize = 11.sp)
                         }
                     }
                 }

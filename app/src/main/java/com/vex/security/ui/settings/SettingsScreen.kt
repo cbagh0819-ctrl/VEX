@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vex.security.network.ApiClient
 import com.vex.security.notification.AlarmPlayer
 import com.vex.security.notification.SecurityNotification
 import kotlinx.coroutines.Dispatchers
