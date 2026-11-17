@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #05070B;
+    color: #F1F5F9;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080A0F;
+}
+::-webkit-scrollbar-thumb {
+  background: #1F293D;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
+}
+
+/* Geometric Grid Background */
+.bg-cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+.bg-cyber-dots {
+  background-image: radial-gradient(rgba(37, 99, 235, 0.2) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* Solid Neo-Brutalist & Tech Accents */
+.solid-border {
+  border: 2px solid #1E293B;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.solid-border:hover {
+  border-color: #2563EB;
+  box-shadow: 4px 4px 0px 0px #2563EB;
+  transform: translate(-2px, -2px);
+}
+
+.solid-btn-blue {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: 2px solid #3B82F6;
+  box-shadow: 3px 3px 0px 0px #1D4ED8;
+  transition: all 0.15s ease;
+}
+
+.solid-btn-blue:hover {
+  box-shadow: 5px 5px 0px 0px #60A5FA;
+  transform: translate(-2px, -2px);
+}
+
+.solid-btn-blue:active {
+  box-shadow: 1px 1px 0px 0px #1D4ED8;
+  transform: translate(2px, 2px);
+}
+
+.solid-btn-gold {
+  background-color: #D97706;
+  color: #FFFFFF;
+  border: 2px solid #F59E0B;
+  box-shadow: 3px 3px 0px 0px #B45309;
+  transition: all 0.15s ease;
+}
+
+.solid-btn-gold:hover {
+  box-shadow: 5px 5px 0px 0px #FBBF24;
+  transform: translate(-2px, -2px);
+}
+
+/* 3D tilt card effect */
+.perspective-1000 {
+  perspective: 1000px;
+}
