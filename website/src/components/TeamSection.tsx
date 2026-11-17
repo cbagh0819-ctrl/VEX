@@ -39,7 +39,7 @@ const MEMBERS: TeamMember[] = [
     id: 'chandan',
     name: 'Chandan Bagh',
     role: 'Backend & High-Throughput Pipeline Lead',
-    specialty: 'Rust / Python Log Ingestion & Concurrency',
+    specialty: 'High-Performance Systems, AI Solutions & Backend Architecture',
     badgeColor: 'border-emerald-500 shadow-solid-emerald',
     solidBg: 'bg-emerald-600',
     initials: 'CB',
@@ -47,7 +47,7 @@ const MEMBERS: TeamMember[] = [
     linkedinUrl: 'https://linkedin.com/in/chandan-bagh',
     instagramUrl: 'https://www.instagram.com/chandan.bagh07/',
     instagramHandle: '@chandan.bagh07',
-    bio: 'Engineered the 100k+ EPS streaming parser, SIMD regex tokenization, and real-time Kafka/Syslog message broker bridge.'
+    bio: 'Creator of GODZIP | 3rd Place Winner at BPUT Hackathon 2026. Architected high-performance systems, real-time FastAPI telemetry, and the offline Android data cache that secured our podium finish.'
   },
   {
     id: 'deepak',
