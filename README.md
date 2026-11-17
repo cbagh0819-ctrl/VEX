@@ -1,9 +1,13 @@
 # 🛡️ VEX CyberGuard — Autonomous Endpoint Security & Deepfake Defense System
 
+[![Live Showcase](https://img.shields.io/badge/🌐%20Live%20Website-cbagh0819--ctrl.github.io%2FVEX-10B981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://cbagh0819-ctrl.github.io/VEX/)
+[![BPUT Hackathon 2026 Winner](https://img.shields.io/badge/🏆%20BPUT%20Hackathon%202026-3rd%20Prize%20Winner-F59E0B?style=for-the-badge)](https://cbagh0819-ctrl.github.io/VEX/)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20FastAPI%20%7C%20Web-blue.svg)](https://github.com/cbagh0819-ctrl/VEX)
 [![AI Architecture](https://img.shields.io/badge/AI%20Engines-MesoNet%20%7C%20Gemma%202%202B-emerald.svg)](https://github.com/cbagh0819-ctrl/VEX)
 [![Security Standard](https://img.shields.io/badge/Framework-MITRE%20ATT%26CK%20v14-red.svg)](https://attack.mitre.org/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+
+> 🚀 **Live Showcase Website**: Visit the official 3D reactive website at **[https://cbagh0819-ctrl.github.io/VEX/](https://cbagh0819-ctrl.github.io/VEX/)** featuring the interactive 3D Android reactive phone, BPUT Hackathon 2026 journey chronicle, Problem Statement 09 breakdown, and team credits.
 
 **VEX CyberGuard** is an enterprise-grade mobile security and synthetic media defense ecosystem. It provides real-time video call deepfake interception, on-device behavioral telemetry, explainable AI forensic diagnostics, blast-radius containment, and an interactive Security Operations Center (SOC) dashboard.
 
